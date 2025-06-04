@@ -41,19 +41,19 @@ const Index = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="space-y-8"
+      className="space-y-12 max-w-7xl mx-auto"
     >
-      {/* Hero Header */}
+      {/* Hero Header - Mais limpo */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <PremiumCard glass className="p-8 border-0 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-primary opacity-5" />
+        <PremiumCard glass className="p-12 border-0 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-accent-orange/5 to-transparent" />
           <div className="relative z-10">
             <motion.h1 
-              className="text-5xl font-bold text-gradient mb-3"
+              className="text-6xl font-bold text-white mb-4"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
@@ -61,7 +61,7 @@ const Index = () => {
               Suas Atividades 🚀
             </motion.h1>
             <motion.p 
-              className="text-xl text-muted-foreground mb-6"
+              className="text-xl text-navy-400 mb-8"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
@@ -73,18 +73,18 @@ const Index = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex gap-4"
+              className="flex gap-8"
             >
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Activity className="w-4 h-4 text-primary" />
+              <div className="flex items-center gap-3 text-sm text-navy-400">
+                <Activity className="w-5 h-5 text-accent-orange" />
                 <span>8 modalidades disponíveis</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Zap className="w-4 h-4 text-primary" />
+              <div className="flex items-center gap-3 text-sm text-navy-400">
+                <Zap className="w-5 h-5 text-accent-orange" />
                 <span>Tracking em tempo real</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Target className="w-4 h-4 text-primary" />
+              <div className="flex items-center gap-3 text-sm text-navy-400">
+                <Target className="w-5 h-5 text-accent-orange" />
                 <span>Metas personalizadas</span>
               </div>
             </motion.div>
@@ -99,10 +99,10 @@ const Index = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <PremiumCard glass className="p-8">
-            <div className="flex items-center justify-between mb-6">
+          <PremiumCard glass className="p-12">
+            <div className="flex items-center justify-between mb-8">
               <motion.h2 
-                className="text-3xl font-bold text-gradient"
+                className="text-4xl font-bold text-white"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.4, delay: 0.1 }}
@@ -112,7 +112,7 @@ const Index = () => {
               <AnimatedButton 
                 variant="outline"
                 onClick={() => setSelectedActivity(null)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 glass-card border-navy-600 hover:border-accent-orange/50"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Voltar
@@ -126,9 +126,9 @@ const Index = () => {
         </motion.div>
       ) : (
         <StaggerContainer>
-          <PremiumCard glass className="p-8">
+          <PremiumCard glass className="p-12">
             <motion.h2 
-              className="text-3xl font-bold text-gradient mb-6"
+              className="text-4xl font-bold text-white mb-8"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}

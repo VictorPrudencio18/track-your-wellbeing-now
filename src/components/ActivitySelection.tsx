@@ -8,19 +8,19 @@ interface ActivitySelectionProps {
 }
 
 const activities = [
-  { type: "run", label: "Corrida", icon: "🏃‍♂️", description: "GPS, pace, calorias", gradient: "success" as const },
-  { type: "cycle", label: "Ciclismo", icon: "🚴‍♂️", description: "Velocidade, elevação, mapa", gradient: "primary" as const },
-  { type: "swim", label: "Natação", icon: "🏊‍♂️", description: "Voltas, braçadas, tempo", gradient: "primary" as const },
-  { type: "gym", label: "Musculação", icon: "💪", description: "Séries, peso, descanso", gradient: "secondary" as const },
-  { type: "yoga", label: "Yoga", icon: "🧘‍♀️", description: "Poses, respiração, relaxamento", gradient: "accent" as const },
-  { type: "dance", label: "Dança", icon: "💃", description: "Estilos, movimentos, energia", gradient: "secondary" as const },
-  { type: "walk", label: "Caminhada", icon: "🚶‍♂️", description: "Distância, ritmo casual", gradient: "success" as const },
-  { type: "meditation", label: "Meditação", icon: "🧠", description: "Mindfulness, concentração", gradient: "accent" as const },
+  { type: "run", label: "Corrida", icon: "🏃‍♂️", description: "GPS, pace, calorias" },
+  { type: "cycle", label: "Ciclismo", icon: "🚴‍♂️", description: "Velocidade, elevação, mapa" },
+  { type: "swim", label: "Natação", icon: "🏊‍♂️", description: "Voltas, braçadas, tempo" },
+  { type: "gym", label: "Musculação", icon: "💪", description: "Séries, peso, descanso" },
+  { type: "yoga", label: "Yoga", icon: "🧘‍♀️", description: "Poses, respiração, relaxamento" },
+  { type: "dance", label: "Dança", icon: "💃", description: "Estilos, movimentos, energia" },
+  { type: "walk", label: "Caminhada", icon: "🚶‍♂️", description: "Distância, ritmo casual" },
+  { type: "meditation", label: "Meditação", icon: "🧠", description: "Mindfulness, concentração" },
 ];
 
 export function ActivitySelection({ onSelectActivity }: ActivitySelectionProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {activities.map((activity, index) => (
         <motion.div
           key={activity.type}
@@ -28,29 +28,25 @@ export function ActivitySelection({ onSelectActivity }: ActivitySelectionProps) 
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: index * 0.1 }}
         >
-          <PremiumCard 
-            glass 
-            className="p-4 cursor-pointer group hover:scale-105 transition-all duration-300"
-            onClick={() => onSelectActivity(activity.type)}
-          >
-            <div className="text-center space-y-3">
+          <div className="glass-card rounded-2xl p-6 cursor-pointer group hover:bg-accent-orange/5 transition-all duration-300 border border-navy-600/30 hover:border-accent-orange/30">
+            <div className="text-center space-y-4">
               <motion.div
-                className="text-4xl"
-                whileHover={{ scale: 1.2, rotate: 10 }}
+                className="text-5xl mb-2"
+                whileHover={{ scale: 1.1 }}
                 transition={{ duration: 0.2 }}
               >
                 {activity.icon}
               </motion.div>
               
-              <div>
-                <h3 className="font-semibold text-lg">{activity.label}</h3>
-                <p className="text-sm text-muted-foreground">{activity.description}</p>
+              <div className="space-y-2">
+                <h3 className="font-semibold text-xl text-white">{activity.label}</h3>
+                <p className="text-sm text-navy-400">{activity.description}</p>
               </div>
               
               <AnimatedButton 
-                variant={activity.gradient}
+                variant="default"
                 size="sm"
-                className="w-full"
+                className="w-full bg-accent-orange hover:bg-accent-orange/80 text-navy-900 font-medium border-0"
                 onClick={(e) => {
                   e.stopPropagation();
                   onSelectActivity(activity.type);
@@ -59,7 +55,7 @@ export function ActivitySelection({ onSelectActivity }: ActivitySelectionProps) 
                 Iniciar
               </AnimatedButton>
             </div>
-          </PremiumCard>
+          </div>
         </motion.div>
       ))}
     </div>
