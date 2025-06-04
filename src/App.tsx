@@ -1,9 +1,11 @@
 
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 import Index from "@/pages/Index";
 import Dashboard from "@/pages/Dashboard";
@@ -20,16 +22,27 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <Router>
           <SidebarProvider>
-            <div className="min-h-screen flex w-full">
+            <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
               <AppSidebar />
-              <main className="flex-1 space-y-4 p-4 md:p-6 lg:p-8">
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/health" element={<HealthPage />} />
-                  <Route path="/reports" element={<ReportsPage />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+              <main className="flex-1 overflow-hidden">
+                <div className="h-full overflow-y-auto">
+                  <div className="flex items-center justify-between p-4 border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+                    <div className="flex-1" />
+                    <ThemeToggle />
+                  </div>
+                  
+                  <div className="p-4 md:p-6 lg:p-8">
+                    <AnimatePresence mode="wait">
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/health" element={<HealthPage />} />
+                        <Route path="/reports" element={<ReportsPage />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </AnimatePresence>
+                  </div>
+                </div>
               </main>
             </div>
           </SidebarProvider>
