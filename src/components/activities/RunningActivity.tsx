@@ -1,8 +1,9 @@
 
 import { useState, useEffect } from "react";
-import { Play, Pause, Square, MapPin, Timer, Zap } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Play, Pause, Square, MapPin, Timer, Zap, Heart } from "lucide-react";
+import { motion } from "framer-motion";
+import { AnimatedButton } from "@/components/ui/animated-button";
+import { PremiumCard } from "@/components/ui/premium-card";
 
 interface RunningActivityProps {
   onComplete: (data: any) => void;
@@ -72,91 +73,163 @@ export function RunningActivity({ onComplete, onCancel }: RunningActivityProps) 
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            🏃‍♂️ Corrida GPS
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Timer Principal */}
-          <div className="text-center">
-            <div className="text-6xl font-mono font-bold text-blue-600 mb-2">
-              {formatTime(time)}
-            </div>
-          </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-8"
+    >
+      {/* Header */}
+      <div className="text-center">
+        <motion.div
+          className="text-6xl mb-4"
+          animate={{ scale: isActive ? [1, 1.1, 1] : 1 }}
+          transition={{ duration: 2, repeat: isActive ? Infinity : 0 }}
+        >
+          🏃‍♂️
+        </motion.div>
+        <h2 className="text-2xl font-bold text-white mb-2">Corrida GPS</h2>
+        <div className="flex items-center justify-center gap-2 text-accent-orange">
+          <div className="w-2 h-2 rounded-full bg-accent-orange animate-pulse"></div>
+          <span className="text-sm">GPS ativo</span>
+        </div>
+      </div>
 
-          {/* Métricas em Grid */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-green-50 p-4 rounded-lg text-center">
-              <MapPin className="w-6 h-6 mx-auto text-green-600 mb-2" />
-              <div className="text-2xl font-bold text-green-600">
-                {distance.toFixed(2)}
+      {/* Timer Principal */}
+      <PremiumCard glass className="p-8 text-center">
+        <motion.div
+          className="text-7xl font-mono font-bold text-accent-orange mb-4"
+          animate={{ scale: isActive ? [1, 1.02, 1] : 1 }}
+          transition={{ duration: 1, repeat: isActive ? Infinity : 0 }}
+        >
+          {formatTime(time)}
+        </motion.div>
+        <p className="text-navy-400">Tempo decorrido</p>
+      </PremiumCard>
+
+      {/* Métricas em Grid */}
+      <div className="grid grid-cols-2 gap-4">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <PremiumCard glass className="p-6 text-center hover-lift">
+            <div className="p-3 bg-green-500/10 rounded-full w-fit mx-auto mb-4 border border-green-500/20">
+              <MapPin className="w-6 h-6 text-green-400" />
+            </div>
+            <div className="text-3xl font-bold text-green-400 mb-1">
+              {distance.toFixed(2)}
+            </div>
+            <div className="text-sm text-navy-400">quilômetros</div>
+          </PremiumCard>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <PremiumCard glass className="p-6 text-center hover-lift">
+            <div className="p-3 bg-orange-500/10 rounded-full w-fit mx-auto mb-4 border border-orange-500/20">
+              <Timer className="w-6 h-6 text-orange-400" />
+            </div>
+            <div className="text-3xl font-bold text-orange-400 mb-1">{pace}</div>
+            <div className="text-sm text-navy-400">min/km</div>
+          </PremiumCard>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <PremiumCard glass className="p-6 text-center hover-lift">
+            <div className="p-3 bg-red-500/10 rounded-full w-fit mx-auto mb-4 border border-red-500/20">
+              <Zap className="w-6 h-6 text-red-400" />
+            </div>
+            <div className="text-3xl font-bold text-red-400 mb-1">{calories}</div>
+            <div className="text-sm text-navy-400">calorias</div>
+          </PremiumCard>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
+          <PremiumCard glass className="p-6 text-center hover-lift">
+            <div className="p-3 bg-purple-500/10 rounded-full w-fit mx-auto mb-4 border border-purple-500/20">
+              <Heart className="w-6 h-6 text-purple-400" />
+            </div>
+            <div className="text-3xl font-bold text-purple-400 mb-1">{heartRate}</div>
+            <div className="text-sm text-navy-400">bpm</div>
+          </PremiumCard>
+        </motion.div>
+      </div>
+
+      {/* Controles */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+        className="flex gap-4"
+      >
+        {!isActive ? (
+          <AnimatedButton 
+            onClick={() => setIsActive(true)} 
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white py-4 text-lg font-semibold"
+            size="lg"
+          >
+            <Play className="w-6 h-6 mr-3" />
+            Iniciar Corrida
+          </AnimatedButton>
+        ) : (
+          <AnimatedButton 
+            onClick={() => setIsActive(false)} 
+            variant="outline"
+            className="flex-1 glass-card border-navy-600 hover:border-accent-orange/50 text-white py-4 text-lg font-semibold"
+            size="lg"
+          >
+            <Pause className="w-6 h-6 mr-3" />
+            Pausar
+          </AnimatedButton>
+        )}
+        
+        <AnimatedButton 
+          onClick={time > 0 ? handleComplete : onCancel} 
+          variant={time > 0 ? "default" : "destructive"}
+          className={`flex-1 py-4 text-lg font-semibold ${
+            time > 0 
+              ? "bg-accent-orange hover:bg-accent-orange/80 text-navy-900" 
+              : "bg-red-600 hover:bg-red-700 text-white"
+          }`}
+          size="lg"
+        >
+          <Square className="w-6 h-6 mr-3" />
+          {time > 0 ? "Finalizar" : "Cancelar"}
+        </AnimatedButton>
+      </motion.div>
+
+      {/* Status GPS */}
+      {isActive && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center"
+        >
+          <PremiumCard glass className="p-4">
+            <div className="flex items-center justify-center gap-3 text-accent-orange">
+              <div className="flex gap-1">
+                <div className="w-1 h-4 bg-accent-orange rounded animate-pulse"></div>
+                <div className="w-1 h-4 bg-accent-orange/60 rounded animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-1 h-4 bg-accent-orange/40 rounded animate-pulse" style={{ animationDelay: '0.4s' }}></div>
               </div>
-              <div className="text-sm text-green-700">km</div>
+              <span className="text-sm font-medium">Rastreando localização GPS...</span>
             </div>
-
-            <div className="bg-orange-50 p-4 rounded-lg text-center">
-              <Timer className="w-6 h-6 mx-auto text-orange-600 mb-2" />
-              <div className="text-2xl font-bold text-orange-600">{pace}</div>
-              <div className="text-sm text-orange-700">min/km</div>
-            </div>
-
-            <div className="bg-red-50 p-4 rounded-lg text-center">
-              <Zap className="w-6 h-6 mx-auto text-red-600 mb-2" />
-              <div className="text-2xl font-bold text-red-600">{calories}</div>
-              <div className="text-sm text-red-700">calorias</div>
-            </div>
-
-            <div className="bg-purple-50 p-4 rounded-lg text-center">
-              <div className="w-6 h-6 mx-auto text-purple-600 mb-2">❤️</div>
-              <div className="text-2xl font-bold text-purple-600">{heartRate}</div>
-              <div className="text-sm text-purple-700">bpm</div>
-            </div>
-          </div>
-
-          {/* Controles */}
-          <div className="flex gap-3">
-            {!isActive ? (
-              <Button 
-                onClick={() => setIsActive(true)} 
-                className="flex-1 bg-green-600 hover:bg-green-700"
-                size="lg"
-              >
-                <Play className="w-5 h-5 mr-2" />
-                Iniciar
-              </Button>
-            ) : (
-              <Button 
-                onClick={() => setIsActive(false)} 
-                variant="outline"
-                className="flex-1"
-                size="lg"
-              >
-                <Pause className="w-5 h-5 mr-2" />
-                Pausar
-              </Button>
-            )}
-            
-            <Button 
-              onClick={time > 0 ? handleComplete : onCancel} 
-              variant={time > 0 ? "default" : "destructive"}
-              className="flex-1"
-              size="lg"
-            >
-              <Square className="w-5 h-5 mr-2" />
-              {time > 0 ? "Finalizar" : "Cancelar"}
-            </Button>
-          </div>
-
-          {isActive && (
-            <div className="text-center text-sm text-gray-600 animate-pulse">
-              🛰️ GPS ativo - Rastreando localização...
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+          </PremiumCard>
+        </motion.div>
+      )}
+    </motion.div>
   );
 }
