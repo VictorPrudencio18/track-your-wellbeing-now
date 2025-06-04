@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +14,19 @@ export function WeightTracker() {
   const [targetWeight, setTargetWeight] = useState(70);
   const [height, setHeight] = useState(175); // cm
 
+  const bmi = currentWeight / ((height / 100) ** 2);
+
+  const targetData = {
+    current: currentWeight,
+    target: targetWeight,
+    difference: Math.abs(currentWeight - targetWeight),
+    direction: currentWeight > targetWeight ? "perder" : "ganhar"
+  };
+
+  const progressToTarget = targetWeight < currentWeight 
+    ? ((currentWeight - targetData.current) / (currentWeight - targetWeight)) * 100
+    : ((targetData.current - currentWeight) / (targetWeight - currentWeight)) * 100;
+
   const weightData = healthMetrics
     .filter(metric => metric.type === 'weight')
     .slice(0, 30)
@@ -24,11 +36,6 @@ export function WeightTracker() {
       target: targetWeight,
     })).reverse();
 
-  const bmi = currentWeight / ((height / 100) ** 2);
-  const progressToTarget = targetWeight < currentWeight 
-    ? ((currentWeight - targetData.current) / (currentWeight - targetWeight)) * 100
-    : ((targetData.current - currentWeight) / (targetWeight - currentWeight)) * 100;
-
   const getBMICategory = (bmi: number) => {
     if (bmi < 18.5) return { category: "Abaixo do peso", color: "text-blue-600" };
     if (bmi < 25) return { category: "Peso normal", color: "text-green-600" };
@@ -37,12 +44,6 @@ export function WeightTracker() {
   };
 
   const bmiInfo = getBMICategory(bmi);
-  const targetData = {
-    current: currentWeight,
-    target: targetWeight,
-    difference: Math.abs(currentWeight - targetWeight),
-    direction: currentWeight > targetWeight ? "perder" : "ganhar"
-  };
 
   const handleLogWeight = () => {
     addHealthMetric({
