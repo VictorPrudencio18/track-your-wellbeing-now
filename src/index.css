@@ -74,23 +74,25 @@
   body {
     @apply bg-background text-foreground font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+    min-height: 100vh;
   }
 }
 
 @layer utilities {
-  .gradient-primary {
+  .bg-gradient-primary {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   }
   
-  .gradient-secondary {
+  .bg-gradient-secondary {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   }
   
-  .gradient-success {
+  .bg-gradient-success {
     background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   }
   
-  .gradient-accent {
+  .bg-gradient-accent {
     background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
   }
 
@@ -116,5 +118,21 @@
 
   .animate-stagger {
     animation-delay: calc(var(--stagger) * 100ms);
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 30px rgba(102, 126, 234, 0.4);
+  }
+}
+
+/* Ripple Effect */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
   }
 }
