@@ -1,5 +1,5 @@
 
-import { Home, Activity, Plus, BarChart3, User, Play } from "lucide-react";
+import { Home, Activity, Plus, BarChart3, User, Play, Heart, TrendingUp } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -13,38 +13,58 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 
+interface AppSidebarProps {
+  onNavigate?: (view: string) => void;
+}
+
 const mainItems = [
   {
     title: "Dashboard",
-    url: "#dashboard",
+    view: "dashboard",
     icon: Home,
   },
   {
     title: "Atividades",
-    url: "#activities",
+    view: "activities",
     icon: Activity,
   },
   {
     title: "Nova Atividade",
-    url: "#new-activity",
+    view: "new-activity",
     icon: Plus,
   },
   {
-    title: "Estatísticas",
-    url: "#stats",
-    icon: BarChart3,
+    title: "Saúde",
+    view: "health",
+    icon: Heart,
+  },
+  {
+    title: "Analytics",
+    view: "analytics",
+    icon: TrendingUp,
   },
 ];
 
 const accountItems = [
   {
+    title: "Estatísticas",
+    view: "stats",
+    icon: BarChart3,
+  },
+  {
     title: "Perfil",
-    url: "#profile",
+    view: "profile",
     icon: User,
   },
 ];
 
-export function AppSidebar() {
+export function AppSidebar({ onNavigate }: AppSidebarProps) {
+  const handleNavigation = (view: string) => {
+    if (onNavigate) {
+      onNavigate(view);
+    }
+  };
+
   return (
     <Sidebar className="border-r bg-gradient-to-b from-slate-50 to-slate-100">
       <SidebarHeader className="p-6">
@@ -53,7 +73,7 @@ export function AppSidebar() {
             <Play className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h2 className="font-bold text-lg">HealthTrack</h2>
+            <h2 className="font-bold text-lg">HealthTrack Pro</h2>
             <p className="text-sm text-muted-foreground">Seu parceiro fitness</p>
           </div>
         </div>
@@ -66,11 +86,12 @@ export function AppSidebar() {
             <SidebarMenu>
               {mainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="hover:bg-blue-50 hover:text-blue-700 transition-colors">
-                    <a href={item.url} className="flex items-center gap-3">
-                      <item.icon className="w-5 h-5" />
-                      <span>{item.title}</span>
-                    </a>
+                  <SidebarMenuButton 
+                    className="hover:bg-blue-50 hover:text-blue-700 transition-colors cursor-pointer"
+                    onClick={() => handleNavigation(item.view)}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -84,11 +105,12 @@ export function AppSidebar() {
             <SidebarMenu>
               {accountItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="hover:bg-blue-50 hover:text-blue-700 transition-colors">
-                    <a href={item.url} className="flex items-center gap-3">
-                      <item.icon className="w-5 h-5" />
-                      <span>{item.title}</span>
-                    </a>
+                  <SidebarMenuButton 
+                    className="hover:bg-blue-50 hover:text-blue-700 transition-colors cursor-pointer"
+                    onClick={() => handleNavigation(item.view)}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -99,7 +121,7 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-4">
         <div className="text-xs text-muted-foreground text-center">
-          Versão 1.0.0
+          HealthTrack Pro v2.0.0
         </div>
       </SidebarFooter>
     </Sidebar>
