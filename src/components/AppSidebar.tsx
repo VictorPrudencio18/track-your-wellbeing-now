@@ -64,29 +64,29 @@ export function AppSidebar({ className, ...props }: AppSidebarProps) {
 
   return (
     <Sidebar>
-      <SidebarContent className="glass-card border-r border-border/50">
+      <SidebarContent className="bg-navy-900/95 backdrop-blur-lg border-r border-navy-700/30">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
-          className="p-6"
+          className="p-6 border-b border-navy-700/20"
         >
           <motion.h1 
-            className="text-2xl font-bold text-gradient"
-            whileHover={{ scale: 1.05 }}
+            className="text-2xl font-bold text-white"
+            whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
             FitTracker
           </motion.h1>
-          <p className="text-sm text-muted-foreground mt-1">Premium Edition</p>
+          <p className="text-sm text-navy-400 mt-1">Premium Edition</p>
         </motion.div>
 
-        <SidebarGroup>
-          <SidebarGroupLabel className="px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <SidebarGroup className="px-4 py-6">
+          <SidebarGroupLabel className="px-2 text-xs font-semibold text-navy-400 uppercase tracking-wider mb-4">
             Navegação
           </SidebarGroupLabel>
-          <SidebarGroupContent className="px-3">
-            <SidebarMenu>
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-2">
               {data.navMain.map((item, index) => (
                 <SidebarMenuItem key={item.title}>
                   <motion.div
@@ -96,27 +96,36 @@ export function AppSidebar({ className, ...props }: AppSidebarProps) {
                   >
                     <SidebarMenuButton 
                       asChild
-                      className={`rounded-lg transition-all duration-200 hover:bg-gradient-primary hover:text-white group ${
-                        location.pathname === item.url 
-                          ? 'bg-gradient-primary text-white shadow-lg' 
-                          : ''
-                      }`}
+                      className={`
+                        relative rounded-xl transition-all duration-300 hover:bg-accent-orange/10 group px-3 py-3
+                        ${location.pathname === item.url 
+                          ? 'bg-accent-orange/15 text-white border border-accent-orange/20' 
+                          : 'text-navy-300 hover:text-white'
+                        }
+                      `}
                     >
-                      <Link to={item.url} className="flex items-center gap-3 px-3 py-2">
+                      <Link to={item.url} className="flex items-center gap-3">
                         <motion.div
-                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          whileHover={{ scale: 1.1 }}
                           transition={{ duration: 0.2 }}
+                          className={`
+                            p-2 rounded-lg transition-colors
+                            ${location.pathname === item.url 
+                              ? 'bg-accent-orange/20 text-accent-orange' 
+                              : 'bg-navy-800/50 text-navy-400 group-hover:bg-accent-orange/10 group-hover:text-accent-orange'
+                            }
+                          `}
                         >
-                          <item.icon className="w-5 h-5" />
+                          <item.icon className="w-4 h-4" />
                         </motion.div>
-                        <span className="font-medium">{item.title}</span>
+                        <span className="font-medium text-sm">{item.title}</span>
                         {location.pathname === item.url && (
                           <motion.div
                             layoutId="activeIndicator"
-                            className="absolute right-2 w-2 h-2 bg-white rounded-full"
+                            className="absolute right-3 w-2 h-2 bg-accent-orange rounded-full shadow-lg shadow-accent-orange/30"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
-                            transition={{ duration: 0.2 }}
+                            transition={{ duration: 0.3 }}
                           />
                         )}
                       </Link>
@@ -128,8 +137,8 @@ export function AppSidebar({ className, ...props }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
         
-        <SidebarGroup className="mt-auto">
-          <SidebarGroupContent className="px-3">
+        <SidebarGroup className="mt-auto px-4 pb-6">
+          <SidebarGroupContent>
             <SidebarMenu>
               {data.navSecondary.map((item, index) => (
                 <SidebarMenuItem key={item.title}>
@@ -140,16 +149,17 @@ export function AppSidebar({ className, ...props }: AppSidebarProps) {
                   >
                     <SidebarMenuButton 
                       asChild
-                      className="rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground"
+                      className="rounded-xl transition-all duration-300 hover:bg-navy-800/50 text-navy-300 hover:text-white px-3 py-3"
                     >
-                      <Link to={item.url} className="flex items-center gap-3 px-3 py-2">
+                      <Link to={item.url} className="flex items-center gap-3">
                         <motion.div
-                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          whileHover={{ scale: 1.1 }}
                           transition={{ duration: 0.2 }}
+                          className="p-2 rounded-lg bg-navy-800/50 text-navy-400 group-hover:bg-accent-orange/10 group-hover:text-accent-orange transition-colors"
                         >
-                          <item.icon className="w-5 h-5" />
+                          <item.icon className="w-4 h-4" />
                         </motion.div>
-                        <span className="font-medium">{item.title}</span>
+                        <span className="font-medium text-sm">{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </motion.div>
@@ -160,19 +170,19 @@ export function AppSidebar({ className, ...props }: AppSidebarProps) {
         </SidebarGroup>
 
         <motion.div 
-          className="p-6 mt-auto"
+          className="p-4 mx-4 mb-6 mt-auto"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <div className="glass-card p-4 rounded-lg border border-border/50">
+          <div className="glass-card-subtle rounded-xl p-4 border border-navy-700/30 bg-navy-800/30">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center text-white font-bold">
+              <div className="w-10 h-10 bg-accent-orange rounded-full flex items-center justify-center text-navy-900 font-bold shadow-lg">
                 F
               </div>
               <div>
-                <p className="font-semibold text-sm">Premium User</p>
-                <p className="text-xs text-muted-foreground">Level 5 Athlete</p>
+                <p className="font-semibold text-sm text-white">Premium User</p>
+                <p className="text-xs text-navy-400">Level 5 Athlete</p>
               </div>
             </div>
           </div>
