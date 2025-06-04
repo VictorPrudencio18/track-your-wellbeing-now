@@ -61,7 +61,7 @@ export const useHealth = () => {
   return context;
 };
 
-export const HealthProvider = ({ children }: { children: ReactNode }) => {
+export const HealthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [activities, setActivities] = useState<Activity[]>([
     {
       id: '1',
@@ -195,17 +195,19 @@ export const HealthProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const value: HealthContextType = {
+    activities,
+    healthMetrics,
+    goals,
+    addActivity,
+    addHealthMetric,
+    updateGoal,
+    getWeeklyStats,
+    getActivityTrends,
+  };
+
   return (
-    <HealthContext.Provider value={{
-      activities,
-      healthMetrics,
-      goals,
-      addActivity,
-      addHealthMetric,
-      updateGoal,
-      getWeeklyStats,
-      getActivityTrends,
-    }}>
+    <HealthContext.Provider value={value}>
       {children}
     </HealthContext.Provider>
   );
