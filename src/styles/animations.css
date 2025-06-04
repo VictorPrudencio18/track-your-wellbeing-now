@@ -1,0 +1,29 @@
+
+/* Clean animations */
+@keyframes gentle-fade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes subtle-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes orange-pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.4); }
+}
+
+/* Animation utility classes */
+.gentle-fade {
+  animation: gentle-fade 0.5s ease-out;
+}
+
+.subtle-float {
+  animation: subtle-float 3s ease-in-out infinite;
+}
+
+.orange-pulse {
+  animation: orange-pulse 2s ease-in-out infinite;
+}
