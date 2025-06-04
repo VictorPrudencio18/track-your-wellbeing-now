@@ -6,29 +6,29 @@
 
 @layer base {
   :root {
-    /* Cores baseadas na referência: Navy + Orange limpo */
+    /* Clean Navy + Orange Design System */
     --navy-900: #0f172a;
     --navy-800: #1e293b;
     --navy-700: #334155;
     --navy-600: #475569;
     --navy-500: #64748b;
+    --navy-400: #94a3b8;
     
-    /* Orange accent limpo */
+    /* Clean Orange accent */
     --accent-orange: #f59e0b;
     --accent-orange-dark: #d97706;
     --accent-orange-light: #fbbf24;
     
-    /* Glass morphism real */
-    --glass-bg: rgba(15, 23, 42, 0.4);
-    --glass-border: rgba(100, 116, 139, 0.15);
-    --glass-backdrop: blur(16px);
+    /* Real glass morphism */
+    --glass-bg: rgba(30, 41, 59, 0.3);
+    --glass-border: rgba(100, 116, 139, 0.1);
     
-    /* Cores do sistema shadowcn atualizadas */
+    /* Shadcn system colors - updated for consistency */
     --background: #0f172a;
     --foreground: #f8fafc;
-    --card: rgba(30, 41, 59, 0.6);
+    --card: rgba(30, 41, 59, 0.4);
     --card-foreground: #f1f5f9;
-    --popover: rgba(30, 41, 59, 0.95);
+    --popover: rgba(30, 41, 59, 0.9);
     --popover-foreground: #f8fafc;
     --primary: #f59e0b;
     --primary-foreground: #0f172a;
@@ -41,7 +41,7 @@
     --destructive: #ef4444;
     --destructive-foreground: #fef2f2;
     --border: rgba(100, 116, 139, 0.15);
-    --input: rgba(30, 41, 59, 0.8);
+    --input: rgba(30, 41, 59, 0.6);
     --ring: #f59e0b;
     --radius: 0.75rem;
     
@@ -85,32 +85,47 @@
   .text-accent-orange { color: var(--accent-orange); }
   .border-accent-orange { border-color: var(--accent-orange); }
   
-  /* Glass Morphism real baseado na referência */
+  /* Real Glass Morphism */
   .glass-card {
-    background: rgba(30, 41, 59, 0.4);
+    background: rgba(30, 41, 59, 0.3);
     backdrop-filter: blur(16px);
-    border: 1px solid rgba(100, 116, 139, 0.15);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(100, 116, 139, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   }
   
   .glass-card-subtle {
-    background: rgba(30, 41, 59, 0.3);
+    background: rgba(30, 41, 59, 0.2);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(100, 116, 139, 0.1);
+    border: 1px solid rgba(100, 116, 139, 0.08);
   }
   
-  /* Hover Effects sutis */
+  /* Missing gradient definitions */
+  .gradient-text-premium {
+    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .glass-card-premium {
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(245, 158, 11, 0.1);
+    box-shadow: 0 8px 32px rgba(245, 158, 11, 0.05);
+  }
+  
+  /* Clean hover effects */
   .hover-lift {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .hover-lift:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
   }
 }
 
-/* Scrollbar limpo */
+/* Clean scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }

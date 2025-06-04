@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,24 +31,17 @@ function App() {
         <Router>
           <SidebarProvider>
             <div className="min-h-screen flex w-full bg-navy-900">
-              {/* Background pattern mais sutil como na referência */}
-              <div className="fixed inset-0 opacity-3">
+              {/* Clean background without pattern */}
+              <div className="fixed inset-0">
                 <div className="absolute inset-0 bg-gradient-to-br from-navy-900 via-navy-900 to-navy-800" />
-                <div 
-                  className="absolute inset-0"
-                  style={{
-                    backgroundImage: `radial-gradient(circle at 1px 1px, rgba(245, 158, 11, 0.06) 1px, transparent 0)`,
-                    backgroundSize: '32px 32px'
-                  }}
-                />
               </div>
               
               <AppSidebar />
               
               <main className="flex-1 overflow-hidden relative">
                 <div className="h-full overflow-y-auto">
-                  {/* Header mais limpo */}
-                  <div className="flex items-center justify-between p-8 glass-card-subtle sticky top-0 z-10 border-b border-navy-700/30">
+                  {/* Clean header */}
+                  <div className="flex items-center justify-between p-8 glass-card-subtle sticky top-0 z-10 border-b border-navy-700/20">
                     <div className="flex-1" />
                     <div className="flex items-center gap-6">
                       <AuthButton />
@@ -57,7 +49,7 @@ function App() {
                     </div>
                   </div>
                   
-                  {/* Main content com mais padding */}
+                  {/* Main content */}
                   <div className="p-8 md:p-12 lg:p-16">
                     <AnimatePresence mode="wait">
                       <Routes>
