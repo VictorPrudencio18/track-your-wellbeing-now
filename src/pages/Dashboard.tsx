@@ -6,6 +6,8 @@ import { ModernActivityChart } from "@/components/dashboard/ModernActivityChart"
 import { WeeklyGoalsCard } from "@/components/dashboard/WeeklyGoalsCard";
 import { RecentActivitiesCard } from "@/components/dashboard/RecentActivitiesCard";
 import { AchievementsCard } from "@/components/dashboard/AchievementsCard";
+import { ContentCarousel } from "@/components/dashboard/ContentCarousel";
+import { VivaAIChat } from "@/components/dashboard/VivaAIChat";
 
 export default function Dashboard() {
   const mainStats = [
@@ -163,9 +165,20 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Bottom Section */}
+      {/* Content Carousel Section */}
+      <ContentCarousel />
+
+      {/* Content and AI Chat Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Recent Activities */}
         <RecentActivitiesCard />
+        
+        {/* AI Chat */}
+        <VivaAIChat />
+      </div>
+
+      {/* Achievements Section */}
+      <div className="grid grid-cols-1 gap-8">
         <AchievementsCard />
       </div>
     </motion.div>
