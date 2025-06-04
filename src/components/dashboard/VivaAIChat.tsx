@@ -1,44 +1,18 @@
 
 import { motion } from "framer-motion";
-import { Send, Bot, User, Sparkles, MessageCircle } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-interface ChatMessage {
-  id: string;
-  type: 'user' | 'ai';
-  content: string;
-  timestamp: string;
-  suggestions?: string[];
-}
-
-const initialMessages: ChatMessage[] = [
-  {
-    id: '1',
-    type: 'ai',
-    content: 'Olá! Eu sou a VIVA, sua assistente de saúde e bem-estar! 🌟 Estou aqui para te ajudar com dicas personalizadas baseadas em suas atividades e responder suas dúvidas sobre saúde mental e qualidade de vida.',
-    timestamp: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    type: 'ai',
-    content: 'Vi que você já caminhou 8.750 passos hoje! Que tal uma caminhada mais longa para bater sua meta? Ou posso sugerir algumas técnicas de respiração para relaxar?',
-    timestamp: new Date().toISOString(),
-    suggestions: ['Técnicas de respiração', 'Dicas de caminhada', 'Exercícios de relaxamento']
-  }
-];
-
-const quickSuggestions = [
-  'Como melhorar meu sono?',
-  'Dicas para reduzir estresse',
-  'Exercícios para ansiedade',
-  'Alimentação saudável'
-];
+import { ChatMessage } from "./chat/ChatMessage";
+import { ChatInput } from "./chat/ChatInput";
+import { QuickSuggestions } from "./chat/QuickSuggestions";
+import { TypingIndicator } from "./chat/TypingIndicator";
+import { initialMessages, quickSuggestions } from "./chat/data";
+import { ChatMessage as ChatMessageType } from "./chat/types";
 
 export function VivaAIChat() {
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [messages, setMessages] = useState<ChatMessageType[]>(initialMessages);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -74,7 +48,7 @@ export function VivaAIChat() {
       const response = keyword ? responses[keyword as keyof typeof responses] : 
         'Entendo sua pergunta! Como sua assistente de saúde, posso te ajudar com temas como sono, estresse, alimentação, exercícios e bem-estar mental. Baseado em seus dados, vejo que você tem sido consistente com as atividades - parabéns! 🎉 Pode me contar mais sobre o que especificamente te preocupa?';
 
-      const newMessage: ChatMessage = {
+      const newMessage: ChatMessageType = {
         id: Date.now().toString(),
         type: 'ai',
         content: response,
@@ -90,7 +64,7 @@ export function VivaAIChat() {
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
 
-    const userMessage: ChatMessage = {
+    const userMessage: ChatMessageType = {
       id: Date.now().toString(),
       type: 'user',
       content: inputValue,
@@ -105,13 +79,6 @@ export function VivaAIChat() {
 
   const handleSuggestionClick = (suggestion: string) => {
     setInputValue(suggestion);
-  };
-
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   return (
@@ -147,124 +114,31 @@ export function VivaAIChat() {
           <ScrollArea ref={scrollAreaRef} className="flex-1 px-3 sm:px-6 py-3 sm:py-4">
             <div className="space-y-4 sm:space-y-6">
               {messages.map((message, index) => (
-                <motion.div
+                <ChatMessage
                   key={message.id}
-                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div className={`flex gap-2 sm:gap-3 max-w-[90%] sm:max-w-[85%] ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg ${
-                      message.type === 'user' 
-                        ? 'bg-gradient-to-br from-accent-orange/30 to-accent-orange-light/20 text-accent-orange border border-accent-orange/20' 
-                        : 'bg-gradient-to-br from-accent-orange via-accent-orange-light to-yellow-400 text-navy-900'
-                    }`}>
-                      {message.type === 'user' ? <User className="w-4 h-4 sm:w-5 sm:h-5" /> : <Bot className="w-4 h-4 sm:w-5 sm:h-5" />}
-                    </div>
-                    
-                    <div className="space-y-2 sm:space-y-3 min-w-0">
-                      <div className={`relative px-3 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-3xl shadow-lg backdrop-blur-sm ${
-                        message.type === 'user'
-                          ? 'bg-gradient-to-br from-accent-orange/20 to-accent-orange-light/10 text-white border border-accent-orange/30'
-                          : 'bg-gradient-to-br from-navy-800/80 to-navy-700/60 text-white border border-navy-600/40'
-                      }`}>
-                        <p className="text-xs sm:text-sm leading-relaxed font-medium break-words">{message.content}</p>
-                        <div className={`absolute bottom-1 sm:bottom-2 ${message.type === 'user' ? 'left-2 sm:left-3' : 'right-2 sm:right-3'}`}>
-                          <p className="text-xs opacity-60 font-medium">{formatTime(message.timestamp)}</p>
-                        </div>
-                        <div className="mb-3 sm:mb-4"></div>
-                      </div>
-                      
-                      {message.suggestions && (
-                        <motion.div 
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.3, delay: 0.2 }}
-                          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-1.5 sm:gap-2"
-                        >
-                          {message.suggestions.map((suggestion, index) => (
-                            <Button
-                              key={index}
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleSuggestionClick(suggestion)}
-                              className="glass-card-subtle border-navy-600/40 text-navy-300 hover:text-white hover:border-accent-orange/40 hover:bg-accent-orange/10 text-xs rounded-full px-3 sm:px-4 py-1.5 sm:py-2 transition-all duration-300 font-medium justify-start h-auto min-h-[32px] sm:min-h-[36px]"
-                            >
-                              <span className="truncate">{suggestion}</span>
-                            </Button>
-                          ))}
-                        </motion.div>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
+                  message={message}
+                  index={index}
+                  onSuggestionClick={handleSuggestionClick}
+                />
               ))}
               
-              {isTyping && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="flex justify-start"
-                >
-                  <div className="flex gap-2 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-accent-orange via-accent-orange-light to-yellow-400 flex items-center justify-center shadow-lg">
-                      <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-navy-900" />
-                    </div>
-                    <div className="bg-gradient-to-br from-navy-800/80 to-navy-700/60 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-3xl border border-navy-600/40 shadow-lg">
-                      <div className="flex gap-1.5 sm:gap-2">
-                        <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-accent-orange rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-accent-orange rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-accent-orange rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
+              {isTyping && <TypingIndicator />}
             </div>
           </ScrollArea>
 
           <div className="border-t border-navy-700/20 bg-gradient-to-r from-navy-800/50 to-navy-700/30 backdrop-blur-sm">
             <div className="p-3 sm:p-6 space-y-3 sm:space-y-4">
-              <div className="space-y-2 sm:space-y-3">
-                <div className="flex items-center gap-2 mb-2 sm:mb-3">
-                  <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 text-accent-orange" />
-                  <span className="text-xs sm:text-sm font-medium text-navy-300">Sugestões rápidas:</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
-                  {quickSuggestions.map((suggestion) => (
-                    <Button
-                      key={suggestion}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      className="glass-card-subtle border-navy-600/40 text-navy-400 hover:text-white hover:border-accent-orange/40 hover:bg-accent-orange/10 text-xs rounded-full px-3 sm:px-4 py-1.5 sm:py-2 transition-all duration-300 font-medium justify-start h-auto min-h-[32px] sm:min-h-[36px]"
-                    >
-                      <span className="truncate">{suggestion}</span>
-                    </Button>
-                  ))}
-                </div>
-              </div>
+              <QuickSuggestions
+                suggestions={quickSuggestions}
+                onSuggestionClick={handleSuggestionClick}
+              />
 
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-end">
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    placeholder="Digite sua pergunta sobre saúde e bem-estar..."
-                    className="w-full px-3 sm:px-5 py-3 sm:py-4 bg-navy-800/60 border border-navy-600/40 rounded-xl sm:rounded-2xl text-white placeholder-navy-400 focus:outline-none focus:border-accent-orange/60 focus:bg-navy-800/80 text-sm font-medium transition-all duration-300 shadow-lg backdrop-blur-sm min-h-[44px]"
-                  />
-                </div>
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={!inputValue.trim() || isTyping}
-                  className="bg-gradient-to-r from-accent-orange to-accent-orange-light hover:from-accent-orange-dark hover:to-accent-orange text-navy-900 rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-lg font-semibold transition-all duration-300 hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none min-h-[44px] min-w-[44px] flex-shrink-0"
-                >
-                  <Send className="w-4 h-4 sm:w-5 sm:h-5" />
-                </Button>
-              </div>
+              <ChatInput
+                inputValue={inputValue}
+                setInputValue={setInputValue}
+                onSendMessage={handleSendMessage}
+                isTyping={isTyping}
+              />
             </div>
           </div>
         </CardContent>
