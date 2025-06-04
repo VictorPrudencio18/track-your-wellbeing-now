@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHealth } from "@/contexts/HealthContext";
 import { Calendar, Clock, TrendingUp } from "lucide-react";

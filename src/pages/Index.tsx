@@ -1,11 +1,8 @@
 
 import { useState } from "react";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
 import { ActivitySelection } from "@/components/ActivitySelection";
 import { ActivityTimer } from "@/components/ActivityTimer";
 import { useToast } from "@/hooks/use-toast";
-import { HealthProvider } from "@/contexts/HealthContext";
 import Dashboard from "./Dashboard";
 import HealthPage from "./HealthPage";
 
@@ -99,20 +96,11 @@ const Index = () => {
   };
 
   return (
-    <HealthProvider>
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50">
-          <AppSidebar onNavigate={handleNavigation} />
-          <main className="flex-1 p-6">
-            <div className="mb-4">
-              <SidebarTrigger className="mb-4" />
-            </div>
-            
-            {renderContent()}
-          </main>
-        </div>
-      </SidebarProvider>
-    </HealthProvider>
+    <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50">
+      <main className="flex-1 p-6">
+        {renderContent()}
+      </main>
+    </div>
   );
 };
 
