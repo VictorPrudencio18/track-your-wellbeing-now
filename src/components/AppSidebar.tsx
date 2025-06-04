@@ -78,7 +78,6 @@ export function AppSidebar({ className, ...props }: AppSidebarProps) {
           >
             VIVA + SAÚDE
           </motion.h1>
-          <p className="text-sm text-navy-400 mt-1">Premium Edition</p>
         </motion.div>
 
         <SidebarGroup className="px-4 py-6">
@@ -168,25 +167,6 @@ export function AppSidebar({ className, ...props }: AppSidebarProps) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        <motion.div 
-          className="p-4 mx-4 mb-6 mt-auto"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-        >
-          <div className="glass-card-subtle rounded-xl p-4 border border-navy-700/30 bg-navy-800/30">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-accent-orange rounded-full flex items-center justify-center text-navy-900 font-bold shadow-lg">
-                F
-              </div>
-              <div>
-                <p className="font-semibold text-sm text-white">Premium User</p>
-                <p className="text-xs text-navy-400">Level 5 Athlete</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
       </SidebarContent>
     </Sidebar>
   );
