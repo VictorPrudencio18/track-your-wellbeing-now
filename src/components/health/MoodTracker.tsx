@@ -205,7 +205,7 @@ export function MoodTracker() {
                 <h4 className="font-medium text-blue-900 mb-2">💡 Correlações Identificadas</h4>
                 <ul className="text-sm text-blue-800 space-y-1">
                   <li>• Exercícios matutinos → +2 pontos no humor</li>
-                  <li>• Sono >7h → +1.5 pontos na energia</li>
+                  <li>• Sono &gt; 7h → +1.5 pontos na energia</li>
                   <li>• Meditação → +1 ponto no bem-estar geral</li>
                 </ul>
               </div>
