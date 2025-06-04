@@ -24,7 +24,7 @@ interface AppSidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const data = {
   user: {
-    name: "FitTracker",
+    name: "VIVA + SAÚDE",
     email: "seu@email.com",
     avatar: "/placeholder.svg",
   },
@@ -76,7 +76,7 @@ export function AppSidebar({ className, ...props }: AppSidebarProps) {
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
-            FitTracker
+            VIVA + SAÚDE
           </motion.h1>
           <p className="text-sm text-navy-400 mt-1">Premium Edition</p>
         </motion.div>
