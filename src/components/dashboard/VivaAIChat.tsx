@@ -120,66 +120,80 @@ export function VivaAIChat() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.9 }}
     >
-      <Card className="glass-card border-navy-700/30 h-[600px] flex flex-col">
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-3 text-white">
-            <div className="w-10 h-10 bg-gradient-to-br from-accent-orange to-accent-orange-light rounded-full flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-navy-900" />
+      <Card className="glass-card border-navy-700/30 h-[650px] flex flex-col overflow-hidden">
+        <CardHeader className="pb-6 border-b border-navy-700/20">
+          <CardTitle className="flex items-center gap-4 text-white">
+            <div className="relative">
+              <div className="w-12 h-12 bg-gradient-to-br from-accent-orange via-accent-orange-light to-yellow-400 rounded-2xl flex items-center justify-center shadow-lg">
+                <Sparkles className="w-6 h-6 text-navy-900 animate-pulse" />
+              </div>
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-navy-900 animate-pulse shadow-sm"></div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold">IA VIVA</h3>
-              <p className="text-sm text-navy-400 font-normal">Sua assistente de bem-estar</p>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold bg-gradient-to-r from-white to-accent-orange bg-clip-text text-transparent">
+                IA VIVA
+              </h3>
+              <p className="text-sm text-navy-400 font-medium">Sua assistente pessoal de bem-estar</p>
             </div>
-            <div className="ml-auto">
-              <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+            <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 rounded-full border border-green-500/20">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-xs text-green-400 font-medium">Online</span>
             </div>
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="flex-1 flex flex-col p-4 pt-0 space-y-4">
-          <ScrollArea ref={scrollAreaRef} className="flex-1 pr-4">
-            <div className="space-y-4">
-              {messages.map((message) => (
+        <CardContent className="flex-1 flex flex-col p-0 space-y-0">
+          <ScrollArea ref={scrollAreaRef} className="flex-1 px-6 py-4">
+            <div className="space-y-6">
+              {messages.map((message, index) => (
                 <motion.div
                   key={message.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
                   className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`flex gap-3 max-w-[80%] ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  <div className={`flex gap-3 max-w-[85%] ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg ${
                       message.type === 'user' 
-                        ? 'bg-accent-orange/20 text-accent-orange' 
-                        : 'bg-gradient-to-br from-accent-orange to-accent-orange-light text-navy-900'
+                        ? 'bg-gradient-to-br from-accent-orange/30 to-accent-orange-light/20 text-accent-orange border border-accent-orange/20' 
+                        : 'bg-gradient-to-br from-accent-orange via-accent-orange-light to-yellow-400 text-navy-900'
                     }`}>
-                      {message.type === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                      {message.type === 'user' ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
                     </div>
                     
-                    <div className="space-y-2">
-                      <div className={`px-4 py-3 rounded-2xl ${
+                    <div className="space-y-3">
+                      <div className={`relative px-6 py-4 rounded-3xl shadow-lg backdrop-blur-sm ${
                         message.type === 'user'
-                          ? 'bg-accent-orange/20 text-white border border-accent-orange/30'
-                          : 'glass-card-subtle text-white border border-navy-700/30'
+                          ? 'bg-gradient-to-br from-accent-orange/20 to-accent-orange-light/10 text-white border border-accent-orange/30'
+                          : 'bg-gradient-to-br from-navy-800/80 to-navy-700/60 text-white border border-navy-600/40'
                       }`}>
-                        <p className="text-sm leading-relaxed">{message.content}</p>
-                        <p className="text-xs opacity-60 mt-2">{formatTime(message.timestamp)}</p>
+                        <p className="text-sm leading-relaxed font-medium">{message.content}</p>
+                        <div className={`absolute bottom-2 ${message.type === 'user' ? 'left-3' : 'right-3'}`}>
+                          <p className="text-xs opacity-60 font-medium">{formatTime(message.timestamp)}</p>
+                        </div>
+                        <div className="mb-4"></div>
                       </div>
                       
                       {message.suggestions && (
-                        <div className="flex flex-wrap gap-2">
+                        <motion.div 
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: 0.2 }}
+                          className="flex flex-wrap gap-2"
+                        >
                           {message.suggestions.map((suggestion, index) => (
                             <Button
                               key={index}
                               variant="outline"
                               size="sm"
                               onClick={() => handleSuggestionClick(suggestion)}
-                              className="glass-card-subtle border-navy-700/30 text-navy-300 hover:text-white hover:border-accent-orange/30 text-xs"
+                              className="glass-card-subtle border-navy-600/40 text-navy-300 hover:text-white hover:border-accent-orange/40 hover:bg-accent-orange/10 text-xs rounded-full px-4 py-2 transition-all duration-300 font-medium"
                             >
                               {suggestion}
                             </Button>
                           ))}
-                        </div>
+                        </motion.div>
                       )}
                     </div>
                   </div>
@@ -188,19 +202,19 @@ export function VivaAIChat() {
               
               {isTyping && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
                   className="flex justify-start"
                 >
                   <div className="flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent-orange to-accent-orange-light flex items-center justify-center">
-                      <Bot className="w-4 h-4 text-navy-900" />
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-accent-orange via-accent-orange-light to-yellow-400 flex items-center justify-center shadow-lg">
+                      <Bot className="w-5 h-5 text-navy-900" />
                     </div>
-                    <div className="glass-card-subtle px-4 py-3 rounded-2xl border border-navy-700/30">
-                      <div className="flex gap-1">
-                        <div className="w-2 h-2 bg-accent-orange rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-accent-orange rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 bg-accent-orange rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="bg-gradient-to-br from-navy-800/80 to-navy-700/60 px-6 py-4 rounded-3xl border border-navy-600/40 shadow-lg">
+                      <div className="flex gap-2">
+                        <div className="w-2.5 h-2.5 bg-accent-orange rounded-full animate-bounce"></div>
+                        <div className="w-2.5 h-2.5 bg-accent-orange rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2.5 h-2.5 bg-accent-orange rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
                     </div>
                   </div>
@@ -209,41 +223,50 @@ export function VivaAIChat() {
             </div>
           </ScrollArea>
 
-          {/* Quick Suggestions */}
-          <div className="space-y-3">
-            <div className="flex flex-wrap gap-2">
-              {quickSuggestions.map((suggestion) => (
-                <Button
-                  key={suggestion}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleSuggestionClick(suggestion)}
-                  className="glass-card-subtle border-navy-700/30 text-navy-400 hover:text-white hover:border-accent-orange/30 text-xs"
-                >
-                  {suggestion}
-                </Button>
-              ))}
-            </div>
-
-            {/* Input Area */}
-            <div className="flex gap-2">
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Digite sua pergunta sobre saúde e bem-estar..."
-                  className="w-full px-4 py-3 bg-navy-800/50 border border-navy-700/30 rounded-xl text-white placeholder-navy-400 focus:outline-none focus:border-accent-orange/50 text-sm"
-                />
+          {/* Enhanced Bottom Section */}
+          <div className="border-t border-navy-700/20 bg-gradient-to-r from-navy-800/50 to-navy-700/30 backdrop-blur-sm">
+            <div className="p-6 space-y-4">
+              {/* Quick Suggestions */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <MessageCircle className="w-4 h-4 text-accent-orange" />
+                  <span className="text-sm font-medium text-navy-300">Sugestões rápidas:</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {quickSuggestions.map((suggestion) => (
+                    <Button
+                      key={suggestion}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      className="glass-card-subtle border-navy-600/40 text-navy-400 hover:text-white hover:border-accent-orange/40 hover:bg-accent-orange/10 text-xs rounded-full px-4 py-2 transition-all duration-300 font-medium"
+                    >
+                      {suggestion}
+                    </Button>
+                  ))}
+                </div>
               </div>
-              <Button
-                onClick={handleSendMessage}
-                disabled={!inputValue.trim() || isTyping}
-                className="bg-accent-orange hover:bg-accent-orange-dark text-navy-900 rounded-xl px-4 py-3"
-              >
-                <Send className="w-4 h-4" />
-              </Button>
+
+              {/* Enhanced Input Area */}
+              <div className="flex gap-3 items-end">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    placeholder="Digite sua pergunta sobre saúde e bem-estar..."
+                    className="w-full px-5 py-4 bg-navy-800/60 border border-navy-600/40 rounded-2xl text-white placeholder-navy-400 focus:outline-none focus:border-accent-orange/60 focus:bg-navy-800/80 text-sm font-medium transition-all duration-300 shadow-lg backdrop-blur-sm"
+                  />
+                </div>
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={!inputValue.trim() || isTyping}
+                  className="bg-gradient-to-r from-accent-orange to-accent-orange-light hover:from-accent-orange-dark hover:to-accent-orange text-navy-900 rounded-2xl px-6 py-4 shadow-lg font-semibold transition-all duration-300 hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  <Send className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
