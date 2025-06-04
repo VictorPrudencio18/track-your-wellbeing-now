@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useHealth } from "@/contexts/HealthContext";
-import { FileText, Download, Calendar, TrendingUp, Target, Zap } from "lucide-react";
+import { FileText, Download, Calendar, TrendingUp, Target, Zap, PieChart, BarChart } from "lucide-react";
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 export function ReportExporter() {
   const { activities, healthMetrics, getWeeklyStats } = useHealth();
@@ -14,7 +15,6 @@ export function ReportExporter() {
   const generateWeeklyReport = () => {
     setIsGenerating(true);
     
-    // Simulação de geração de PDF
     setTimeout(() => {
       const reportData = {
         period: "Última Semana",
@@ -29,7 +29,6 @@ export function ReportExporter() {
         }
       };
 
-      // Criar um blob com os dados do relatório (simulado)
       const reportContent = `
 === RELATÓRIO SEMANAL DE FITNESS ===
 Período: ${reportData.startDate} - ${reportData.endDate}
@@ -100,14 +99,6 @@ PROGRESSÃO:
 - Treinos por semana: ${(monthlyStats.totalActivities / 4).toFixed(1)}
 - Calorias por dia: ${(monthlyStats.totalCalories / 30).toFixed(1)}
 
-ATIVIDADES MAIS FREQUENTES:
-${activities
-  .reduce((acc, a) => {
-    acc[a.type] = (acc[a.type] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>)
-}
-
 Gerado em: ${new Date().toLocaleString('pt-BR')}
       `;
 
@@ -129,131 +120,155 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
   const currentWeekStart = new Date();
   currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
 
+  const reportTypes = [
+    {
+      title: "Relatório Semanal",
+      description: "Análise detalhada dos últimos 7 dias",
+      period: `${currentWeekStart.toLocaleDateString('pt-BR')} - ${new Date().toLocaleDateString('pt-BR')}`,
+      icon: Calendar,
+      color: "from-blue-500 to-blue-600",
+      bgColor: "from-blue-500/10 to-blue-600/5",
+      stats: [
+        { label: "Treinos", value: weeklyStats.totalWorkouts },
+        { label: "Calorias", value: weeklyStats.totalCalories },
+        { label: "Distância", value: `${weeklyStats.totalDistance.toFixed(1)} km` }
+      ],
+      action: generateWeeklyReport
+    },
+    {
+      title: "Relatório Mensal",
+      description: "Visão completa do mês atual",
+      period: currentMonth,
+      icon: TrendingUp,
+      color: "from-green-500 to-green-600",
+      bgColor: "from-green-500/10 to-green-600/5",
+      stats: [
+        { label: "Média Semanal", value: `${(weeklyStats.totalWorkouts * 4).toFixed(0)} treinos` },
+        { label: "Meta Mensal", value: "85% atingida" },
+        { label: "Progresso", value: "+12% vs anterior" }
+      ],
+      action: generateMonthlyReport
+    }
+  ];
+
+  const dataStats = [
+    {
+      icon: Target,
+      value: activities.length,
+      label: "Atividades",
+      color: "from-blue-500 to-blue-600"
+    },
+    {
+      icon: Zap,
+      value: activities.reduce((sum, a) => sum + a.calories, 0),
+      label: "Calorias Total",
+      color: "from-orange-500 to-orange-600"
+    },
+    {
+      icon: TrendingUp,
+      value: `${activities.reduce((sum, a) => sum + (a.distance || 0), 0).toFixed(1)} km`,
+      label: "Distância Total",
+      color: "from-green-500 to-green-600"
+    },
+    {
+      icon: PieChart,
+      value: healthMetrics.length,
+      label: "Métricas Saúde",
+      color: "from-purple-500 to-purple-600"
+    }
+  ];
+
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Relatórios Exportáveis
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Relatório Semanal */}
-            <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-blue-500 rounded-full">
-                  <Calendar className="w-5 h-5 text-white" />
+    <div className="space-y-8">
+      {/* Report Generation Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {reportTypes.map((report, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: index * 0.2 }}
+          >
+            <Card className={`glass-card border-navy-600/20 bg-gradient-to-br ${report.bgColor} hover-lift overflow-hidden relative`}>
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-4">
+                  <div className={`p-3 bg-gradient-to-r ${report.color} rounded-2xl`}>
+                    <report.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <CardTitle className="text-white text-xl">{report.title}</CardTitle>
+                    <p className="text-navy-300 text-sm mt-1">{report.description}</p>
+                    <p className="text-navy-400 text-xs mt-2">{report.period}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-blue-900">Relatório Semanal</h3>
-                  <p className="text-sm text-blue-700">
-                    {currentWeekStart.toLocaleDateString('pt-BR')} - {new Date().toLocaleDateString('pt-BR')}
-                  </p>
-                </div>
-              </div>
+              </CardHeader>
               
-              <div className="space-y-3 mb-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Treinos</span>
-                  <Badge variant="secondary">{weeklyStats.totalWorkouts}</Badge>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-3 gap-4">
+                  {report.stats.map((stat, statIndex) => (
+                    <div key={statIndex} className="text-center">
+                      <p className="text-lg font-bold text-white">{stat.value}</p>
+                      <p className="text-xs text-navy-400">{stat.label}</p>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Calorias</span>
-                  <Badge variant="secondary">{weeklyStats.totalCalories}</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Distância</span>
-                  <Badge variant="secondary">{weeklyStats.totalDistance.toFixed(1)} km</Badge>
-                </div>
+
+                <Button 
+                  onClick={report.action}
+                  disabled={isGenerating}
+                  className={`w-full bg-gradient-to-r ${report.color} hover:opacity-90 text-white border-0 shadow-lg`}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  {isGenerating ? "Gerando..." : `Baixar ${report.title}`}
+                </Button>
+              </CardContent>
+
+              {/* Background decoration */}
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/5 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Data Overview */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.4 }}
+      >
+        <Card className="glass-card border-navy-600/20 bg-navy-800/30">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-orange-500/20 rounded-lg">
+                <BarChart className="w-5 h-5 text-orange-400" />
               </div>
-
-              <Button 
-                onClick={generateWeeklyReport} 
-                disabled={isGenerating}
-                className="w-full"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                {isGenerating ? "Gerando..." : "Baixar Relatório Semanal"}
-              </Button>
-            </div>
-
-            {/* Relatório Mensal */}
-            <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-green-500 rounded-full">
-                  <TrendingUp className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-green-900">Relatório Mensal</h3>
-                  <p className="text-sm text-green-700">{currentMonth}</p>
-                </div>
+              <div>
+                <CardTitle className="text-white">Dados Disponíveis para Relatórios</CardTitle>
+                <p className="text-navy-400 text-sm mt-1">Resumo completo das suas informações</p>
               </div>
-              
-              <div className="space-y-3 mb-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Média Semanal</span>
-                  <Badge variant="secondary">{(weeklyStats.totalWorkouts * 4).toFixed(0)} treinos</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Meta Mensal</span>
-                  <Badge variant="secondary">85% atingida</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Progresso</span>
-                  <Badge variant="default">+12% vs mês anterior</Badge>
-                </div>
-              </div>
-
-              <Button 
-                onClick={generateMonthlyReport} 
-                disabled={isGenerating}
-                variant="outline"
-                className="w-full border-green-200 hover:bg-green-50"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                {isGenerating ? "Gerando..." : "Baixar Relatório Mensal"}
-              </Button>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Resumo de Dados Disponíveis */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Dados Disponíveis para Relatórios</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <Target className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-              <p className="text-2xl font-bold text-gray-800">{activities.length}</p>
-              <p className="text-sm text-gray-600">Atividades</p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {dataStats.map((stat, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4, delay: 0.5 + (index * 0.1) }}
+                  className="text-center p-4 rounded-2xl bg-navy-700/30 border border-navy-600/20 hover-lift"
+                >
+                  <div className={`w-12 h-12 mx-auto mb-3 rounded-2xl bg-gradient-to-r ${stat.color} flex items-center justify-center`}>
+                    <stat.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <p className="text-2xl font-bold text-white mb-1">{stat.value}</p>
+                  <p className="text-sm text-navy-400">{stat.label}</p>
+                </motion.div>
+              ))}
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <Zap className="w-8 h-8 mx-auto mb-2 text-orange-600" />
-              <p className="text-2xl font-bold text-gray-800">
-                {activities.reduce((sum, a) => sum + a.calories, 0)}
-              </p>
-              <p className="text-sm text-gray-600">Calorias Total</p>
-            </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <TrendingUp className="w-8 h-8 mx-auto mb-2 text-green-600" />
-              <p className="text-2xl font-bold text-gray-800">
-                {activities.reduce((sum, a) => sum + (a.distance || 0), 0).toFixed(1)}
-              </p>
-              <p className="text-sm text-gray-600">Km Total</p>
-            </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <Calendar className="w-8 h-8 mx-auto mb-2 text-purple-600" />
-              <p className="text-2xl font-bold text-gray-800">{healthMetrics.length}</p>
-              <p className="text-sm text-gray-600">Métricas Saúde</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }
