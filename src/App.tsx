@@ -31,11 +31,25 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <Router>
           <SidebarProvider>
-            <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+            <div className="min-h-screen flex w-full bg-navy-900">
+              {/* Subtle background pattern */}
+              <div className="fixed inset-0 opacity-5">
+                <div className="absolute inset-0 bg-gradient-to-br from-navy-800 to-navy-900" />
+                <div 
+                  className="absolute inset-0"
+                  style={{
+                    backgroundImage: `radial-gradient(circle at 1px 1px, rgba(245, 158, 11, 0.15) 1px, transparent 0)`,
+                    backgroundSize: '20px 20px'
+                  }}
+                />
+              </div>
+              
               <AppSidebar />
-              <main className="flex-1 overflow-hidden">
+              
+              <main className="flex-1 overflow-hidden relative">
                 <div className="h-full overflow-y-auto">
-                  <div className="flex items-center justify-between p-4 border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+                  {/* Header */}
+                  <div className="flex items-center justify-between p-6 glass-card-subtle sticky top-0 z-10">
                     <div className="flex-1" />
                     <div className="flex items-center gap-4">
                       <AuthButton />
@@ -43,7 +57,8 @@ function App() {
                     </div>
                   </div>
                   
-                  <div className="p-4 md:p-6 lg:p-8">
+                  {/* Main content */}
+                  <div className="p-6 md:p-8 lg:p-12">
                     <AnimatePresence mode="wait">
                       <Routes>
                         <Route path="/" element={<Index />} />

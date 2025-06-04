@@ -1,7 +1,7 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Target, TrendingUp, Zap, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { MinimalStatsCard } from '@/components/ui/minimal-stats-card';
 import { useActivities } from '@/hooks/useSupabaseActivities';
 import { useUserScores } from '@/hooks/useSupabaseScores';
 import { useAuth } from '@/hooks/useAuth';
@@ -15,14 +15,12 @@ export function SupabaseStatsCards() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[...Array(4)].map((_, i) => (
-          <Card key={i}>
-            <CardContent className="pt-6">
-              <div className="animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-              </div>
-            </CardContent>
-          </Card>
+          <div key={i} className="glass-card rounded-2xl p-6">
+            <div className="animate-pulse">
+              <div className="h-4 bg-navy-700 rounded w-3/4 mb-2"></div>
+              <div className="h-8 bg-navy-700 rounded w-1/2"></div>
+            </div>
+          </div>
         ))}
       </div>
     );
@@ -30,9 +28,9 @@ export function SupabaseStatsCards() {
 
   if (!user) {
     return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
+      <Alert className="glass-card border-accent-orange/20">
+        <AlertCircle className="h-4 w-4 text-accent-orange" />
+        <AlertDescription className="text-white">
           Faça login para ver suas estatísticas de atividades e pontuação.
         </AlertDescription>
       </Alert>
@@ -41,9 +39,9 @@ export function SupabaseStatsCards() {
 
   if (activitiesError || scoresError) {
     return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
+      <Alert className="glass-card border-red-500/20">
+        <AlertCircle className="h-4 w-4 text-red-400" />
+        <AlertDescription className="text-white">
           Erro ao carregar estatísticas. Tente atualizar a página.
         </AlertDescription>
       </Alert>
@@ -54,14 +52,12 @@ export function SupabaseStatsCards() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[...Array(4)].map((_, i) => (
-          <Card key={i}>
-            <CardContent className="pt-6">
-              <div className="animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-              </div>
-            </CardContent>
-          </Card>
+          <div key={i} className="glass-card rounded-2xl p-6">
+            <div className="animate-pulse">
+              <div className="h-4 bg-navy-700 rounded w-3/4 mb-2"></div>
+              <div className="h-8 bg-navy-700 rounded w-1/2"></div>
+            </div>
+          </div>
         ))}
       </div>
     );
@@ -75,46 +71,40 @@ export function SupabaseStatsCards() {
   const stats = [
     {
       title: "Total de Atividades",
-      value: totalActivities.toString(),
+      value: totalActivities,
       icon: Activity,
-      gradient: "from-blue-500 to-blue-600",
+      delay: 0
     },
     {
       title: "Distância Total",
       value: `${totalDistance.toFixed(1)} km`,
       icon: Target,
-      gradient: "from-green-500 to-green-600",
+      delay: 0.1
     },
     {
       title: "Calorias Queimadas",
       value: totalCalories.toLocaleString(),
       icon: Zap,
-      gradient: "from-orange-500 to-orange-600",
+      delay: 0.2
     },
     {
       title: "Sequência Atual",
       value: `${currentStreak} dias`,
       icon: TrendingUp,
-      gradient: "from-purple-500 to-purple-600",
+      delay: 0.3
     },
   ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {stats.map((stat, index) => (
-        <Card key={index} className="overflow-hidden">
-          <CardContent className="p-0">
-            <div className={`bg-gradient-to-r ${stat.gradient} p-4 text-white`}>
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-white/80 text-sm font-medium">{stat.title}</p>
-                  <p className="text-2xl font-bold mt-1">{stat.value}</p>
-                </div>
-                <stat.icon className="w-8 h-8 text-white/90" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <MinimalStatsCard
+          key={index}
+          title={stat.title}
+          value={stat.value}
+          icon={stat.icon}
+          delay={stat.delay}
+        />
       ))}
     </div>
   );

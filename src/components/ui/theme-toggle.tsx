@@ -6,7 +6,7 @@ import { useDarkMode } from '@/hooks/use-dark-mode';
 import { Button } from '@/components/ui/button';
 
 export function ThemeToggle() {
-  const { theme, setTheme, isDark } = useDarkMode();
+  const { theme, setTheme } = useDarkMode();
 
   const themeIcons = {
     light: Sun,
@@ -27,7 +27,7 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={() => setTheme(getNextTheme())}
-      className="relative overflow-hidden"
+      className="relative overflow-hidden glass-card-subtle border-navy-700 hover:border-accent-orange/50 hover:bg-accent-orange/10"
     >
       <motion.div
         key={theme}
@@ -36,14 +36,8 @@ export function ThemeToggle() {
         exit={{ y: 20, opacity: 0 }}
         transition={{ duration: 0.2 }}
       >
-        <Icon className="h-4 w-4" />
+        <Icon className="h-4 w-4 text-accent-orange" />
       </motion.div>
-      
-      <motion.div
-        className="absolute inset-0 bg-gradient-primary opacity-0"
-        whileHover={{ opacity: 0.1 }}
-        transition={{ duration: 0.2 }}
-      />
       
       <span className="sr-only">
         Alternar tema - Atual: {theme}

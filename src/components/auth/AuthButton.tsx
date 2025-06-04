@@ -39,7 +39,12 @@ export function AuthButton() {
 
   if (loading) {
     return (
-      <Button variant="ghost" size="sm" disabled>
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        disabled
+        className="glass-card-subtle border-navy-700"
+      >
         Carregando...
       </Button>
     );
@@ -47,13 +52,18 @@ export function AuthButton() {
 
   if (user) {
     return (
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">
+      <div className="flex items-center gap-3">
+        <span className="text-sm text-navy-400 hidden sm:block">
           Olá, {user.user_metadata?.full_name || user.email}
         </span>
-        <Button variant="ghost" size="sm" onClick={handleSignOut}>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleSignOut}
+          className="glass-card-subtle border-navy-700 hover:border-accent-orange/50 hover:bg-accent-orange/10 text-white"
+        >
           <LogOut className="w-4 h-4" />
-          Sair
+          <span className="hidden sm:inline ml-2">Sair</span>
         </Button>
       </div>
     );
@@ -61,7 +71,12 @@ export function AuthButton() {
 
   return (
     <>
-      <Button variant="ghost" size="sm" onClick={() => setShowAuthModal(true)}>
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={() => setShowAuthModal(true)}
+        className="glass-card-subtle border-navy-700 hover:border-accent-orange/50 hover:bg-accent-orange/10 text-white"
+      >
         <User className="w-4 h-4 mr-2" />
         Entrar
       </Button>
