@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-gradient-primary text-white hover:shadow-lg hover:shadow-blue-500/25",
+        primary: "bg-gradient-primary text-white hover:shadow-lg hover:shadow-blue-500/25",
         destructive: "bg-gradient-secondary text-white hover:shadow-lg hover:shadow-red-500/25",
         outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:border-primary/50",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
@@ -34,7 +35,7 @@ const buttonVariants = cva(
 );
 
 export interface AnimatedButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onDrag'>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   loading?: boolean;
@@ -43,15 +44,30 @@ export interface AnimatedButtonProps
 
 const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButtonProps>(
   ({ className, variant, size, asChild = false, loading = false, pulse = false, children, ...props }, ref) => {
-    const Comp = asChild ? Slot : motion.button;
+    if (asChild) {
+      return (
+        <Slot
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref}
+          {...props}
+        >
+          {children}
+        </Slot>
+      );
+    }
+    
+    // Separate motion props from button props
+    const motionProps: HTMLMotionProps<"button"> = {
+      whileHover: { scale: 1.02 },
+      whileTap: { scale: 0.98 },
+      transition: { type: "spring", stiffness: 400, damping: 25 }
+    };
     
     return (
-      <Comp
+      <motion.button
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        {...motionProps}
         {...props}
       >
         {loading && (
@@ -69,7 +85,7 @@ const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButtonProps>(
           />
         )}
         {children}
-      </Comp>
+      </motion.button>
     );
   }
 );

@@ -10,6 +10,7 @@ interface PremiumCardProps {
   gradient?: 'primary' | 'secondary' | 'success' | 'accent';
   hover?: boolean;
   delay?: number;
+  onClick?: () => void;
 }
 
 export function PremiumCard({ 
@@ -18,7 +19,8 @@ export function PremiumCard({
   glass = false, 
   gradient,
   hover = true,
-  delay = 0
+  delay = 0,
+  onClick
 }: PremiumCardProps) {
   const baseClasses = "rounded-xl border transition-all duration-300";
   
@@ -48,6 +50,7 @@ export function PremiumCard({
         y: -4,
         transition: { duration: 0.2 }
       } : {}}
+      onClick={onClick}
       className={cn(
         baseClasses,
         glassClasses,
