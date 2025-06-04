@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -40,17 +41,17 @@ function App() {
               
               <main className="flex-1 overflow-hidden relative">
                 <div className="h-full overflow-y-auto">
-                  {/* Clean header */}
-                  <div className="flex items-center justify-between p-8 glass-card-subtle sticky top-0 z-10 border-b border-navy-700/20">
+                  {/* Responsive header */}
+                  <div className="flex items-center justify-between p-4 sm:p-6 lg:p-8 glass-card-subtle sticky top-0 z-10 border-b border-navy-700/20">
                     <div className="flex-1" />
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-3 sm:gap-6">
                       <AuthButton />
                       <ThemeToggle />
                     </div>
                   </div>
                   
-                  {/* Main content */}
-                  <div className="p-8 md:p-12 lg:p-16">
+                  {/* Main content with responsive padding */}
+                  <div className="p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16">
                     <AnimatePresence mode="wait">
                       <Routes>
                         <Route path="/" element={<Index />} />

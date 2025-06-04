@@ -84,19 +84,19 @@ export default function Dashboard() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="space-y-8"
+      className="space-y-6 sm:space-y-8"
     >
-      {/* Hero Header */}
+      {/* Hero Header - Responsivo */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         className="relative overflow-hidden"
       >
-        <div className="glass-card-premium rounded-3xl p-8 border border-accent-orange/20">
+        <div className="glass-card-premium rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 border border-accent-orange/20">
           <div className="relative z-10">
             <motion.h1 
-              className="text-5xl font-bold gradient-text-premium mb-3"
+              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold gradient-text-premium mb-2 sm:mb-3"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
@@ -104,7 +104,7 @@ export default function Dashboard() {
               Dashboard
             </motion.h1>
             <motion.p 
-              className="text-xl text-white/80 max-w-2xl"
+              className="text-base sm:text-lg lg:text-xl text-white/80 max-w-2xl"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
@@ -113,14 +113,14 @@ export default function Dashboard() {
             </motion.p>
             
             {/* Floating elements for visual interest */}
-            <div className="absolute -top-4 -right-4 w-32 h-32 bg-accent-orange/10 rounded-full blur-xl animate-gentle-float" />
-            <div className="absolute -bottom-8 -left-8 w-40 h-40 bg-accent-orange/5 rounded-full blur-2xl animate-gentle-float" style={{ animationDelay: '1s' }} />
+            <div className="absolute -top-4 -right-4 w-20 h-20 sm:w-32 sm:h-32 bg-accent-orange/10 rounded-full blur-xl animate-gentle-float" />
+            <div className="absolute -bottom-8 -left-8 w-24 h-24 sm:w-40 sm:h-40 bg-accent-orange/5 rounded-full blur-2xl animate-gentle-float" style={{ animationDelay: '1s' }} />
           </div>
         </div>
       </motion.div>
 
-      {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Main Stats Grid - Responsivo */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {mainStats.map((stat, index) => (
           <HealthStatsCard
             key={index}
@@ -136,8 +136,8 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Secondary Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Secondary Stats Grid - Responsivo */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {secondaryStats.map((stat, index) => (
           <HealthStatsCard
             key={index}
@@ -152,9 +152,9 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Charts and Activities Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Chart - takes 2 columns */}
+      {/* Charts and Activities Section - Layout responsivo */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+        {/* Main Chart - takes 2 columns on large screens */}
         <div className="lg:col-span-2">
           <ModernActivityChart />
         </div>
@@ -168,17 +168,21 @@ export default function Dashboard() {
       {/* Content Carousel Section */}
       <ContentCarousel />
 
-      {/* Content and AI Chat Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Content and AI Chat Section - Stack em mobile */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
         {/* Recent Activities */}
-        <RecentActivitiesCard />
+        <div className="order-2 xl:order-1">
+          <RecentActivitiesCard />
+        </div>
         
         {/* AI Chat */}
-        <VivaAIChat />
+        <div className="order-1 xl:order-2">
+          <VivaAIChat />
+        </div>
       </div>
 
       {/* Achievements Section */}
-      <div className="grid grid-cols-1 gap-8">
+      <div className="grid grid-cols-1 gap-6 sm:gap-8">
         <AchievementsCard />
       </div>
     </motion.div>

@@ -108,82 +108,105 @@ export function ContentCarousel() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.8 }}
-      className="space-y-6"
+      className="space-y-4 sm:space-y-6"
     >
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">
             Conteúdos Exclusivos
           </h2>
-          <p className="text-navy-400">
+          <p className="text-sm sm:text-base text-navy-400">
             Artigos e dicas criados pelos nossos especialistas
           </p>
         </div>
       </div>
 
-      <Carousel className="w-full">
-        <CarouselContent className="-ml-2 md:-ml-4">
-          {mockPosts.map((post, index) => (
-            <CarouselItem key={post.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <Card className="glass-card border-navy-700/30 hover:border-accent-orange/30 transition-all duration-300 h-full group cursor-pointer">
-                  <CardContent className="p-0">
-                    <div className={`h-48 bg-gradient-to-br ${post.gradient} rounded-t-lg relative overflow-hidden`}>
-                      <div className="absolute inset-0 bg-navy-900/20" />
-                      <div className="absolute top-4 left-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getCategoryColor(post.category)}`}>
-                          {post.category}
-                        </span>
-                      </div>
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <h3 className="text-white font-semibold text-lg line-clamp-2 group-hover:text-accent-orange transition-colors">
-                          {post.title}
-                        </h3>
-                      </div>
-                    </div>
-                    
-                    <div className="p-6 space-y-4">
-                      <p className="text-navy-300 text-sm line-clamp-3 leading-relaxed">
-                        {post.description}
-                      </p>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-accent-orange/20 rounded-full flex items-center justify-center text-xs font-semibold text-accent-orange">
-                            {post.author.avatar}
-                          </div>
-                          <div>
-                            <p className="text-white text-sm font-medium">{post.author.name}</p>
-                          </div>
+      <div className="relative">
+        <Carousel 
+          className="w-full"
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+        >
+          <CarouselContent className="-ml-2 md:-ml-4">
+            {mockPosts.map((post, index) => (
+              <CarouselItem key={post.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/2 xl:basis-1/3">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="h-full"
+                >
+                  <Card className="glass-card border-navy-700/30 hover:border-accent-orange/30 transition-all duration-300 h-full group cursor-pointer">
+                    <CardContent className="p-0 h-full flex flex-col">
+                      <div className={`h-32 sm:h-40 lg:h-48 bg-gradient-to-br ${post.gradient} rounded-t-lg relative overflow-hidden flex-shrink-0`}>
+                        <div className="absolute inset-0 bg-navy-900/20" />
+                        <div className="absolute top-3 sm:top-4 left-3 sm:left-4">
+                          <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium border ${getCategoryColor(post.category)}`}>
+                            {post.category}
+                          </span>
+                        </div>
+                        <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
+                          <h3 className="text-white font-semibold text-sm sm:text-base lg:text-lg line-clamp-2 group-hover:text-accent-orange transition-colors leading-tight">
+                            {post.title}
+                          </h3>
                         </div>
                       </div>
                       
-                      <div className="flex items-center justify-between text-xs text-navy-400 pt-2 border-t border-navy-700/30">
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            <span>{formatDate(post.publishDate)}</span>
+                      <div className="p-4 sm:p-6 space-y-3 sm:space-y-4 flex-1 flex flex-col">
+                        <p className="text-navy-300 text-xs sm:text-sm line-clamp-3 leading-relaxed flex-1">
+                          {post.description}
+                        </p>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-accent-orange/20 rounded-full flex items-center justify-center text-xs font-semibold text-accent-orange flex-shrink-0">
+                              {post.author.avatar}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-white text-xs sm:text-sm font-medium truncate">{post.author.name}</p>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            <span>{post.readTime}</span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between text-xs text-navy-400 pt-2 border-t border-navy-700/30">
+                          <div className="flex items-center gap-3 sm:gap-4">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              <span className="text-xs">{formatDate(post.publishDate)}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              <span className="text-xs">{post.readTime}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </CarouselItem>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          
+          {/* Navigation buttons - hidden on small screens */}
+          <div className="hidden sm:block">
+            <CarouselPrevious className="glass-card border-navy-700/30 text-white hover:bg-accent-orange/20 hover:border-accent-orange/40 -left-6 lg:-left-12 w-10 h-10 lg:w-12 lg:h-12" />
+            <CarouselNext className="glass-card border-navy-700/30 text-white hover:bg-accent-orange/20 hover:border-accent-orange/40 -right-6 lg:-right-12 w-10 h-10 lg:w-12 lg:h-12" />
+          </div>
+        </Carousel>
+        
+        {/* Mobile navigation dots - visible only on small screens */}
+        <div className="sm:hidden flex justify-center mt-4 gap-2">
+          {mockPosts.map((_, index) => (
+            <div
+              key={index}
+              className="w-2 h-2 rounded-full bg-navy-600/50"
+            />
           ))}
-        </CarouselContent>
-        <CarouselPrevious className="glass-card border-navy-700/30 text-white hover:bg-accent-orange/20 hover:border-accent-orange/40" />
-        <CarouselNext className="glass-card border-navy-700/30 text-white hover:bg-accent-orange/20 hover:border-accent-orange/40" />
-      </Carousel>
+        </div>
+      </div>
     </motion.div>
   );
 }
