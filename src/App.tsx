@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { AuthButton } from "@/components/auth/AuthButton";
 
 import Index from "@/pages/Index";
 import Dashboard from "@/pages/Dashboard";
@@ -28,7 +29,10 @@ function App() {
                 <div className="h-full overflow-y-auto">
                   <div className="flex items-center justify-between p-4 border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
                     <div className="flex-1" />
-                    <ThemeToggle />
+                    <div className="flex items-center gap-4">
+                      <AuthButton />
+                      <ThemeToggle />
+                    </div>
                   </div>
                   
                   <div className="p-4 md:p-6 lg:p-8">
