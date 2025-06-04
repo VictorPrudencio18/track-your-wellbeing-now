@@ -1,7 +1,8 @@
 
 import { motion } from "framer-motion";
-import { Calendar, Clock, Tag, ChevronLeft, ChevronRight, User } from "lucide-react";
+import { Calendar, Clock, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Carousel,
   CarouselContent,
@@ -9,82 +10,11 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-
-interface ContentPost {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  readTime: string;
-  publishDate: string;
-  author: {
-    name: string;
-    avatar: string;
-  };
-  image: string;
-  gradient: string;
-}
-
-const mockPosts: ContentPost[] = [
-  {
-    id: "1",
-    title: "5 Exercícios para Melhorar sua Saúde Mental",
-    description: "Descubra exercícios simples que podem transformar seu bem-estar emocional e reduzir o estresse do dia a dia.",
-    category: "Saúde Mental",
-    readTime: "5 min",
-    publishDate: "2024-06-01",
-    author: {
-      name: "Dr. Ana Silva",
-      avatar: "AS"
-    },
-    image: "/placeholder.svg",
-    gradient: "from-purple-500/20 to-pink-500/20"
-  },
-  {
-    id: "2",
-    title: "Nutrição Inteligente: Alimentação Consciente",
-    description: "Aprenda a fazer escolhas alimentares que nutrem seu corpo e mente para uma vida mais equilibrada.",
-    category: "Nutrição",
-    readTime: "7 min",
-    publishDate: "2024-05-28",
-    author: {
-      name: "Nutri. Carlos Lima",
-      avatar: "CL"
-    },
-    image: "/placeholder.svg",
-    gradient: "from-green-500/20 to-emerald-500/20"
-  },
-  {
-    id: "3",
-    title: "Sono Reparador: Técnicas para Dormir Melhor",
-    description: "Estratégias comprovadas para melhorar a qualidade do seu sono e acordar mais disposto todos os dias.",
-    category: "Bem-estar",
-    readTime: "6 min",
-    publishDate: "2024-05-25",
-    author: {
-      name: "Dr. Maria Santos",
-      avatar: "MS"
-    },
-    image: "/placeholder.svg",
-    gradient: "from-blue-500/20 to-cyan-500/20"
-  },
-  {
-    id: "4",
-    title: "Mindfulness no Trabalho: Produtividade Consciente",
-    description: "Como aplicar técnicas de atenção plena no ambiente profissional para reduzir estresse e aumentar o foco.",
-    category: "Produtividade",
-    readTime: "8 min",
-    publishDate: "2024-05-22",
-    author: {
-      name: "Coach Roberto Dias",
-      avatar: "RD"
-    },
-    image: "/placeholder.svg",
-    gradient: "from-orange-500/20 to-yellow-500/20"
-  }
-];
+import { useContentPosts } from "@/hooks/useSupabaseContent";
 
 export function ContentCarousel() {
+  const { data: posts, isLoading, error } = useContentPosts();
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-BR', {
@@ -102,6 +32,88 @@ export function ContentCarousel() {
     };
     return colors[category as keyof typeof colors] || 'bg-navy-500/10 text-navy-400 border-navy-500/20';
   };
+
+  if (error) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
+        className="space-y-4 sm:space-y-6"
+      >
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">
+            Conteúdos Exclusivos
+          </h2>
+          <p className="text-sm sm:text-base text-navy-400">
+            Artigos e dicas criados pelos nossos especialistas
+          </p>
+        </div>
+        <Alert className="glass-card border-red-500/20">
+          <AlertCircle className="h-4 w-4 text-red-400" />
+          <AlertDescription className="text-white">
+            Erro ao carregar conteúdos. Tente atualizar a página.
+          </AlertDescription>
+        </Alert>
+      </motion.div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
+        className="space-y-4 sm:space-y-6"
+      >
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">
+            Conteúdos Exclusivos
+          </h2>
+          <p className="text-sm sm:text-base text-navy-400">
+            Artigos e dicas criados pelos nossos especialistas
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="glass-card rounded-2xl p-6">
+              <div className="animate-pulse">
+                <div className="h-32 bg-navy-700/30 rounded-xl mb-4"></div>
+                <div className="h-4 bg-navy-700 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-navy-700 rounded w-1/2"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (!posts || posts.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
+        className="space-y-4 sm:space-y-6"
+      >
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">
+            Conteúdos Exclusivos
+          </h2>
+          <p className="text-sm sm:text-base text-navy-400">
+            Artigos e dicas criados pelos nossos especialistas
+          </p>
+        </div>
+        <div className="text-center py-8">
+          <p className="text-navy-400 text-sm">
+            Nenhum conteúdo disponível no momento.
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -130,7 +142,7 @@ export function ContentCarousel() {
           }}
         >
           <CarouselContent className="-ml-2 md:-ml-4">
-            {mockPosts.map((post, index) => (
+            {posts.map((post, index) => (
               <CarouselItem key={post.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/2 xl:basis-1/3">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -140,7 +152,7 @@ export function ContentCarousel() {
                 >
                   <Card className="glass-card border-navy-700/30 hover:border-accent-orange/30 transition-all duration-300 h-full group cursor-pointer">
                     <CardContent className="p-0 h-full flex flex-col">
-                      <div className={`h-32 sm:h-40 lg:h-48 bg-gradient-to-br ${post.gradient} rounded-t-lg relative overflow-hidden flex-shrink-0`}>
+                      <div className={`h-32 sm:h-40 lg:h-48 bg-gradient-to-br ${post.gradient_class || 'from-blue-500/20 to-cyan-500/20'} rounded-t-lg relative overflow-hidden flex-shrink-0`}>
                         <div className="absolute inset-0 bg-navy-900/20" />
                         <div className="absolute top-3 sm:top-4 left-3 sm:left-4">
                           <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium border ${getCategoryColor(post.category)}`}>
@@ -162,10 +174,10 @@ export function ContentCarousel() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                             <div className="w-6 h-6 sm:w-8 sm:h-8 bg-accent-orange/20 rounded-full flex items-center justify-center text-xs font-semibold text-accent-orange flex-shrink-0">
-                              {post.author.avatar}
+                              {post.author_avatar}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-white text-xs sm:text-sm font-medium truncate">{post.author.name}</p>
+                              <p className="text-white text-xs sm:text-sm font-medium truncate">{post.author_name}</p>
                             </div>
                           </div>
                         </div>
@@ -174,11 +186,11 @@ export function ContentCarousel() {
                           <div className="flex items-center gap-3 sm:gap-4">
                             <div className="flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
-                              <span className="text-xs">{formatDate(post.publishDate)}</span>
+                              <span className="text-xs">{formatDate(post.publish_date)}</span>
                             </div>
                             <div className="flex items-center gap-1">
                               <Clock className="w-3 h-3" />
-                              <span className="text-xs">{post.readTime}</span>
+                              <span className="text-xs">{post.read_time}</span>
                             </div>
                           </div>
                         </div>
@@ -199,7 +211,7 @@ export function ContentCarousel() {
         
         {/* Mobile navigation dots - visible only on small screens */}
         <div className="sm:hidden flex justify-center mt-4 gap-2">
-          {mockPosts.map((_, index) => (
+          {posts.map((_, index) => (
             <div
               key={index}
               className="w-2 h-2 rounded-full bg-navy-600/50"
