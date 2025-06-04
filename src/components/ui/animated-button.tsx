@@ -110,7 +110,6 @@ const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButtonProps>(
       onDragStart,
       onDragEnd,
       onAnimationStart,
-      onAnimationComplete,
       ...buttonProps
     } = props;
     
