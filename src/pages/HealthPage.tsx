@@ -207,7 +207,7 @@ export default function HealthPage() {
                   exit={{ opacity: 0, x: 20, scale: 0.98 }}
                   transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
                 >
-                  <HolographicCard variant="glass" className="p-8" glow={true}>
+                  <HolographicCard variant="premium" className="p-8" glow={true}>
                     <Component />
                   </HolographicCard>
                 </motion.div>

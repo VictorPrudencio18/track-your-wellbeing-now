@@ -39,7 +39,7 @@ const buttonVariants = cva(
 );
 
 export interface AnimatedButtonProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onAnimationStart'>,
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   loading?: boolean;
@@ -93,19 +93,34 @@ const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButtonProps>(
       
       onClick?.(e);
     };
+
+    // Separate motion props from button props
+    const motionProps = {
+      whileHover: { 
+        scale: variant === 'premium' ? 1.05 : 1.02,
+        y: -2
+      },
+      whileTap: { scale: 0.98 },
+      transition: { type: "spring", stiffness: 400, damping: 25 }
+    };
+
+    // Filter out motion-specific props that conflict with HTML button props
+    const {
+      onDrag,
+      onDragStart,
+      onDragEnd,
+      onAnimationStart,
+      onAnimationComplete,
+      ...buttonProps
+    } = props;
     
     return (
       <motion.button
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        whileHover={{ 
-          scale: variant === 'premium' ? 1.05 : 1.02,
-          y: -2
-        }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ type: "spring", stiffness: 400, damping: 25 }}
         onClick={handleClick}
-        {...props}
+        {...motionProps}
+        {...buttonProps}
       >
         {loading && (
           <motion.div

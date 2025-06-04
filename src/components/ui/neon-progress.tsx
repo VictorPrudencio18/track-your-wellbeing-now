@@ -7,7 +7,7 @@ interface NeonProgressProps {
   value: number;
   max?: number;
   className?: string;
-  color?: 'blue' | 'purple' | 'pink' | 'cyan' | 'green';
+  color?: 'blue' | 'purple' | 'pink' | 'cyan' | 'green' | 'orange';
   animated?: boolean;
   glow?: boolean;
   showPercentage?: boolean;
@@ -49,6 +49,11 @@ export function NeonProgress({
       bg: 'rgba(34, 197, 94, 0.1)',
       fill: 'linear-gradient(90deg, #22c55e, #16a34a)',
       glow: '0 0 20px rgba(34, 197, 94, 0.6)'
+    },
+    orange: {
+      bg: 'rgba(249, 115, 22, 0.1)',
+      fill: 'linear-gradient(90deg, #f97316, #ea580c)',
+      glow: '0 0 20px rgba(249, 115, 22, 0.6)'
     }
   };
 
