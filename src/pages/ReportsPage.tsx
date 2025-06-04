@@ -154,7 +154,7 @@ export default function ReportsPage() {
         <Tabs defaultValue="heatmap" className="w-full">
           {/* Enhanced Tab Navigation */}
           <div className="p-6 pb-0">
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 gap-2 bg-navy-800/30 p-2 h-auto rounded-2xl">
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 gap-2 bg-navy-800/50 p-2 h-auto rounded-2xl">
               {[
                 { 
                   value: "heatmap", 
@@ -188,18 +188,18 @@ export default function ReportsPage() {
                 <TabsTrigger 
                   key={tab.value}
                   value={tab.value} 
-                  className="flex flex-col items-center gap-2 p-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-navy-700/50 data-[state=active]:to-navy-600/50 data-[state=active]:text-white rounded-xl transition-all duration-300 text-center min-h-[80px] group hover:bg-navy-700/30"
+                  className="flex flex-col items-center gap-2 p-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-navy-600/80 data-[state=active]:to-navy-700/60 data-[state=active]:text-white rounded-xl transition-all duration-300 text-center min-h-[90px] group hover:bg-navy-700/40 text-white/90"
                 >
                   <motion.div
                     whileHover={{ scale: 1.1 }}
                     transition={{ duration: 0.2 }}
-                    className={`p-2 rounded-lg bg-gradient-to-r ${tab.color} group-data-[state=active]:shadow-lg`}
+                    className={`p-2.5 rounded-lg bg-gradient-to-r ${tab.color} group-data-[state=active]:shadow-lg shadow-md`}
                   >
-                    <tab.icon className="w-4 h-4 text-white" />
+                    <tab.icon className="w-5 h-5 text-white" />
                   </motion.div>
                   <div>
-                    <span className="text-sm font-medium block">{tab.label}</span>
-                    <span className="text-xs text-navy-400 group-data-[state=active]:text-navy-300 hidden sm:block">
+                    <span className="text-sm font-semibold block text-white">{tab.label}</span>
+                    <span className="text-xs text-navy-300 group-data-[state=active]:text-navy-200 block mt-1">
                       {tab.description}
                     </span>
                   </div>
