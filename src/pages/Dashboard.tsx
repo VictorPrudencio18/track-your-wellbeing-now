@@ -10,6 +10,19 @@ import { useHealth } from "@/contexts/HealthContext";
 export default function Dashboard() {
   const { activities } = useHealth();
 
+  // Transform Activity[] to ActivityData[] format expected by RecentActivity
+  const transformedActivities = activities.slice(0, 5).map(activity => ({
+    id: activity.id,
+    type: activity.type,
+    duration: `${Math.floor(activity.duration / 60)}:${(activity.duration % 60).toString().padStart(2, '0')}`,
+    distance: activity.distance ? `${activity.distance.toFixed(1)} km` : undefined,
+    date: activity.date.toLocaleDateString('pt-BR', { 
+      day: '2-digit', 
+      month: '2-digit' 
+    }),
+    calories: activity.calories,
+  }));
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -69,7 +82,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RecentActivity activities={activities.slice(0, 5)} />
+        <RecentActivity activities={transformedActivities} />
         
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Início Rápido</h2>
