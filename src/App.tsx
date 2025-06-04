@@ -7,6 +7,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { AuthButton } from "@/components/auth/AuthButton";
+import { Toaster } from "@/components/ui/toaster";
 
 import Index from "@/pages/Index";
 import Dashboard from "@/pages/Dashboard";
@@ -15,7 +16,14 @@ import NotFound from "@/pages/NotFound";
 import { HealthProvider } from "@/contexts/HealthContext";
 import ReportsPage from "@/pages/ReportsPage";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 3,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 function App() {
   return (
@@ -49,6 +57,7 @@ function App() {
                 </div>
               </main>
             </div>
+            <Toaster />
           </SidebarProvider>
         </Router>
       </QueryClientProvider>

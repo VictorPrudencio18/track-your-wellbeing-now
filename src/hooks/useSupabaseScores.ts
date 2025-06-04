@@ -9,17 +9,28 @@ export function useUserScores() {
   return useQuery({
     queryKey: ['user-scores'],
     queryFn: async () => {
+      console.log('Fetching user scores...');
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      
+      if (!user) {
+        console.log('No user found for scores');
+        return null;
+      }
 
       const { data, error } = await supabase
         .from('user_scores')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      return data as UserScore;
+      if (error) {
+        console.error('Error fetching user scores:', error);
+        throw error;
+      }
+      
+      console.log('User scores fetched:', data);
+      return data as UserScore | null;
     },
+    retry: 3,
   });
 }

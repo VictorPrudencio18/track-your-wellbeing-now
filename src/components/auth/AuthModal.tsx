@@ -1,12 +1,13 @@
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -18,28 +19,62 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: redirectUrl,
           data: {
             full_name: name,
           },
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Signup error:', error);
+        if (error.message.includes('User already registered')) {
+          setError('Este email já está cadastrado. Tente fazer login.');
+        } else if (error.message.includes('Password should be at least')) {
+          setError('A senha deve ter pelo menos 6 caracteres.');
+        } else if (error.message.includes('Invalid email')) {
+          setError('Por favor, insira um email válido.');
+        } else {
+          setError(error.message);
+        }
+        return;
+      }
+
+      if (data.user && !data.session) {
+        toast({
+          title: "Conta criada!",
+          description: "Verifique seu email para confirmar a conta.",
+        });
+      } else {
+        toast({
+          title: "Conta criada com sucesso!",
+          description: "Você foi logado automaticamente.",
+        });
+      }
       
-      toast.success('Conta criada! Verifique seu email para confirmar.');
       onClose();
+      
+      // Reset form
+      setEmail('');
+      setPassword('');
+      setName('');
     } catch (error: any) {
-      toast.error(error.message);
+      console.error('Unexpected signup error:', error);
+      setError('Erro inesperado. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
@@ -48,19 +83,40 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
-      
-      toast.success('Login realizado com sucesso!');
-      onClose();
+      if (error) {
+        console.error('Signin error:', error);
+        if (error.message.includes('Invalid login credentials')) {
+          setError('Email ou senha incorretos.');
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('Por favor, confirme seu email antes de fazer login.');
+        } else {
+          setError(error.message);
+        }
+        return;
+      }
+
+      if (data.user) {
+        toast({
+          title: "Login realizado!",
+          description: `Bem-vindo de volta, ${data.user.user_metadata?.full_name || data.user.email}!`,
+        });
+        onClose();
+        
+        // Reset form
+        setEmail('');
+        setPassword('');
+      }
     } catch (error: any) {
-      toast.error(error.message);
+      console.error('Unexpected signin error:', error);
+      setError('Erro inesperado. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
@@ -71,7 +127,16 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Bem-vindo ao FitTracker</DialogTitle>
+          <DialogDescription>
+            Entre na sua conta ou crie uma nova para começar
+          </DialogDescription>
         </DialogHeader>
+        
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -89,6 +154,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  placeholder="seu@email.com"
                 />
               </div>
               <div className="space-y-2">
@@ -99,6 +165,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  placeholder="Sua senha"
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
@@ -117,6 +184,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
+                  placeholder="Seu nome completo"
                 />
               </div>
               <div className="space-y-2">
@@ -127,6 +195,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  placeholder="seu@email.com"
                 />
               </div>
               <div className="space-y-2">
@@ -138,6 +207,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
+                  placeholder="Mínimo 6 caracteres"
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>

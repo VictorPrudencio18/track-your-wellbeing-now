@@ -6,13 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useCreateActivity } from '@/hooks/useSupabaseActivities';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { Enums } from '@/integrations/supabase/types';
+import { AlertCircle } from 'lucide-react';
 
 export function SupabaseActivityTracker() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const createActivity = useCreateActivity();
   
   const [formData, setFormData] = useState({
@@ -24,20 +26,41 @@ export function SupabaseActivityTracker() {
     notes: '',
   });
 
-  if (!user) {
+  if (authLoading) {
     return (
       <Card>
         <CardContent className="pt-6">
-          <p className="text-center text-muted-foreground">
-            Faça login para registrar suas atividades
-          </p>
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+            <div className="h-32 bg-gray-200 rounded"></div>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
+  if (!user) {
+    return (
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Faça login para registrar suas atividades e acompanhar seu progresso.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.duration || parseInt(formData.duration) <= 0) {
+      toast({
+        title: "Erro",
+        description: "Por favor, insira uma duração válida.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
       await createActivity.mutateAsync({
@@ -49,9 +72,7 @@ export function SupabaseActivityTracker() {
         notes: formData.notes || undefined,
       });
       
-      toast.success('Atividade registrada com sucesso!');
-      
-      // Reset form
+      // Reset form on success
       setFormData({
         type: 'walking',
         name: '',
@@ -61,7 +82,8 @@ export function SupabaseActivityTracker() {
         notes: '',
       });
     } catch (error: any) {
-      toast.error('Erro ao registrar atividade: ' + error.message);
+      // Error is handled by the mutation
+      console.error('Activity creation failed:', error);
     }
   };
 
@@ -110,11 +132,12 @@ export function SupabaseActivityTracker() {
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="duration">Duração (min)</Label>
+              <Label htmlFor="duration">Duração (min) *</Label>
               <Input
                 id="duration"
                 type="number"
                 required
+                min="1"
                 value={formData.duration}
                 onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
                 placeholder="30"
@@ -127,6 +150,7 @@ export function SupabaseActivityTracker() {
                 id="distance"
                 type="number"
                 step="0.1"
+                min="0"
                 value={formData.distance}
                 onChange={(e) => setFormData(prev => ({ ...prev, distance: e.target.value }))}
                 placeholder="5.0"
@@ -138,6 +162,7 @@ export function SupabaseActivityTracker() {
               <Input
                 id="calories"
                 type="number"
+                min="0"
                 value={formData.calories}
                 onChange={(e) => setFormData(prev => ({ ...prev, calories: e.target.value }))}
                 placeholder="300"

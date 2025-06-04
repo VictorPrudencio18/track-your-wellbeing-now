@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { AuthModal } from './AuthModal';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 export function AuthButton() {
   const { user, loading } = useAuth();
@@ -13,15 +13,36 @@ export function AuthButton() {
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
-      toast.success('Logout realizado com sucesso!');
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Signout error:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao fazer logout. Tente novamente.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Logout realizado",
+          description: "Você foi deslogado com sucesso!",
+        });
+      }
     } catch (error: any) {
-      toast.error('Erro ao fazer logout');
+      console.error('Unexpected signout error:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao fazer logout.",
+        variant: "destructive",
+      });
     }
   };
 
   if (loading) {
-    return <Button variant="ghost" size="sm" disabled>Carregando...</Button>;
+    return (
+      <Button variant="ghost" size="sm" disabled>
+        Carregando...
+      </Button>
+    );
   }
 
   if (user) {

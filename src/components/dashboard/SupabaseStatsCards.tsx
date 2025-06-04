@@ -1,26 +1,52 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, Target, TrendingUp, Zap } from 'lucide-react';
+import { Activity, Target, TrendingUp, Zap, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useActivities } from '@/hooks/useSupabaseActivities';
 import { useUserScores } from '@/hooks/useSupabaseScores';
 import { useAuth } from '@/hooks/useAuth';
 
 export function SupabaseStatsCards() {
-  const { user } = useAuth();
-  const { data: activities, isLoading: activitiesLoading } = useActivities();
-  const { data: userScores, isLoading: scoresLoading } = useUserScores();
+  const { user, loading: authLoading } = useAuth();
+  const { data: activities, isLoading: activitiesLoading, error: activitiesError } = useActivities();
+  const { data: userScores, isLoading: scoresLoading, error: scoresError } = useUserScores();
+
+  if (authLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i}>
+            <CardContent className="pt-6">
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   if (!user) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">
-              Faça login para ver suas estatísticas
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Faça login para ver suas estatísticas de atividades e pontuação.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (activitiesError || scoresError) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Erro ao carregar estatísticas. Tente atualizar a página.
+        </AlertDescription>
+      </Alert>
     );
   }
 
