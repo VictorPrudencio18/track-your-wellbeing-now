@@ -369,6 +369,114 @@ export type Database = {
           },
         ]
       }
+      checkin_prompts: {
+        Row: {
+          context_triggers: string[] | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          options: Json | null
+          priority: number | null
+          prompt_key: string
+          question: string
+          response_type: string
+          time_ranges: string[] | null
+        }
+        Insert: {
+          context_triggers?: string[] | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          options?: Json | null
+          priority?: number | null
+          prompt_key: string
+          question: string
+          response_type: string
+          time_ranges?: string[] | null
+        }
+        Update: {
+          context_triggers?: string[] | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          options?: Json | null
+          priority?: number | null
+          prompt_key?: string
+          question?: string
+          response_type?: string
+          time_ranges?: string[] | null
+        }
+        Relationships: []
+      }
+      daily_health_checkins: {
+        Row: {
+          ate_healthy: boolean | null
+          checkin_date: string
+          created_at: string
+          energy_level: number | null
+          exercise_completed: boolean | null
+          exercise_planned: boolean | null
+          exercise_type: string | null
+          had_dinner: boolean | null
+          had_lunch: boolean | null
+          hydration_glasses: number | null
+          id: string
+          mood_rating: number | null
+          notes: string | null
+          sleep_hours: number | null
+          sleep_quality: number | null
+          stress_level: number | null
+          updated_at: string
+          user_id: string
+          wellness_score: number | null
+          work_satisfaction: number | null
+        }
+        Insert: {
+          ate_healthy?: boolean | null
+          checkin_date?: string
+          created_at?: string
+          energy_level?: number | null
+          exercise_completed?: boolean | null
+          exercise_planned?: boolean | null
+          exercise_type?: string | null
+          had_dinner?: boolean | null
+          had_lunch?: boolean | null
+          hydration_glasses?: number | null
+          id?: string
+          mood_rating?: number | null
+          notes?: string | null
+          sleep_hours?: number | null
+          sleep_quality?: number | null
+          stress_level?: number | null
+          updated_at?: string
+          user_id: string
+          wellness_score?: number | null
+          work_satisfaction?: number | null
+        }
+        Update: {
+          ate_healthy?: boolean | null
+          checkin_date?: string
+          created_at?: string
+          energy_level?: number | null
+          exercise_completed?: boolean | null
+          exercise_planned?: boolean | null
+          exercise_type?: string | null
+          had_dinner?: boolean | null
+          had_lunch?: boolean | null
+          hydration_glasses?: number | null
+          id?: string
+          mood_rating?: number | null
+          notes?: string | null
+          sleep_hours?: number | null
+          sleep_quality?: number | null
+          stress_level?: number | null
+          updated_at?: string
+          user_id?: string
+          wellness_score?: number | null
+          work_satisfaction?: number | null
+        }
+        Relationships: []
+      }
       friendships: {
         Row: {
           addressee_id: string | null
@@ -812,6 +920,17 @@ export type Database = {
           activity_distance?: number
           activity_calories?: number
           activity_type?: Database["public"]["Enums"]["activity_type"]
+        }
+        Returns: number
+      }
+      calculate_wellness_score: {
+        Args: {
+          sleep_qual: number
+          stress_lvl: number
+          energy_lvl: number
+          mood_rat: number
+          exercise_done: boolean
+          hydration_glasses: number
         }
         Returns: number
       }
