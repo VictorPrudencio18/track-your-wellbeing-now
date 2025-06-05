@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -103,70 +102,108 @@ export function SleepGoals() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
+          className="space-y-8"
         >
-          <Card className="glass-card-holographic border-navy-600/30 overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-emerald-500/5 to-teal-500/5" />
+          {/* Meta Atual Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl">
+                <CheckCircle className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-white">Meta Atual</h3>
+                <p className="text-gray-300">Acompanhe seu progresso semanal</p>
+              </div>
+            </div>
+            <Badge variant="outline" className="border-green-400/50 text-green-400 bg-green-500/10 px-4 py-2 text-sm">
+              Ativa
+            </Badge>
+          </div>
+
+          {/* Progress Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <SleepMetricsCard
+              title="Duração"
+              value={`${progress.duration}%`}
+              subtitle={`Meta: ${formatDuration(activeGoal.target_duration)}`}
+              icon={Clock}
+              color="blue"
+              progress={progress.duration}
+              trend={progress.duration >= 85 ? "up" : progress.duration <= 70 ? "down" : "stable"}
+              trendValue={progress.duration >= 85 ? "Excelente" : progress.duration <= 70 ? "Precisa melhorar" : "No caminho certo"}
+              status={progress.duration >= 90 ? "excellent" : progress.duration >= 80 ? "good" : progress.duration >= 65 ? "fair" : "poor"}
+              delay={0.2}
+              insights={[
+                `Você está dormindo em média 6.8h das ${formatDuration(activeGoal.target_duration)} desejadas`,
+                "Tente manter consistência nos horários"
+              ]}
+            />
             
-            <CardHeader className="relative z-10">
+            <SleepMetricsCard
+              title="Consistência"
+              value={`${progress.consistency}%`}
+              subtitle={`Meta: ${activeGoal.consistency_goal} dias/semana`}
+              icon={Calendar}
+              color="purple"
+              progress={progress.consistency}
+              trend={progress.consistency >= 80 ? "up" : progress.consistency <= 60 ? "down" : "stable"}
+              trendValue={`${Math.round((progress.consistency / 100) * 7)} de 7 noites`}
+              status={progress.consistency >= 85 ? "excellent" : progress.consistency >= 70 ? "good" : progress.consistency >= 55 ? "fair" : "poor"}
+              delay={0.3}
+              insights={[
+                "5 de 7 noites seguindo a rotina esta semana",
+                "Fins de semana são mais desafiadores"
+              ]}
+            />
+            
+            <SleepMetricsCard
+              title="Qualidade"
+              value={`${progress.quality}%`}
+              subtitle={`Meta: ${activeGoal.quality_goal}/10`}
+              icon={Star}
+              color="green"
+              progress={progress.quality}
+              trend={progress.quality >= 80 ? "up" : progress.quality <= 65 ? "down" : "stable"}
+              trendValue={`Score médio: ${(progress.quality / 10).toFixed(1)}/10`}
+              status={progress.quality >= 85 ? "excellent" : progress.quality >= 75 ? "good" : progress.quality >= 60 ? "fair" : "poor"}
+              delay={0.4}
+              insights={[
+                "Score médio de 8.0/10 na qualidade subjetiva",
+                "Ambiente tem impacto significativo"
+              ]}
+            />
+            
+            <SleepMetricsCard
+              title="Horário"
+              value={`${progress.bedtime}%`}
+              subtitle={`Meta: ${activeGoal.target_bedtime}`}
+              icon={Moon}
+              color="orange"
+              progress={progress.bedtime}
+              trend={progress.bedtime >= 85 ? "up" : progress.bedtime <= 70 ? "down" : "stable"}
+              trendValue={progress.bedtime >= 85 ? "Muito consistente" : "Pode melhorar"}
+              status={progress.bedtime >= 90 ? "excellent" : progress.bedtime >= 80 ? "good" : progress.bedtime >= 65 ? "fair" : "poor"}
+              delay={0.5}
+              insights={[
+                `Média de horário: ${activeGoal.target_bedtime}`,
+                "Variação de ±15min é aceitável"
+              ]}
+            />
+          </div>
+
+          {/* Detailed Progress Section */}
+          <Card className="glass-card border-2 border-green-500/30 bg-gradient-to-br from-navy-800/80 to-navy-900/90">
+            <CardHeader>
               <CardTitle className="text-white flex items-center gap-3">
                 <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl">
-                  <CheckCircle className="w-5 h-5 text-white" />
+                  <TrendingUp className="w-5 h-5 text-white" />
                 </div>
-                Meta Atual
-                <Badge variant="outline" className="ml-auto border-green-400/50 text-green-400">
-                  Ativa
-                </Badge>
+                Progresso Detalhado
               </CardTitle>
             </CardHeader>
             
-            <CardContent className="relative z-10 space-y-6">
-              {/* Progress Overview */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <SleepMetricsCard
-                  title="Duração"
-                  value={`${progress.duration}%`}
-                  subtitle={`Meta: ${formatDuration(activeGoal.target_duration)}`}
-                  icon={Clock}
-                  color="blue"
-                  progress={progress.duration}
-                  delay={0.2}
-                />
-                
-                <SleepMetricsCard
-                  title="Consistência"
-                  value={`${progress.consistency}%`}
-                  subtitle={`Meta: ${activeGoal.consistency_goal} dias/semana`}
-                  icon={Calendar}
-                  color="purple"
-                  progress={progress.consistency}
-                  delay={0.3}
-                />
-                
-                <SleepMetricsCard
-                  title="Qualidade"
-                  value={`${progress.quality}%`}
-                  subtitle={`Meta: ${activeGoal.quality_goal}/10`}
-                  icon={Star}
-                  color="green"
-                  progress={progress.quality}
-                  delay={0.4}
-                />
-                
-                <SleepMetricsCard
-                  title="Horário"
-                  value={`${progress.bedtime}%`}
-                  subtitle={`Meta: ${activeGoal.target_bedtime}`}
-                  icon={Moon}
-                  color="orange"
-                  progress={progress.bedtime}
-                  delay={0.5}
-                />
-              </div>
-
-              {/* Detailed Progress */}
+            <CardContent className="space-y-6">
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-white">Progresso Detalhado</h3>
-                
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-300">Duração do Sono</span>
@@ -174,7 +211,7 @@ export function SleepGoals() {
                   </div>
                   <Progress value={progress.duration} className="h-2" />
                   <p className="text-xs text-gray-400">
-                    Você está dormindo em média 6.8h das 8h desejadas
+                    Você está dormindo em média 6.8h das {formatDuration(activeGoal.target_duration)} desejadas
                   </p>
                 </div>
                 
