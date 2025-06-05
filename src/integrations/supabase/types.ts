@@ -992,6 +992,144 @@ export type Database = {
         }
         Relationships: []
       }
+      sleep_goals: {
+        Row: {
+          consistency_goal: number | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          quality_goal: number | null
+          target_bedtime: string
+          target_duration: number
+          target_wake_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          consistency_goal?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          quality_goal?: number | null
+          target_bedtime: string
+          target_duration: number
+          target_wake_time: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          consistency_goal?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          quality_goal?: number | null
+          target_bedtime?: string
+          target_duration?: number
+          target_wake_time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sleep_insights: {
+        Row: {
+          created_at: string
+          data_points: Json | null
+          description: string
+          expires_at: string | null
+          id: string
+          insight_date: string
+          insight_type: string
+          is_read: boolean | null
+          severity: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_points?: Json | null
+          description: string
+          expires_at?: string | null
+          id?: string
+          insight_date?: string
+          insight_type: string
+          is_read?: boolean | null
+          severity?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_points?: Json | null
+          description?: string
+          expires_at?: string | null
+          id?: string
+          insight_date?: string
+          insight_type?: string
+          is_read?: boolean | null
+          severity?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sleep_records: {
+        Row: {
+          bedtime: string | null
+          calculated_scores: Json | null
+          created_at: string
+          environmental_factors: Json | null
+          id: string
+          insomnia_indicators: Json | null
+          lifestyle_factors: Json | null
+          notes: string | null
+          sleep_date: string
+          sleep_duration: number | null
+          sleep_latency: number | null
+          subjective_quality: number | null
+          updated_at: string
+          user_id: string
+          wake_count: number | null
+          wake_time: string | null
+        }
+        Insert: {
+          bedtime?: string | null
+          calculated_scores?: Json | null
+          created_at?: string
+          environmental_factors?: Json | null
+          id?: string
+          insomnia_indicators?: Json | null
+          lifestyle_factors?: Json | null
+          notes?: string | null
+          sleep_date: string
+          sleep_duration?: number | null
+          sleep_latency?: number | null
+          subjective_quality?: number | null
+          updated_at?: string
+          user_id: string
+          wake_count?: number | null
+          wake_time?: string | null
+        }
+        Update: {
+          bedtime?: string | null
+          calculated_scores?: Json | null
+          created_at?: string
+          environmental_factors?: Json | null
+          id?: string
+          insomnia_indicators?: Json | null
+          lifestyle_factors?: Json | null
+          notes?: string | null
+          sleep_date?: string
+          sleep_duration?: number | null
+          sleep_latency?: number | null
+          subjective_quality?: number | null
+          updated_at?: string
+          user_id?: string
+          wake_count?: number | null
+          wake_time?: string | null
+        }
+        Relationships: []
+      }
       social_feed: {
         Row: {
           activity_id: string | null
@@ -1427,6 +1565,17 @@ export type Database = {
       }
       calculate_category_score: {
         Args: { p_user_id: string; p_category: string; p_date?: string }
+        Returns: number
+      }
+      calculate_sleep_score: {
+        Args: {
+          p_duration: number
+          p_target_duration: number
+          p_quality: number
+          p_latency?: number
+          p_wake_count?: number
+          p_consistency_days?: number
+        }
         Returns: number
       }
       calculate_weekly_goal_progress: {

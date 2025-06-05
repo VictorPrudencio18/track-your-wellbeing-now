@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   Settings,
   MessageSquare,
+  Moon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -44,6 +45,11 @@ const data = {
       title: "Saúde",
       url: "/health",
       icon: Heart,
+    },
+    {
+      title: "Sono",
+      url: "/sleep",
+      icon: Moon,
     },
     {
       title: "IA VIVA",
