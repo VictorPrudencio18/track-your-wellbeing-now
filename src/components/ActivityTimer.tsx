@@ -1,6 +1,6 @@
 
 import { RunningActivity } from "./activities/RunningActivity";
-import { CyclingActivity } from "./activities/CyclingActivity";
+import { PremiumCyclingActivity } from "./activities/PremiumCyclingActivity";
 import { SwimmingActivity } from "./activities/SwimmingActivity";
 import { GymActivity } from "./activities/GymActivity";
 import { YogaActivity } from "./activities/YogaActivity";
@@ -29,7 +29,7 @@ export function ActivityTimer({ activityType, onActivityComplete, onCancel }: Ac
       case "run":
         return <RunningActivity {...commonProps} />;
       case "cycle":
-        return <CyclingActivity {...commonProps} />;
+        return <PremiumCyclingActivity {...commonProps} />;
       case "swim":
         return <SwimmingActivity {...commonProps} />;
       case "gym":
