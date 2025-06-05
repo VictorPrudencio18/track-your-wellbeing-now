@@ -419,7 +419,7 @@ export function SupabaseRecentActivitiesCard() {
               </div>
             </motion.div>
           )}
-        </div>
+        </motion.div>
       </div>
 
       {/* Subtle shimmer effect on card hover */}
