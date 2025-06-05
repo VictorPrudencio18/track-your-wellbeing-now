@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -61,6 +60,44 @@ export function useDailyCheckins() {
 
       if (error) throw error;
       return data as DailyCheckin | null;
+    },
+    enabled: !!user,
+  });
+
+  // Buscar últimos 7 dias
+  const { data: last7Days } = useQuery({
+    queryKey: ['daily-checkins-7days', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from('daily_health_checkins')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('checkin_date', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+        .order('checkin_date', { ascending: false });
+
+      if (error) throw error;
+      return data as DailyCheckin[];
+    },
+    enabled: !!user,
+  });
+
+  // Buscar últimos 30 dias
+  const { data: last30Days } = useQuery({
+    queryKey: ['daily-checkins-30days', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from('daily_health_checkins')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('checkin_date', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+        .order('checkin_date', { ascending: false });
+
+      if (error) throw error;
+      return data as DailyCheckin[];
     },
     enabled: !!user,
   });
@@ -140,6 +177,8 @@ export function useDailyCheckins() {
 
   return {
     todayCheckin,
+    last7Days: last7Days || [],
+    last30Days: last30Days || [],
     prompts: prompts || [],
     categorizedResponses: categorizedResponses || [],
     isLoading,
