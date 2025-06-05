@@ -18,7 +18,8 @@ import {
   Smartphone,
   Brain,
   BarChart3,
-  Sparkles
+  Sparkles,
+  Plus
 } from 'lucide-react';
 
 const healthTabs = [

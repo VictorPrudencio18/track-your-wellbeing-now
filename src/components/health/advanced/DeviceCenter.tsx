@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +23,8 @@ import {
   Zap,
   Signal,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Moon
 } from 'lucide-react';
 
 const containerVariants = {
