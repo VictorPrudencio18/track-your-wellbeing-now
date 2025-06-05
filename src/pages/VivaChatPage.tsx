@@ -156,6 +156,7 @@ export default function VivaChatPage() {
   const [privacyMode, setPrivacyMode] = useState(false);
   
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Estatísticas do usuário
@@ -240,11 +241,8 @@ Explore os templates na barra lateral, use comandos de voz, ou simplesmente me c
   }, [user, activities, userScores, totalActivities, currentStreak, totalPoints, currentLevel]);
 
   const scrollToBottom = () => {
-    if (scrollAreaRef.current && autoScroll) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
-      }
+    if (autoScroll) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -336,7 +334,7 @@ ${totalActivities < 10 ?
 
 **Meta da Semana:** ${totalPoints < 200 ? 'Acumular 150 pontos' : 'Superar sua média atual em 20%'}
 
-**Dica Especial:** Baseado em ${totalActivities} atividades, seu corpo responde melhor a ${totalActivities % 3 === 0 ? 'treinos intervalados' : totalActivities % 2 === 0 ? 'exercícios de resistência' : 'atividades aeróbicas'}.
+**Dica Especial:** Baseado em ${totalActividades} atividades, seu corpo responde melhor a ${totalActivities % 3 === 0 ? 'treinos intervalados' : totalActivities % 2 === 0 ? 'exercícios de resistência' : 'atividades aeróbicas'}.
 
 Que tipo de atividade desperta mais seu interesse agora?`;
       }
@@ -563,12 +561,12 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="min-h-[80vh] flex items-center justify-center"
+        className="min-h-[80vh] flex items-center justify-center p-4"
       >
         <Card className="glass-card p-8 text-center max-w-md">
           <AlertCircle className="w-16 h-16 text-accent-orange mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-white mb-2">Sistema Avançado VIVA</h2>
-          <p className="text-navy-300">
+          <p className="text-gray-300">
             Faça login para acessar o sistema completo de IA com análises avançadas e funcionalidades personalizadas.
           </p>
         </Card>
@@ -581,45 +579,47 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`h-[calc(100vh-2rem)] max-h-screen overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50 bg-navy-900' : ''}`}
+      className={`h-screen max-h-screen overflow-hidden p-4 ${isFullscreen ? 'fixed inset-0 z-50 bg-navy-900' : ''}`}
     >
       {/* Header Avançado */}
-      <Card className="glass-card mb-6 border-navy-700/30">
+      <Card className="glass-card mb-4 border-navy-700/30">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="relative">
-                <div className="w-14 h-14 bg-gradient-to-br from-accent-orange via-accent-orange-light to-yellow-400 rounded-2xl flex items-center justify-center shadow-xl">
-                  <Sparkles className="w-8 h-8 text-navy-900 animate-pulse" />
+                <div className="w-12 h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-accent-orange via-accent-orange-light to-yellow-400 rounded-2xl flex items-center justify-center shadow-xl">
+                  <Sparkles className="w-6 h-6 lg:w-8 lg:h-8 text-navy-900 animate-pulse" />
                 </div>
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-navy-900 animate-pulse flex items-center justify-center">
-                  <div className="w-2 h-2 bg-navy-900 rounded-full"></div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 lg:w-5 lg:h-5 bg-green-400 rounded-full border-2 border-navy-900 animate-pulse flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 lg:w-2 lg:h-2 bg-navy-900 rounded-full"></div>
                 </div>
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-accent-orange to-yellow-400 bg-clip-text text-transparent">
+                <h1 className="text-xl lg:text-3xl font-bold bg-gradient-to-r from-white via-accent-orange to-yellow-400 bg-clip-text text-transparent">
                   IA VIVA - Sistema Avançado
                 </h1>
-                <p className="text-navy-400 text-sm flex items-center gap-2">
-                  <Bot className="w-4 h-4" />
-                  Assistente com IA Completa • Análise em Tempo Real • {totalActivities} Atividades Processadas
+                <p className="text-gray-300 text-xs lg:text-sm flex items-center gap-2 flex-wrap">
+                  <Bot className="w-3 h-3 lg:w-4 lg:h-4" />
+                  <span>Assistente com IA Completa</span>
+                  <span className="hidden sm:inline">• Análise em Tempo Real</span>
+                  <span className="hidden md:inline">• {totalActivities} Atividades Processadas</span>
                 </p>
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 w-full lg:w-auto">
               {/* Status Indicators */}
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-green-500/10 border-green-500/30 text-green-400">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge variant="outline" className="bg-green-500/10 border-green-500/30 text-green-400 text-xs">
                   <Wifi className="w-3 h-3 mr-1" />
                   Online
                 </Badge>
-                <Badge variant="outline" className="bg-blue-500/10 border-blue-500/30 text-blue-400">
+                <Badge variant="outline" className="bg-blue-500/10 border-blue-500/30 text-blue-400 text-xs">
                   <Brain className="w-3 h-3 mr-1" />
                   IA Ativa
                 </Badge>
                 {voiceEnabled && (
-                  <Badge variant="outline" className="bg-purple-500/10 border-purple-500/30 text-purple-400">
+                  <Badge variant="outline" className="bg-purple-500/10 border-purple-500/30 text-purple-400 text-xs">
                     <Mic className="w-3 h-3 mr-1" />
                     Voz
                   </Badge>
@@ -627,20 +627,20 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
               </div>
 
               {/* Mode Selector */}
-              <div className="flex gap-1">
+              <div className="flex gap-1 flex-wrap">
                 {['casual', 'coaching', 'analysis', 'emergency', 'technical'].map((mode) => (
                   <Button
                     key={mode}
                     variant={chatMode === mode ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setChatMode(mode as any)}
-                    className={`${chatMode === mode ? "bg-accent-orange text-navy-900" : ""} ${mode === 'emergency' ? 'hover:bg-red-500/20 hover:text-red-400' : ''}`}
+                    className={`text-xs lg:text-sm ${chatMode === mode ? "bg-accent-orange text-navy-900" : "text-gray-300 hover:text-white"} ${mode === 'emergency' ? 'hover:bg-red-500/20 hover:text-red-400' : ''}`}
                   >
-                    {mode === 'casual' && <MessageSquare className="w-4 h-4 mr-1" />}
-                    {mode === 'coaching' && <Heart className="w-4 h-4 mr-1" />}
-                    {mode === 'analysis' && <Brain className="w-4 h-4 mr-1" />}
-                    {mode === 'emergency' && <AlertCircle className="w-4 h-4 mr-1" />}
-                    {mode === 'technical' && <Settings className="w-4 h-4 mr-1" />}
+                    {mode === 'casual' && <MessageSquare className="w-3 h-3 lg:w-4 lg:h-4 mr-1" />}
+                    {mode === 'coaching' && <Heart className="w-3 h-3 lg:w-4 lg:h-4 mr-1" />}
+                    {mode === 'analysis' && <Brain className="w-3 h-3 lg:w-4 lg:h-4 mr-1" />}
+                    {mode === 'emergency' && <AlertCircle className="w-3 h-3 lg:w-4 lg:h-4 mr-1" />}
+                    {mode === 'technical' && <Settings className="w-3 h-3 lg:w-4 lg:h-4 mr-1" />}
                     {mode.charAt(0).toUpperCase() + mode.slice(1)}
                   </Button>
                 ))}
@@ -652,14 +652,15 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                   variant="ghost" 
                   size="icon"
                   onClick={() => setVoiceEnabled(!voiceEnabled)}
-                  className={voiceEnabled ? "text-green-400" : "text-navy-400"}
+                  className={`text-xs lg:text-sm ${voiceEnabled ? "text-green-400" : "text-gray-400"}`}
                 >
-                  {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                  {voiceEnabled ? <Volume2 className="w-3 h-3 lg:w-4 lg:h-4" /> : <VolumeX className="w-3 h-3 lg:w-4 lg:h-4" />}
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="icon"
                   onClick={() => setShowSidebar(!showSidebar)}
+                  className="text-gray-300 hover:text-white hidden lg:flex"
                 >
                   {showSidebar ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
                 </Button>
@@ -667,8 +668,9 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                   variant="ghost" 
                   size="icon"
                   onClick={() => setIsFullscreen(!isFullscreen)}
+                  className="text-gray-300 hover:text-white"
                 >
-                  {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                  {isFullscreen ? <Minimize2 className="w-3 h-3 lg:w-4 lg:h-4" /> : <Maximize2 className="w-3 h-3 lg:w-4 lg:h-4" />}
                 </Button>
               </div>
             </div>
@@ -676,26 +678,26 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
         </CardHeader>
       </Card>
 
-      <div className={`grid gap-6 h-[calc(100%-120px)] ${showSidebar ? 'grid-cols-1 lg:grid-cols-4' : 'grid-cols-1'}`}>
+      <div className={`grid gap-4 h-[calc(100vh-200px)] ${showSidebar && !isFullscreen ? 'grid-cols-1 xl:grid-cols-4' : 'grid-cols-1'}`}>
         {/* Área de Chat Principal */}
-        <div className={showSidebar ? "lg:col-span-3" : "col-span-1"}>
+        <div className={showSidebar && !isFullscreen ? "xl:col-span-3" : "col-span-1"}>
           <Card className="glass-card h-full flex flex-col border-navy-700/30">
             {/* Chat Header com Controles */}
             <div className="border-b border-navy-700/20 p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Search className="w-4 h-4 text-navy-400" />
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <Search className="w-4 h-4 text-gray-400" />
                     <Input
                       placeholder="Buscar mensagens..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-64 h-8 bg-navy-800/50 border-navy-600/30"
+                      className="w-full sm:w-64 h-8 bg-navy-800/50 border-navy-600/30 text-white placeholder:text-gray-400"
                     />
                   </div>
                   
                   <Select value={messageFilter} onValueChange={setMessageFilter}>
-                    <SelectTrigger className="w-32 h-8 bg-navy-800/50 border-navy-600/30">
+                    <SelectTrigger className="w-full sm:w-32 h-8 bg-navy-800/50 border-navy-600/30 text-gray-300">
                       <Filter className="w-3 h-3 mr-1" />
                       <SelectValue />
                     </SelectTrigger>
@@ -712,39 +714,39 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm">
-                    <Download className="w-4 h-4 mr-1" />
-                    Exportar
+                  <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white text-xs lg:text-sm">
+                    <Download className="w-3 h-3 lg:w-4 lg:h-4 mr-1" />
+                    <span className="hidden sm:inline">Exportar</span>
                   </Button>
-                  <Button variant="ghost" size="sm">
-                    <Share2 className="w-4 h-4 mr-1" />
-                    Compartilhar
+                  <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white text-xs lg:text-sm">
+                    <Share2 className="w-3 h-3 lg:w-4 lg:h-4 mr-1" />
+                    <span className="hidden sm:inline">Compartilhar</span>
                   </Button>
                 </div>
               </div>
             </div>
 
-            <CardContent className="flex-1 flex flex-col p-0 min-h-0">
-              {/* Mensagens */}
-              <ScrollArea ref={scrollAreaRef} className="flex-1 p-6">
-                <div className="space-y-6">
+            <CardContent className="flex-1 flex flex-col p-0 min-h-0 overflow-hidden">
+              {/* Mensagens com Scroll */}
+              <div className="flex-1 overflow-y-auto p-4 lg:p-6">
+                <div className="space-y-4 lg:space-y-6">
                   {searchedMessages.map((message, index) => (
                     <motion.div
                       key={message.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.1 }}
-                      className={`flex gap-4 ${message.type === 'user' ? 'justify-end' : ''}`}
+                      className={`flex gap-3 lg:gap-4 ${message.type === 'user' ? 'justify-end' : ''}`}
                     >
                       {message.type === 'ai' && (
-                        <div className="w-12 h-12 bg-gradient-to-br from-accent-orange to-yellow-400 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                          <Sparkles className="w-6 h-6 text-navy-900" />
+                        <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-accent-orange to-yellow-400 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                          <Sparkles className="w-5 h-5 lg:w-6 lg:h-6 text-navy-900" />
                         </div>
                       )}
                       
-                      <div className={`max-w-[80%] ${message.type === 'user' ? 'order-2' : ''}`}>
+                      <div className={`max-w-[85%] lg:max-w-[80%] ${message.type === 'user' ? 'order-2' : ''}`}>
                         {/* Message Content */}
-                        <div className={`p-4 rounded-2xl relative ${
+                        <div className={`p-3 lg:p-4 rounded-2xl relative ${
                           message.type === 'user' 
                             ? 'bg-accent-orange text-navy-900' 
                             : `bg-navy-800/50 text-white border border-navy-700/30 ${
@@ -756,14 +758,14 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                             <div className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
                           )}
                           
-                          <div className="whitespace-pre-wrap">{message.content}</div>
+                          <div className="whitespace-pre-wrap text-sm lg:text-base">{message.content}</div>
                           
                           {message.attachments && message.attachments.length > 0 && (
-                            <div className="mt-3 flex gap-2">
+                            <div className="mt-3 flex gap-2 flex-wrap">
                               {message.attachments.map((attachment, i) => (
                                 <div key={i} className="bg-navy-700/30 p-2 rounded-lg flex items-center gap-2">
-                                  <Paperclip className="w-4 h-4" />
-                                  <span className="text-sm">Anexo {i + 1}</span>
+                                  <Paperclip className="w-3 h-3 lg:w-4 lg:h-4" />
+                                  <span className="text-xs lg:text-sm">Anexo {i + 1}</span>
                                 </div>
                               ))}
                             </div>
@@ -772,11 +774,11 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                         
                         {/* Message Actions */}
                         <div className={`flex items-center gap-2 mt-2 ${message.type === 'user' ? 'justify-end' : ''}`}>
-                          <div className="flex items-center gap-1 text-xs text-navy-400">
+                          <div className="flex items-center gap-1 text-xs text-gray-400">
                             <Clock className="w-3 h-3" />
                             {new Date(message.timestamp).toLocaleTimeString()}
                             {message.category && (
-                              <Badge variant="outline" className="ml-2 text-xs">
+                              <Badge variant="outline" className="ml-2 text-xs text-gray-300 border-gray-600">
                                 {message.category}
                               </Badge>
                             )}
@@ -789,7 +791,7 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              className="h-6 w-6 p-0"
+                              className="h-6 w-6 p-0 text-gray-400 hover:text-white"
                               onClick={() => handleReaction(message.id, '👍')}
                             >
                               <ThumbsUp className="w-3 h-3" />
@@ -797,12 +799,12 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              className="h-6 w-6 p-0"
+                              className="h-6 w-6 p-0 text-gray-400 hover:text-white"
                               onClick={() => handleBookmark(message.id)}
                             >
                               <Bookmark className={`w-3 h-3 ${message.isBookmarked ? 'text-yellow-400' : ''}`} />
                             </Button>
-                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-white">
                               <Share2 className="w-3 h-3" />
                             </Button>
                           </div>
@@ -810,9 +812,9 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                         
                         {/* Reactions */}
                         {message.reactions && message.reactions.length > 0 && (
-                          <div className="flex gap-1 mt-2">
+                          <div className="flex gap-1 mt-2 flex-wrap">
                             {message.reactions.map((reaction, i) => (
-                              <span key={i} className="text-sm bg-navy-700/30 px-2 py-1 rounded-full">
+                              <span key={i} className="text-sm bg-navy-700/30 px-2 py-1 rounded-full text-gray-300">
                                 {reaction}
                               </span>
                             ))}
@@ -821,8 +823,8 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                       </div>
                       
                       {message.type === 'user' && (
-                        <div className="w-12 h-12 bg-navy-700 rounded-full flex items-center justify-center flex-shrink-0 order-1 shadow-lg">
-                          <User className="w-6 h-6 text-navy-300" />
+                        <div className="w-10 h-10 lg:w-12 lg:h-12 bg-navy-700 rounded-full flex items-center justify-center flex-shrink-0 order-1 shadow-lg">
+                          <User className="w-5 h-5 lg:w-6 lg:h-6 text-gray-300" />
                         </div>
                       )}
                     </motion.div>
@@ -832,12 +834,12 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex gap-4"
+                      className="flex gap-3 lg:gap-4"
                     >
-                      <div className="w-12 h-12 bg-gradient-to-br from-accent-orange to-yellow-400 rounded-full flex items-center justify-center shadow-lg">
-                        <Sparkles className="w-6 h-6 text-navy-900" />
+                      <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-accent-orange to-yellow-400 rounded-full flex items-center justify-center shadow-lg">
+                        <Sparkles className="w-5 h-5 lg:w-6 lg:h-6 text-navy-900" />
                       </div>
-                      <div className="bg-navy-800/50 p-4 rounded-2xl border border-navy-700/30">
+                      <div className="bg-navy-800/50 p-3 lg:p-4 rounded-2xl border border-navy-700/30">
                         <div className="flex gap-1">
                           {[0, 1, 2].map((i) => (
                             <motion.div
@@ -848,22 +850,25 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                             />
                           ))}
                         </div>
-                        <div className="text-xs text-navy-400 mt-2">IA processando com modo {chatMode}...</div>
+                        <div className="text-xs text-gray-400 mt-2">IA processando com modo {chatMode}...</div>
                       </div>
                     </motion.div>
                   )}
+                  
+                  {/* Div para scroll automático */}
+                  <div ref={messagesEndRef} />
                 </div>
-              </ScrollArea>
+              </div>
 
               {/* Input Avançado */}
-              <div className="border-t border-navy-700/20 p-6">
+              <div className="border-t border-navy-700/20 p-4 lg:p-6">
                 <div className="space-y-4">
                   {/* Configurações Rápidas */}
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm gap-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                       <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-navy-400" />
-                        <span className="text-navy-400">Privacidade:</span>
+                        <Shield className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-300">Privacidade:</span>
                         <Switch 
                           checked={privacyMode} 
                           onCheckedChange={setPrivacyMode}
@@ -871,8 +876,8 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                         />
                       </div>
                       <div className="flex items-center gap-2">
-                        <Target className="w-4 h-4 text-navy-400" />
-                        <span className="text-navy-400">Auto-scroll:</span>
+                        <Target className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-300">Auto-scroll:</span>
                         <Switch 
                           checked={autoScroll} 
                           onCheckedChange={setAutoScroll}
@@ -880,19 +885,19 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                         />
                       </div>
                     </div>
-                    <div className="text-navy-400">
+                    <div className="text-gray-300">
                       Modo: <span className="text-accent-orange font-medium">{chatMode}</span>
                     </div>
                   </div>
 
                   {/* Input Principal */}
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <div className="flex-1 relative">
                       <Textarea
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         placeholder={`Digite sua mensagem para a VIVA... (Modo: ${chatMode})`}
-                        className="flex-1 bg-navy-800/50 border-navy-700/30 text-white resize-none min-h-[60px] pr-24"
+                        className="flex-1 bg-navy-800/50 border-navy-700/30 text-white resize-none min-h-[60px] pr-24 placeholder:text-gray-400"
                         rows={2}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && !e.shiftKey) {
@@ -907,7 +912,7 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="h-8 w-8"
+                          className="h-8 w-8 text-gray-400 hover:text-white"
                           onClick={handleFileUpload}
                         >
                           <Paperclip className="w-4 h-4" />
@@ -915,7 +920,7 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="h-8 w-8"
+                          className="h-8 w-8 text-gray-400 hover:text-white"
                           onClick={() => setIsRecording(!isRecording)}
                         >
                           <Mic className={`w-4 h-4 ${isRecording ? 'text-red-400' : ''}`} />
@@ -923,18 +928,18 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="h-8 w-8"
+                          className="h-8 w-8 text-gray-400 hover:text-white"
                         >
                           <Smile className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
                     
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-row sm:flex-col gap-2">
                       <Button
                         onClick={handleSendMessage}
                         disabled={!inputValue.trim() || isTyping}
-                        className="bg-accent-orange hover:bg-accent-orange/90 text-navy-900 h-[60px] px-6"
+                        className="bg-accent-orange hover:bg-accent-orange/90 text-navy-900 h-[60px] px-6 w-full sm:w-auto"
                       >
                         <Send className="w-5 h-5" />
                       </Button>
@@ -947,8 +952,8 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
         </div>
 
         {/* Painel Lateral Avançado */}
-        {showSidebar && (
-          <div className="space-y-6">
+        {showSidebar && !isFullscreen && (
+          <div className="space-y-4 lg:space-y-6">
             <Card className="glass-card border-navy-700/30">
               <Tabs value={sidebarTab} onValueChange={setSidebarTab}>
                 <TabsList className="grid w-full grid-cols-4 bg-navy-800/50">
@@ -966,7 +971,7 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="stats" className="p-6 space-y-4">
+                <TabsContent value="stats" className="p-4 lg:p-6 space-y-4">
                   <h3 className="text-lg font-bold text-white flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-accent-orange" />
                     Analytics IA
@@ -975,25 +980,25 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="text-center bg-navy-800/30 p-3 rounded-lg">
                       <div className="text-2xl font-bold text-accent-orange">{totalActivities}</div>
-                      <div className="text-navy-400">Atividades</div>
+                      <div className="text-gray-400">Atividades</div>
                     </div>
                     <div className="text-center bg-navy-800/30 p-3 rounded-lg">
                       <div className="text-2xl font-bold text-accent-orange">{currentStreak}</div>
-                      <div className="text-navy-400">Sequência</div>
+                      <div className="text-gray-400">Sequência</div>
                     </div>
                     <div className="text-center bg-navy-800/30 p-3 rounded-lg">
                       <div className="text-2xl font-bold text-accent-orange">{totalPoints}</div>
-                      <div className="text-navy-400">Pontos</div>
+                      <div className="text-gray-400">Pontos</div>
                     </div>
                     <div className="text-center bg-navy-800/30 p-3 rounded-lg">
                       <div className="text-2xl font-bold text-accent-orange">{currentLevel}</div>
-                      <div className="text-navy-400">Nível</div>
+                      <div className="text-gray-400">Nível</div>
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
-                      <span className="text-navy-400">Progresso Semanal</span>
+                      <span className="text-gray-400">Progresso Semanal</span>
                       <span className="text-white">{Math.min(100, (currentStreak / 7) * 100).toFixed(0)}%</span>
                     </div>
                     <div className="w-full bg-navy-800/50 rounded-full h-2">
@@ -1005,7 +1010,7 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                   </div>
                 </TabsContent>
 
-                <TabsContent value="actions" className="p-6 space-y-3">
+                <TabsContent value="actions" className="p-4 lg:p-6 space-y-3">
                   <h3 className="text-lg font-bold text-white flex items-center gap-2">
                     <Zap className="w-5 h-5 text-accent-orange" />
                     Ações Rápidas
@@ -1015,19 +1020,19 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                     <Button
                       key={action.id}
                       variant="ghost"
-                      className="w-full justify-start text-left h-auto p-3 hover:bg-accent-orange/10 group"
+                      className="w-full justify-start text-left h-auto p-3 hover:bg-accent-orange/10 group text-gray-300 hover:text-white"
                       onClick={action.action}
                     >
                       <action.icon className="w-5 h-5 mr-3 text-accent-orange flex-shrink-0 group-hover:scale-110 transition-transform" />
                       <div>
                         <div className="font-medium text-white text-sm">{action.title}</div>
-                        <div className="text-navy-400 text-xs">{action.description}</div>
+                        <div className="text-gray-400 text-xs">{action.description}</div>
                       </div>
                     </Button>
                   ))}
                 </TabsContent>
 
-                <TabsContent value="templates" className="p-6 space-y-3">
+                <TabsContent value="templates" className="p-4 lg:p-6 space-y-3">
                   <h3 className="text-lg font-bold text-white flex items-center gap-2">
                     <FileText className="w-5 h-5 text-accent-orange" />
                     Templates
@@ -1037,15 +1042,15 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                     <Button
                       key={template.id}
                       variant="ghost"
-                      className="w-full justify-start text-left h-auto p-3 hover:bg-accent-orange/10"
+                      className="w-full justify-start text-left h-auto p-3 hover:bg-accent-orange/10 text-gray-300 hover:text-white"
                       onClick={() => handleTemplateUse(template)}
                     >
                       <div>
                         <div className="font-medium text-white text-sm">{template.title}</div>
-                        <div className="text-navy-400 text-xs line-clamp-2">{template.content}</div>
-                        <div className="flex gap-1 mt-1">
+                        <div className="text-gray-400 text-xs line-clamp-2">{template.content}</div>
+                        <div className="flex gap-1 mt-1 flex-wrap">
                           {template.tags.map((tag) => (
-                            <Badge key={tag} variant="outline" className="text-xs">
+                            <Badge key={tag} variant="outline" className="text-xs text-gray-300 border-gray-600">
                               {tag}
                             </Badge>
                           ))}
@@ -1055,7 +1060,7 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                   ))}
                 </TabsContent>
 
-                <TabsContent value="settings" className="p-6 space-y-4">
+                <TabsContent value="settings" className="p-4 lg:p-6 space-y-4">
                   <h3 className="text-lg font-bold text-white flex items-center gap-2">
                     <Settings className="w-5 h-5 text-accent-orange" />
                     Configurações IA
@@ -1064,14 +1069,14 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-navy-400">Notificações</span>
+                        <span className="text-sm text-gray-300">Notificações</span>
                         <Switch 
                           checked={notificationsEnabled} 
                           onCheckedChange={setNotificationsEnabled}
                         />
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-navy-400">Modo Voz</span>
+                        <span className="text-sm text-gray-300">Modo Voz</span>
                         <Switch 
                           checked={voiceEnabled} 
                           onCheckedChange={setVoiceEnabled}
@@ -1080,7 +1085,7 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm text-navy-400">Velocidade da IA</label>
+                      <label className="text-sm text-gray-300">Velocidade da IA</label>
                       <Slider
                         value={responseSpeed}
                         onValueChange={setResponseSpeed}
@@ -1089,15 +1094,15 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                         step={0.5}
                         className="w-full"
                       />
-                      <div className="text-xs text-navy-500">
+                      <div className="text-xs text-gray-500">
                         {responseSpeed[0]}x velocidade
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm text-navy-400">Personalidade da IA</label>
+                      <label className="text-sm text-gray-300">Personalidade da IA</label>
                       <Select value={aiPersonality} onValueChange={setAiPersonality}>
-                        <SelectTrigger className="bg-navy-800/50 border-navy-600/30">
+                        <SelectTrigger className="bg-navy-800/50 border-navy-600/30 text-gray-300">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -1115,7 +1120,7 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full justify-start border-navy-700/30"
+                      className="w-full justify-start border-navy-700/30 text-gray-300 hover:text-white"
                       onClick={() => setMessages([])}
                     >
                       <RotateCcw className="w-4 h-4 mr-2" />
