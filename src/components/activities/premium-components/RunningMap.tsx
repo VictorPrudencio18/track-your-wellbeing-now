@@ -21,21 +21,21 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const initAttempted = useRef(false);
 
   const TOMTOM_API_KEY = import.meta.env.VITE_TOMTOM_API_KEY as string;
 
   const initializeTomTomMaps = async () => {
-    console.log('Verificando container do mapa...');
+    // Evitar múltiplas inicializações
+    if (initAttempted.current) return;
+    initAttempted.current = true;
+    
+    console.log('Inicializando TomTom Maps...');
     
     if (!mapContainer.current) {
-      console.error('Container do mapa não encontrado - aguardando...');
-      // Tentar novamente após um delay
-      setTimeout(() => {
-        if (mapContainer.current) {
-          console.log('Container encontrado após delay');
-          initializeTomTomMaps();
-        }
-      }, 500);
+      console.error('Container do mapa não encontrado');
+      setError('Container do mapa não encontrado');
+      setLoading(false);
       return;
     }
 
@@ -52,16 +52,15 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
       setLoading(true);
       setError(null);
       
-      console.log('Iniciando carregamento do TomTom Maps...');
+      console.log('Carregando SDK do TomTom Maps...');
       await tomTomMapsService.loadTomTomMaps(TOMTOM_API_KEY);
       
-      console.log('Inicializando mapa TomTom...');
+      console.log('SDK carregado, criando instância do mapa...');
       
-      // Usar uma posição padrão se não tiver GPS ainda
-      const defaultCenter = [-46.633308, -23.550520]; // São Paulo
+      // Usar posição atual do GPS se disponível, senão usar São Paulo
       const center = gpsState.position ? 
         [gpsState.position.longitude, gpsState.position.latitude] :
-        defaultCenter;
+        [-46.633308, -23.550520]; // São Paulo
 
       const map = await tomTomMapsService.initializeMap(mapContainer.current, {
         apiKey: TOMTOM_API_KEY,
@@ -69,35 +68,42 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
         zoom: 16
       });
 
-      setMapInstance(map);
-      setMapLoaded(true);
-      setLoading(false);
-      setRetryCount(0);
-      
-      console.log('TomTom Maps inicializado com sucesso');
+      if (map) {
+        setMapInstance(map);
+        setMapLoaded(true);
+        setLoading(false);
+        setRetryCount(0);
+        
+        console.log('TomTom Maps inicializado com sucesso');
+        
+        // Se já temos posição GPS, adicionar marcador
+        if (gpsState.position) {
+          tomTomMapsService.addRoutePoint({
+            lng: gpsState.position.longitude,
+            lat: gpsState.position.latitude
+          });
+        }
+      } else {
+        throw new Error('Falha ao criar instância do mapa');
+      }
     } catch (error: any) {
       console.error('Erro ao inicializar TomTom Maps:', error);
       setError(`Erro ao carregar mapa: ${error.message || 'Erro desconhecido'}`);
       setLoading(false);
+      initAttempted.current = false; // Permitir nova tentativa
     }
   };
 
-  // Aguardar que o container esteja pronto antes de inicializar
+  // Inicializar mapa quando componente montar e GPS estiver pronto
   useEffect(() => {
-    // Verificar se o container está disponível
-    const checkContainer = () => {
-      if (mapContainer.current) {
-        console.log('Container do mapa encontrado, inicializando...');
+    if (gpsState.position && !initAttempted.current) {
+      console.log('GPS pronto, inicializando mapa...');
+      const timer = setTimeout(() => {
         initializeTomTomMaps();
-      } else {
-        console.log('Container não encontrado, tentando novamente...');
-        setTimeout(checkContainer, 100);
-      }
-    };
-
-    const timer = setTimeout(checkContainer, 500);
-    return () => clearTimeout(timer);
-  }, []);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [gpsState.position]);
 
   // Atualizar rota em tempo real
   useEffect(() => {
@@ -147,6 +153,7 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
       setError(null);
       setMapLoaded(false);
       setRetryCount(prev => prev + 1);
+      initAttempted.current = false;
       initializeTomTomMaps();
     } else {
       setError('Muitas tentativas falharam. Verifique sua conexão com a internet.');
@@ -170,6 +177,19 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
             <div>
               <p className="text-orange-400 font-medium">Problema com GPS</p>
               <p className="text-sm text-navy-400">{gpsState.error}</p>
+            </div>
+          </div>
+        </PremiumCard>
+      )}
+
+      {/* Status de inicialização */}
+      {!gpsState.position && !showGPSError && (
+        <PremiumCard glass className="p-4 border-blue-500/30">
+          <div className="flex items-center gap-3">
+            <div className="animate-spin w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full"></div>
+            <div>
+              <p className="text-blue-400 font-medium">Aguardando GPS</p>
+              <p className="text-sm text-navy-400">O mapa será carregado após obter localização</p>
             </div>
           </div>
         </PremiumCard>
@@ -215,10 +235,10 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
           </div>
         )}
 
-        {/* Container do mapa - garantir que esteja sempre presente */}
+        {/* Container do mapa - sempre presente */}
         <div 
           ref={mapContainer} 
-          className={`w-full h-full ${loading || showMapError ? 'hidden' : 'block'}`}
+          className={`w-full h-full ${loading || showMapError ? 'absolute inset-0 opacity-0' : 'block'}`}
           style={{ minHeight: '384px' }}
         />
         
