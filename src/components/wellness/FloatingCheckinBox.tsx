@@ -5,16 +5,15 @@ import { ThermometerWidget } from './ThermometerWidget';
 import { CounterWidget } from './CounterWidget';
 import { useMicroCheckins } from '@/hooks/useMicroCheckins';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   Heart, 
   Zap, 
   Brain, 
   Droplets, 
-  Coffee, 
   Activity,
   Smile,
   AlertTriangle,
-  Shield,
   Sun
 } from 'lucide-react';
 
@@ -139,13 +138,13 @@ export function FloatingCheckinBox() {
   const { todayCheckins, submitCheckin, updateNotificationPrefs } = useMicroCheckins();
   const [currentMetric, setCurrentMetric] = useState<MetricConfig | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const isMobile = useIsMobile();
 
   // Função para determinar qual métrica mostrar
   const shouldShowMetric = (config: MetricConfig): boolean => {
     if (!user) return false;
 
     const now = new Date();
-    const currentTime = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
     
     // Verificar se já respondeu essa métrica hoje
     const alreadyAnswered = todayCheckins.some(checkin => checkin.metric_key === config.key);
@@ -242,8 +241,12 @@ export function FloatingCheckinBox() {
 
   if (!isVisible || !currentMetric) return null;
 
+  const positionClass = isMobile 
+    ? 'fixed bottom-4 left-4 right-4 z-50' 
+    : 'fixed bottom-6 left-6 z-50 max-w-sm';
+
   return (
-    <div className="fixed bottom-6 left-6 z-50">
+    <div className={positionClass}>
       <AnimatePresence>
         {currentMetric.type === 'thermometer' ? (
           <ThermometerWidget
@@ -254,7 +257,7 @@ export function FloatingCheckinBox() {
             color={currentMetric.color}
             onSubmit={handleSubmit}
             onDismiss={handleSnooze}
-            size="md"
+            size={isMobile ? "sm" : "md"}
           />
         ) : (
           <CounterWidget
@@ -265,7 +268,7 @@ export function FloatingCheckinBox() {
             color={currentMetric.color}
             onSubmit={handleSubmit}
             onDismiss={handleSnooze}
-            size="md"
+            size={isMobile ? "sm" : "md"}
           />
         )}
       </AnimatePresence>

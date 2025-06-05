@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useMicroCheckins } from '@/hooks/useMicroCheckins';
 import { ThermometerWidget } from '@/components/wellness/ThermometerWidget';
 import { CounterWidget } from '@/components/wellness/CounterWidget';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   Heart, 
   Zap, 
@@ -43,6 +44,7 @@ const scoreNames = {
 
 export function WellnessThermometers() {
   const { todayCheckins, wellnessScores, submitCheckin } = useMicroCheckins();
+  const isMobile = useIsMobile();
 
   // Preparar dados dos termômetros rápidos
   const quickThermometers = [
@@ -136,7 +138,7 @@ export function WellnessThermometers() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-5'}`}>
             {wellnessScores.map((score) => {
               const Icon = scoreIcons[score.score_type as keyof typeof scoreIcons];
               const colorClass = scoreColors[score.score_type as keyof typeof scoreColors];
@@ -150,11 +152,11 @@ export function WellnessThermometers() {
                   className="text-center"
                 >
                   <div className="flex flex-col items-center gap-2 p-3 bg-navy-700/30 rounded-xl">
-                    <Icon className={`w-6 h-6 ${colorClass}`} />
-                    <div className={`text-2xl font-bold ${colorClass}`}>
+                    <Icon className={`w-5 h-5 ${colorClass} flex-shrink-0`} />
+                    <div className={`text-xl font-bold ${colorClass}`}>
                       {Math.round(score.score_value)}
                     </div>
-                    <div className="text-xs text-navy-300">
+                    <div className="text-xs text-navy-300 text-center">
                       {name}
                     </div>
                     {score.trend_7d !== 0 && (
@@ -173,7 +175,7 @@ export function WellnessThermometers() {
         </CardContent>
       </Card>
 
-      {/* Termômetros Rápidos */}
+      {/* Check-ins Rápidos */}
       <Card className="glass-card border-navy-600/30 bg-navy-800/30">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
@@ -182,10 +184,14 @@ export function WellnessThermometers() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className={`grid gap-4 ${
+            isMobile 
+              ? 'grid-cols-1 sm:grid-cols-2' 
+              : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5'
+          }`}>
             {/* Termômetros */}
             {quickThermometers.map((thermo) => (
-              <div key={thermo.key} className="flex justify-center">
+              <div key={thermo.key} className="w-full">
                 <ThermometerWidget
                   title={thermo.title}
                   value={thermo.currentValue}
@@ -201,7 +207,7 @@ export function WellnessThermometers() {
 
             {/* Contadores */}
             {quickCounters.map((counter) => (
-              <div key={counter.key} className="flex justify-center">
+              <div key={counter.key} className="w-full">
                 <CounterWidget
                   title={counter.title}
                   value={counter.currentValue}
