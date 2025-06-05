@@ -1,6 +1,5 @@
 
-import { useEffect } from "react";
-import { Play, Pause, Square, Mountain, Gauge, MapPin } from "lucide-react";
+import { Play, Pause, Square, Mountain, Gauge, MapPin, Wind, Zap, Loader2, X, AlertTriangle, PauseCircle, Repeat, Bolt } from "lucide-react"; // Added Repeat, Bolt, removed Droplets
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RunningMap } from './premium-components/RunningMap';
@@ -37,20 +36,18 @@ export function CyclingActivity({ onComplete, onCancel }: CyclingActivityProps) 
   };
 
   const handleComplete = () => {
-    // Data from the hook is already structured, might need minor adjustments for onComplete
     onComplete({
-      type: 'cycle', // Ensure this matches expected type by onComplete
-      name: 'Ciclismo GPS', // Or derive from activityType
+      type: 'cycle',
+      name: 'Ciclismo GPS',
       duration: data.duration,
       distance: data.distance,
       calories: data.calories,
-      speed: data.avgSpeed.toFixed(1), // avgSpeed from hook
-      elevation: data.elevationGain.toFixed(0), // elevationGain from hook
-      date: new Date(), // Consider standardizing date handling
-      gpsPoints: data.gpsPoints, // Pass GPS points if needed
-      // Add other relevant data from the hook's `data` object
+      avgSpeed: data.avgSpeed, // Use avgSpeed from hook
+      elevationGain: data.elevationGain, // Use elevationGain from hook
+      date: new Date(),
+      gpsPoints: data.gpsPoints,
     });
-    stopActivity(); // Make sure to call stopActivity from the hook
+    stopActivity();
   };
 
   const handlePrimaryAction = () => {
@@ -63,90 +60,153 @@ export function CyclingActivity({ onComplete, onCancel }: CyclingActivityProps) 
     }
   };
 
+  const avgSpeedKmh = (data.duration > 0 ? (data.distance / (data.duration / 3600)) : 0).toFixed(1);
+  const currentSpeedKmh = (data.currentSpeed * 3.6).toFixed(1);
+
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            🚴‍♂️ Ciclismo GPS
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Timer Principal */}
-          <div className="text-center">
-            <div className="text-6xl font-mono font-bold text-blue-600 mb-2">
-              {formatTime(data.duration)}
-            </div>
-          </div>
+    <div className="relative p-4 space-y-4 bg-gray-50 min-h-screen"> {/* Added relative positioning */}
+      {/* Header */}
+      <header className="flex items-center justify-between pb-2 border-b">
+        <h1 className="text-2xl font-bold text-gray-800 flex items-center">
+          <Wind className="w-7 h-7 mr-2 text-blue-600" />
+          Ciclismo
+        </h1>
+        {/* Placeholder for status indicators like GPS signal, battery, etc. */}
+        <div className="flex items-center space-x-2">
+          <div className={`w-3 h-3 rounded-full ${isGPSReady ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`} title={isGPSReady ? "GPS Pronto" : "Aguardando GPS..."}></div>
+          {/* Could add more indicators here */}
+        </div>
+      </header>
 
-          {/* Métricas Específicas do Ciclismo */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-blue-50 p-4 rounded-lg text-center">
-              <Gauge className="w-6 h-6 mx-auto text-blue-600 mb-2" />
-              <div className="text-2xl font-bold text-blue-600">
-                {(data.currentSpeed * 3.6).toFixed(1)}
-              </div>
-              <div className="text-sm text-blue-700">km/h</div>
-            </div>
-
-            <div className="bg-green-50 p-4 rounded-lg text-center">
-              <MapPin className="w-6 h-6 mx-auto text-green-600 mb-2" />
-              <div className="text-2xl font-bold text-green-600">
-                {data.distance.toFixed(2)}
-              </div>
-              <div className="text-sm text-green-700">km</div>
-            </div>
-
-            <div className="bg-yellow-50 p-4 rounded-lg text-center">
-              <Mountain className="w-6 h-6 mx-auto text-yellow-600 mb-2" />
-              <div className="text-2xl font-bold text-yellow-600">
-                {data.elevationGain.toFixed(0)}
-              </div>
-              <div className="text-sm text-yellow-700">m elevação</div>
-            </div>
-
-            <div className="bg-red-50 p-4 rounded-lg text-center">
-              <div className="w-6 h-6 mx-auto text-red-600 mb-2">🔥</div>
-              <div className="text-2xl font-bold text-red-600">{data.calories}</div>
-              <div className="text-sm text-red-700">calorias</div>
-            </div>
-          </div>
-
-          {/* RunningMap Integration */}
+      {/* Main Content: Two Panels */}
+      <div className="flex flex-col md:flex-row gap-4">
+        {/* Left Panel: Map */}
+        <div className="md:w-3/5 w-full rounded-lg shadow-lg overflow-hidden">
           <RunningMap
             gpsState={gpsState}
             data={data}
             isActive={isActive && !isPaused}
             route={data.gpsPoints || []}
           />
+        </div>
 
-          {/* Controles */}
-          <div className="flex gap-3">
+        {/* Right Panel: Metrics & Controls */}
+        <div className="md:w-2/5 w-full space-y-4">
+          {/* Primary Metrics */}
+          <Card className="shadow-lg">
+            <CardContent className="p-6 space-y-5">
+              <div className="flex justify-around text-center">
+                <div>
+                  <span className="text-xs text-gray-500 uppercase">Tempo</span>
+                  <div className="text-4xl font-bold text-gray-800">{formatTime(data.duration)}</div>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-500 uppercase">Distância</span>
+                  <div className="text-4xl font-bold text-gray-800">{data.distance.toFixed(2)} <span className="text-xl">km</span></div>
+                </div>
+              </div>
+              <div className="text-center">
+                <span className="text-xs text-gray-500 uppercase">Velocidade Atual</span>
+                <div className="text-6xl font-bold text-gray-800">{currentSpeedKmh} <span className="text-2xl">km/h</span></div> {/* Changed text-blue-600 to text-gray-800 */}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Secondary Metrics */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-700">Detalhes da Atividade</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-x-4 gap-y-4 text-sm"> {/* Changed gap-y-3 to gap-y-4 */}
+              <div className="flex items-center space-x-2">
+                <Mountain className="w-5 h-5 text-gray-600" />
+                <div>
+                  <span className="text-xs text-gray-500">Elevação</span>
+                  <div className="font-medium text-gray-700">{data.elevationGain.toFixed(0)} m</div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Zap className="w-5 h-5 text-gray-600" />
+                <div>
+                  <span className="text-xs text-gray-500">Calorias</span>
+                  <div className="font-medium text-gray-700">{data.calories} kcal</div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Gauge className="w-5 h-5 text-gray-600" />
+                <div>
+                  <span className="text-xs text-gray-500">Vel. Média</span>
+                  <div className="font-medium text-gray-700">{avgSpeedKmh} km/h</div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <MapPin className="w-5 h-5 text-gray-600" />
+                <div>
+                  <span className="text-xs text-gray-500">Precisão GPS</span>
+                  <div className="font-medium text-gray-700">{gpsState.accuracy ? gpsState.accuracy.toFixed(0) + ' m' : 'N/A'}</div>
+                </div>
+              </div>
+               {data.cadence !== undefined && (
+                <div className="flex items-center space-x-2">
+                  <Repeat className="w-5 h-5 text-gray-600" /> {/* Changed Droplets to Repeat for Cadence */}
+                  <div>
+                    <span className="text-xs text-gray-500">Cadência</span>
+                    <div className="font-medium text-gray-700">{data.cadence} RPM</div>
+                  </div>
+                </div>
+              )}
+              {data.power !== undefined && (
+                 <div className="flex items-center space-x-2">
+                   <Bolt className="w-5 h-5 text-gray-600" /> {/* Changed Zap to Bolt for Power */}
+                   <div>
+                     <span className="text-xs text-gray-500">Potência</span>
+                     <div className="font-medium text-gray-700">{data.power} W</div>
+                   </div>
+                 </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Controls */}
+          <div className="space-y-3 pt-2">
+            {!isGPSReady && !isActive && (
+              <div className="flex items-center justify-center text-sm text-yellow-600 p-2 bg-yellow-50 border border-yellow-300 rounded-md">
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Aguardando sinal GPS estável para iniciar...
+              </div>
+            )}
             <Button
               onClick={handlePrimaryAction}
-              className={`flex-1 ${!isActive || isPaused ? 'bg-green-600 hover:bg-green-700' : ''}`}
-              size="lg"
-              disabled={!isGPSReady && !isActive} // Disable start if GPS is not ready
+              className={`w-full text-lg py-6 flex items-center justify-center gap-2
+                ${!isActive ? 'bg-green-600 hover:bg-green-700'
+                  : isPaused ? 'bg-yellow-500 hover:bg-yellow-600'
+                  : 'bg-orange-500 hover:bg-orange-600'} text-white`}
+              disabled={!isGPSReady && !isActive}
             >
-              {!isActive ? <Play className="w-5 h-5 mr-2" /> : isPaused ? <Play className="w-5 h-5 mr-2" /> : <Pause className="w-5 h-5 mr-2" />}
+              {!isActive ? <Play className="w-6 h-6" /> : isPaused ? <Play className="w-6 h-6" /> : <Pause className="w-6 h-6" />}
               {!isActive ? "Iniciar Pedalada" : isPaused ? "Retomar" : "Pausar"}
             </Button>
             
             <Button 
               onClick={data.duration > 0 ? handleComplete : () => { stopActivity(); onCancel(); }}
-              variant={data.duration > 0 ? "default" : "destructive"}
-              className="flex-1"
-              size="lg"
+              variant={data.duration > 0 ? "destructive" : "outline"}
+              className="w-full text-lg py-6 border-gray-300"
+              disabled={isActive && !isPaused} // Disable finish if active and not paused
             >
-              <Square className="w-5 h-5 mr-2" />
-              {data.duration > 0 ? "Finalizar" : "Cancelar"}
+              {data.duration > 0 ? <Square className="w-5 h-5 mr-2" /> : <X className="w-5 h-5 mr-2" />}
+              {data.duration > 0 ? "Finalizar e Salvar" : "Cancelar Atividade"}
             </Button>
           </div>
-          {!isGPSReady && !isActive && (
-            <p className="text-center text-sm text-yellow-600">Aguardando sinal GPS para iniciar...</p>
-          )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      {/* Pause State Overlay */}
+      {isActive && isPaused && (
+        <div className="absolute inset-0 bg-slate-900/70 flex flex-col items-center justify-center z-20 backdrop-blur-sm">
+          <PauseCircle className="w-20 h-20 text-white mb-6 opacity-90" />
+          <p className="text-white text-3xl font-bold tracking-wider">ATIVIDADE PAUSADA</p>
+        </div>
+      )}
     </div>
   );
 }
