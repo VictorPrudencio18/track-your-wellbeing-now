@@ -14,6 +14,7 @@ import { OnboardingCheck } from "@/components/onboarding/OnboardingCheck";
 import Index from "@/pages/Index";
 import Dashboard from "@/pages/Dashboard";
 import HealthPage from "@/pages/HealthPage";
+import VivaChatPage from "@/pages/VivaChatPage";
 import NotFound from "@/pages/NotFound";
 import { HealthProvider } from "@/contexts/HealthContext";
 import ReportsPage from "@/pages/ReportsPage";
@@ -60,6 +61,7 @@ function App() {
                           <Route path="/" element={<Index />} />
                           <Route path="/dashboard" element={<Dashboard />} />
                           <Route path="/health" element={<HealthPage />} />
+                          <Route path="/viva" element={<VivaChatPage />} />
                           <Route path="/reports" element={<ReportsPage />} />
                           <Route path="*" element={<NotFound />} />
                         </Routes>

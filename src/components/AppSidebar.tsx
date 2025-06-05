@@ -5,6 +5,7 @@ import {
   Heart,
   LayoutDashboard,
   Settings,
+  MessageSquare,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -43,6 +44,11 @@ const data = {
       title: "Saúde",
       url: "/health",
       icon: Heart,
+    },
+    {
+      title: "IA VIVA",
+      url: "/viva",
+      icon: MessageSquare,
     },
     {
       title: "Relatórios",
