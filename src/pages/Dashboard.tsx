@@ -9,6 +9,7 @@ import { AchievementsCard } from "@/components/dashboard/AchievementsCard";
 import { ContentCarousel } from "@/components/dashboard/ContentCarousel";
 import { VivaAIChat } from "@/components/dashboard/VivaAIChat";
 import { SupabaseActivityTracker } from "@/components/activities/SupabaseActivityTracker";
+import { DailyHistoryCarousel } from "@/components/health/DailyHistoryCarousel";
 import { useAuth } from "@/hooks/useAuth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
@@ -118,6 +119,15 @@ export default function Dashboard() {
         transition={{ duration: 0.6, delay: 0.4 }}
       >
         <SupabaseActivityTracker />
+      </motion.div>
+
+      {/* Daily History Carousel */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
+      >
+        <DailyHistoryCarousel />
       </motion.div>
 
       {/* Charts and Activities Section - Layout responsivo */}
