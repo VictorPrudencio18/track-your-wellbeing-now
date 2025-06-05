@@ -2,24 +2,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { Tables } from '@/integrations/supabase/types';
 
-type GoalType = 'distance' | 'duration' | 'frequency' | 'calories';
-
-export interface GoalRecommendation {
-  id: string;
-  user_id: string;
-  recommended_goal_type: GoalType;
-  recommended_title: string;
-  recommended_description?: string;
-  recommended_target_value: number;
-  recommended_unit: string;
-  confidence_score: number;
-  reasoning?: string;
-  based_on_data: any;
-  status: 'pending' | 'accepted' | 'rejected' | 'modified';
-  created_at: string;
-  applied_at?: string;
-}
+type GoalRecommendation = Tables<'goal_recommendations'>;
 
 export function useGoalRecommendations() {
   const { user } = useAuth();
@@ -87,3 +72,5 @@ export function useGoalRecommendations() {
     updateRecommendationStatus,
   };
 }
+
+export type { GoalRecommendation };

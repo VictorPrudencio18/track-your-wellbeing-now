@@ -1,11 +1,11 @@
 
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useSupabaseActivities } from '@/hooks/useSupabaseActivities';
+import { useActivities } from '@/hooks/useSupabaseActivities';
 import { Activity, Calendar } from 'lucide-react';
 
 export function ActivityList() {
-  const { data: activities, isLoading } = useSupabaseActivities();
+  const { data: activities, isLoading } = useActivities();
 
   if (isLoading) {
     return (

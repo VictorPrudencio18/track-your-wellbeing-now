@@ -12,15 +12,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useWeeklyGoals } from '@/hooks/useWeeklyGoals';
 import { X, Target, Calendar, Zap, Settings } from 'lucide-react';
 import { toast } from 'sonner';
+import { Tables } from '@/integrations/supabase/types';
 
 interface GoalCreationWizardProps {
   onClose: () => void;
 }
 
+type GoalType = Tables<'weekly_goals'>['goal_type'];
+
 export function GoalCreationWizard({ onClose }: GoalCreationWizardProps) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    goal_type: '',
+    goal_type: '' as GoalType,
     title: '',
     description: '',
     target_value: 0,
@@ -35,28 +38,28 @@ export function GoalCreationWizard({ onClose }: GoalCreationWizardProps) {
 
   const goalTypes = [
     { 
-      value: 'distance', 
+      value: 'distance' as GoalType, 
       label: 'Distância', 
       unit: 'km',
       description: 'Meta baseada na distância percorrida',
       icon: '🏃‍♂️'
     },
     { 
-      value: 'duration', 
+      value: 'duration' as GoalType, 
       label: 'Duração', 
       unit: 'minutos',
       description: 'Meta baseada no tempo de exercício',
       icon: '⏱️'
     },
     { 
-      value: 'frequency', 
+      value: 'frequency' as GoalType, 
       label: 'Frequência', 
       unit: 'exercícios',
       description: 'Meta baseada no número de exercícios',
       icon: '🎯'
     },
     { 
-      value: 'calories', 
+      value: 'calories' as GoalType, 
       label: 'Calorias', 
       unit: 'cal',
       description: 'Meta baseada nas calorias queimadas',
@@ -64,7 +67,7 @@ export function GoalCreationWizard({ onClose }: GoalCreationWizardProps) {
     }
   ];
 
-  const handleTypeSelect = (type: string) => {
+  const handleTypeSelect = (type: GoalType) => {
     const goalType = goalTypes.find(t => t.value === type);
     if (goalType) {
       setFormData(prev => ({
@@ -79,7 +82,17 @@ export function GoalCreationWizard({ onClose }: GoalCreationWizardProps) {
 
   const handleSubmit = async () => {
     try {
-      await createGoal.mutateAsync(formData);
+      await createGoal.mutateAsync({
+        goal_type: formData.goal_type,
+        title: formData.title,
+        description: formData.description,
+        target_value: formData.target_value,
+        unit: formData.unit,
+        priority: formData.priority,
+        difficulty_level: formData.difficulty_level,
+        week_start_date: formData.week_start_date,
+        week_end_date: formData.week_end_date
+      });
       toast.success('Meta criada com sucesso!');
       onClose();
     } catch (error) {

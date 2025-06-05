@@ -2,20 +2,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { Tables, TablesInsert } from '@/integrations/supabase/types';
 
-export interface DailyProgress {
-  id: string;
-  user_id: string;
-  weekly_goal_id: string;
-  progress_date: string;
-  daily_value: number;
-  cumulative_value: number;
-  activities_count: number;
-  notes?: string;
-  mood_after_progress?: number;
-  created_at: string;
-  updated_at: string;
-}
+type DailyProgress = Tables<'daily_goal_progress'>;
+type DailyProgressInsert = TablesInsert<'daily_goal_progress'>;
 
 export function useDailyProgress(weeklyGoalId?: string) {
   const { user } = useAuth();
@@ -45,10 +35,7 @@ export function useDailyProgress(weeklyGoalId?: string) {
   });
 
   const updateProgress = useMutation({
-    mutationFn: async (progressData: Partial<DailyProgress> & { 
-      weekly_goal_id: string; 
-      progress_date: string; 
-    }) => {
+    mutationFn: async (progressData: Omit<DailyProgressInsert, 'user_id' | 'id'>) => {
       if (!user?.id) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
@@ -73,3 +60,5 @@ export function useDailyProgress(weeklyGoalId?: string) {
     updateProgress,
   };
 }
+
+export type { DailyProgress };
