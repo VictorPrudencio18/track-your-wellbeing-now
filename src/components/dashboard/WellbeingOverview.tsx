@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useDailyCheckins } from '@/hooks/useDailyCheckins';
 import { useVivaScore } from '@/hooks/useVivaScore';
+import { DailyMoodThermometer } from '@/components/wellness/DailyMoodThermometer';
 
 export function WellbeingOverview() {
   const { todayCheckin, isLoading } = useDailyCheckins();
@@ -121,6 +121,9 @@ export function WellbeingOverview() {
       transition={{ duration: 0.5 }}
       className="space-y-6"
     >
+      {/* Termômetro de Humor Diário - Mostrar apenas se não foi registrado */}
+      {!todayCheckin?.mood_rating && <DailyMoodThermometer />}
+
       {/* Header com Status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -276,8 +279,8 @@ export function WellbeingOverview() {
         </div>
       </div>
 
-      {/* Check-in Pendente */}
-      {!todayCheckin && (
+      {/* Check-in Pendente - Modificado para não mostrar se só falta o humor */}
+      {!todayCheckin && !todayCheckin?.mood_rating && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
