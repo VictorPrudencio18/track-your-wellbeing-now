@@ -135,8 +135,12 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
     >
       {/* Mapa principal */}
       <div className="relative h-96 rounded-2xl overflow-hidden glass-card">
+        {/* Map container div is always present for the ref */}
+        <div ref={mapContainer} className="w-full h-full" />
+
+        {/* Loading overlay */}
         {loading && (
-          <div className="w-full h-full bg-navy-800 flex items-center justify-center">
+          <div className="absolute inset-0 w-full h-full bg-navy-800 flex items-center justify-center z-10">
             <div className="text-center">
               <div className="animate-spin w-8 h-8 border-4 border-accent-orange border-t-transparent rounded-full mx-auto mb-3"></div>
               <p className="text-white">Carregando Google Maps...</p>
@@ -147,8 +151,9 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
           </div>
         )}
 
-        {error && (
-          <div className="w-full h-full bg-navy-800 flex items-center justify-center">
+        {/* Error overlay */}
+        {error && !loading && ( // Ensure error doesn't show if still in initial load
+          <div className="absolute inset-0 w-full h-full bg-navy-800 flex items-center justify-center z-10">
             <div className="text-center space-y-4">
               <AlertCircle className="w-12 h-12 text-red-400 mx-auto" />
               <div>
@@ -170,48 +175,44 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
           </div>
         )}
 
+        {/* Overlays for map information (distance, speed, GPS status, controls) */}
+        {/* These should only be visible if the map IS loaded and there's no error/initial loading */}
         {mapLoaded && !loading && !error && (
-          <div ref={mapContainer} className="w-full h-full" />
-        )}
-        
-        {/* Overlay de informações */}
-        {mapLoaded && (
-          <div className="absolute top-4 left-4 right-4 flex justify-between">
-            <div className="glass-card px-3 py-2 rounded-lg">
-              <div className="text-xs text-navy-400">Distância</div>
-              <div className="text-lg font-bold text-white">{data.distance.toFixed(2)} km</div>
-            </div>
-            
-            <div className="glass-card px-3 py-2 rounded-lg">
-              <div className="text-xs text-navy-400">Velocidade</div>
-              <div className="text-lg font-bold text-white">{(data.currentSpeed * 3.6).toFixed(1)} km/h</div>
-            </div>
-          </div>
-        )}
+          <>
+            {/* Overlay de informações (Distância, Velocidade) */}
+            <div className="absolute top-4 left-4 right-4 flex justify-between z-0"> {/* Ensure z-index is lower than loading/error overlays */}
+              <div className="glass-card px-3 py-2 rounded-lg">
+                <div className="text-xs text-navy-400">Distância</div>
+                <div className="text-lg font-bold text-white">{data.distance.toFixed(2)} km</div>
+              </div>
 
-        {/* Status do GPS */}
-        <div className="absolute bottom-4 left-4">
-          <div className="glass-card px-3 py-2 rounded-lg flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${
-              gpsState.isHighAccuracy ? 'bg-green-500 animate-pulse' : 
-              gpsState.position ? 'bg-yellow-500' : 'bg-red-500'
-            }`} />
-            <span className="text-xs text-white">
-              GPS: {gpsState.position ? `${gpsState.accuracy.toFixed(0)}m` : 'Sem sinal'}
-            </span>
-          </div>
-        </div>
-
-        {/* Controles do mapa */}
-        {mapLoaded && (
-          <div className="absolute bottom-4 right-4 flex flex-col gap-2">
-            <button className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors">
-              <Navigation className="w-5 h-5" />
-            </button>
-            <button className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors">
-              <Settings className="w-5 h-5" />
-            </button>
-          </div>
+              <div className="glass-card px-3 py-2 rounded-lg">
+                <div className="text-xs text-navy-400">Velocidade</div>
+                <div className="text-lg font-bold text-white">{(data.currentSpeed * 3.6).toFixed(1)} km/h</div>
+              </div>
+            </div>
+            {/* Status do GPS */}
+            <div className="absolute bottom-4 left-4 z-0">
+              <div className="glass-card px-3 py-2 rounded-lg flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${
+                  gpsState.isHighAccuracy ? 'bg-green-500 animate-pulse' :
+                  gpsState.position ? 'bg-yellow-500' : 'bg-red-500'
+                }`} />
+                <span className="text-xs text-white">
+                  GPS: {gpsState.position ? `${gpsState.accuracy.toFixed(0)}m` : 'Sem sinal'}
+                </span>
+              </div>
+            </div>
+            {/* Controles do mapa */}
+            <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-0">
+              <button className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+                <Navigation className="w-5 h-5" />
+              </button>
+              <button className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+                <Settings className="w-5 h-5" />
+              </button>
+            </div>
+          </>
         )}
       </div>
 
