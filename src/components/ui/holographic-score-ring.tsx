@@ -68,7 +68,7 @@ export function HolographicScoreRing({
       <div className="relative" style={{ width: config.width, height: config.height }}>
         {/* Subtle background glow */}
         <div 
-          className="absolute inset-4 rounded-full blur-2xl opacity-30"
+          className="absolute inset-4 rounded-full blur-2xl opacity-20"
           style={{ 
             background: `radial-gradient(circle, ${colors.primary}20 0%, transparent 70%)`
           }}
@@ -85,14 +85,6 @@ export function HolographicScoreRing({
               <stop offset="0%" stopColor={colors.primary} />
               <stop offset="100%" stopColor={colors.secondary} />
             </linearGradient>
-            
-            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
           </defs>
           
           {/* Background track */}
@@ -100,7 +92,7 @@ export function HolographicScoreRing({
             cx={center}
             cy={center}
             r={config.radius}
-            stroke="rgba(30, 41, 59, 0.4)"
+            stroke="rgba(30, 41, 59, 0.3)"
             strokeWidth={config.strokeWidth}
             fill="none"
             strokeLinecap="round"
@@ -117,12 +109,11 @@ export function HolographicScoreRing({
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={scoreOffset}
-            filter="url(#glow)"
             initial={{ strokeDashoffset: circumference }}
             animate={{ strokeDashoffset: scoreOffset }}
             transition={{ duration: 2, ease: "easeOut" }}
             style={{
-              filter: `drop-shadow(0 0 8px ${colors.primary}40)`
+              filter: `drop-shadow(0 0 6px ${colors.primary}30)`
             }}
           />
         </svg>
@@ -139,7 +130,7 @@ export function HolographicScoreRing({
               <div 
                 className={`text-${config.fontSize} font-bold text-white`}
                 style={{
-                  textShadow: `0 0 15px ${colors.primary}60, 0 2px 4px rgba(0,0,0,0.5)`
+                  textShadow: `0 0 10px ${colors.primary}40, 0 2px 4px rgba(0,0,0,0.3)`
                 }}
               >
                 {score}
@@ -168,11 +159,33 @@ export function HolographicScoreRing({
           };
           
           const metricColors = {
-            physical: 'text-red-400',
-            mental: 'text-purple-400',
-            sleep: 'text-indigo-400',
-            energy: 'text-yellow-400'
+            physical: { 
+              color: 'text-red-400', 
+              bg: 'bg-red-500/10', 
+              border: 'border-red-400/30',
+              progress: 'bg-gradient-to-r from-red-400 to-red-500'
+            },
+            mental: { 
+              color: 'text-purple-400', 
+              bg: 'bg-purple-500/10', 
+              border: 'border-purple-400/30',
+              progress: 'bg-gradient-to-r from-purple-400 to-purple-500'
+            },
+            sleep: { 
+              color: 'text-indigo-400', 
+              bg: 'bg-indigo-500/10', 
+              border: 'border-indigo-400/30',
+              progress: 'bg-gradient-to-r from-indigo-400 to-indigo-500'
+            },
+            energy: { 
+              color: 'text-yellow-400', 
+              bg: 'bg-yellow-500/10', 
+              border: 'border-yellow-400/30',
+              progress: 'bg-gradient-to-r from-yellow-400 to-yellow-500'
+            }
           };
+
+          const colorConfig = metricColors[key as keyof typeof metricColors];
 
           return (
             <motion.div
@@ -180,14 +193,59 @@ export function HolographicScoreRing({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 1.2 + index * 0.1 }}
-              className="text-center p-3 bg-navy-800/30 rounded-xl border border-navy-600/20 backdrop-blur-sm"
+              whileHover={{ scale: 1.02, y: -2 }}
+              className={`
+                relative overflow-hidden rounded-2xl p-4 backdrop-blur-xl
+                ${colorConfig.bg} border ${colorConfig.border}
+                shadow-lg hover:shadow-xl transition-all duration-300
+                cursor-pointer group
+              `}
             >
-              <div className={`text-lg font-semibold ${metricColors[key as keyof typeof metricColors]} mb-1`}>
-                {value}
+              {/* Subtle glow effect */}
+              <div 
+                className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"
+                style={{ 
+                  background: `radial-gradient(circle at center, ${colorConfig.color.replace('text-', '').replace('-400', '')}-400 0%, transparent 70%)`
+                }}
+              />
+              
+              {/* Content */}
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    {labels[key as keyof typeof labels]}
+                  </span>
+                  <div className={`w-2 h-2 rounded-full ${colorConfig.progress}`} />
+                </div>
+                
+                <div className={`text-2xl font-bold ${colorConfig.color} mb-2`}>
+                  {value}
+                </div>
+                
+                {/* Progress bar */}
+                <div className="w-full bg-navy-800/50 rounded-full h-1.5 overflow-hidden">
+                  <motion.div 
+                    className={`h-full ${colorConfig.progress} rounded-full`}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${value}%` }}
+                    transition={{ duration: 1.5, delay: 1.4 + index * 0.1, ease: "easeOut" }}
+                  />
+                </div>
+                
+                <div className="text-xs text-gray-500 mt-1">
+                  {value}%
+                </div>
               </div>
-              <div className="text-xs text-gray-400">
-                {labels[key as keyof typeof labels]}
-              </div>
+
+              {/* Hover shimmer effect */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 -skew-x-12 group-hover:opacity-100"
+                initial={{ x: '-100%' }}
+                whileHover={{ 
+                  x: '100%',
+                  transition: { duration: 0.6 }
+                }}
+              />
             </motion.div>
           );
         })}
