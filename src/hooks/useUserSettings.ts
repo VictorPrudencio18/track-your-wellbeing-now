@@ -75,7 +75,13 @@ export function useUserSettings() {
         return defaultPreferences;
       }
 
-      return { ...defaultPreferences, ...data.preferences } as UserPreferences;
+      // Garantir que as preferências são um objeto válido
+      const preferences = data?.preferences;
+      if (!preferences || typeof preferences !== 'object') {
+        return defaultPreferences;
+      }
+
+      return { ...defaultPreferences, ...preferences } as UserPreferences;
     },
     enabled: !!user,
   });
@@ -97,13 +103,19 @@ export function useUpdateUserSettings() {
         .single();
 
       const currentPreferences = currentData?.preferences || defaultPreferences;
-      const updatedPreferences = { ...currentPreferences, ...preferences };
+      
+      // Garantir que currentPreferences é um objeto
+      const safeCurrentPreferences = typeof currentPreferences === 'object' && currentPreferences !== null 
+        ? currentPreferences 
+        : defaultPreferences;
+
+      const updatedPreferences = { ...safeCurrentPreferences, ...preferences };
 
       const { data, error } = await supabase
         .from('profiles')
         .update({ 
           preferences: updatedPreferences,
-          data_version: supabase.sql`data_version + 1`
+          data_version: ((currentData?.data_version || 1) + 1)
         })
         .eq('id', user.id)
         .select()

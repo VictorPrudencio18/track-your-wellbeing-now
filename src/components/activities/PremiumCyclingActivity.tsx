@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Settings, BarChart3, Map, Gauge } from 'lucide-react';
@@ -155,11 +154,10 @@ export function PremiumCyclingActivity({ onComplete, onCancel }: PremiumCyclingA
                 {/* Map Preview */}
                 <div className="h-96 lg:h-auto">
                   <CyclingMap
-                    gpsData={data.gpsPoints}
-                    currentPosition={gpsState.position}
-                    isTracking={isActive && !isPaused}
+                    gpsState={gpsState}
+                    data={data}
+                    isActive={isActive && !isPaused}
                     route={data.gpsPoints}
-                    settings={userSettings?.activity_settings}
                   />
                 </div>
               </div>
@@ -224,11 +222,10 @@ export function PremiumCyclingActivity({ onComplete, onCancel }: PremiumCyclingA
               className="h-[calc(100vh-200px)]"
             >
               <CyclingMap
-                gpsData={data.gpsPoints}
-                currentPosition={gpsState.position}
-                isTracking={isActive && !isPaused}
+                gpsState={gpsState}
+                data={data}
+                isActive={isActive && !isPaused}
                 route={data.gpsPoints}
-                settings={userSettings?.activity_settings}
                 fullscreen={true}
               />
             </motion.div>

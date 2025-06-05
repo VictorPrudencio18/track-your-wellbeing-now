@@ -1,21 +1,21 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Zap, TrendingUp, Mountain, Settings, Navigation } from 'lucide-react';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { Button } from '@/components/ui/button';
 import { GPSState, GPSPosition } from '@/hooks/useGPS';
-import { ActivityData } from '@/hooks/useActivityTracker';
+import { EnhancedActivityData } from '@/hooks/useEnhancedActivityTracker';
 import { googleMapsService } from '@/services/GoogleMapsService';
 
 interface CyclingMapProps {
   gpsState: GPSState;
-  data: ActivityData;
+  data: EnhancedActivityData;
   isActive: boolean;
   route: GPSPosition[];
+  fullscreen?: boolean;
 }
 
-export function CyclingMap({ gpsState, data, isActive, route }: CyclingMapProps) {
+export function CyclingMap({ gpsState, data, isActive, route, fullscreen = false }: CyclingMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapInstance, setMapInstance] = useState<any>(null);
@@ -158,7 +158,7 @@ export function CyclingMap({ gpsState, data, isActive, route }: CyclingMapProps)
       </div>
 
       {/* Mapa principal */}
-      <div className="relative h-96 rounded-2xl overflow-hidden glass-card">
+      <div className={`relative ${fullscreen ? 'h-[calc(100vh-200px)]' : 'h-96'} rounded-2xl overflow-hidden glass-card`}>
         {mapLoaded ? (
           <div ref={mapContainer} className="w-full h-full" />
         ) : (

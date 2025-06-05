@@ -3,15 +3,16 @@ import { motion } from 'framer-motion';
 import { Gauge, MapPin, Mountain, Zap, Heart, RotateCcw, TrendingUp, Clock } from 'lucide-react';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { GPSState } from '@/hooks/useGPS';
-import { ActivityData } from '@/hooks/useActivityTracker';
+import { EnhancedActivityData } from '@/hooks/useEnhancedActivityTracker';
 
 interface CyclingMetricsProps {
-  data: ActivityData;
+  data: EnhancedActivityData;
   gpsState: GPSState;
   isActive: boolean;
+  detailed?: boolean;
 }
 
-export function CyclingMetrics({ data, gpsState, isActive }: CyclingMetricsProps) {
+export function CyclingMetrics({ data, gpsState, isActive, detailed = false }: CyclingMetricsProps) {
   const formatPace = (pace: number) => {
     if (pace === 0) return '--:--';
     const minutes = Math.floor(pace / 60);
@@ -92,9 +93,11 @@ export function CyclingMetrics({ data, gpsState, isActive }: CyclingMetricsProps
 
   return (
     <div className="space-y-4">
-      <h3 className="text-xl font-bold text-white mb-4">Métricas em Tempo Real</h3>
+      <h3 className="text-xl font-bold text-white mb-4">
+        {detailed ? 'Métricas Detalhadas' : 'Métricas em Tempo Real'}
+      </h3>
       
-      <div className="grid grid-cols-2 gap-4">
+      <div className={`grid ${detailed ? 'grid-cols-3' : 'grid-cols-2'} gap-4`}>
         {metrics.map((metric, index) => {
           const Icon = metric.icon;
           
