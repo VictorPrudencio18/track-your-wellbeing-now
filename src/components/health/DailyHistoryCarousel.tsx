@@ -288,7 +288,7 @@ function DayDetailsModal({ day, isOpen, onClose }: DayDetailsModalProps) {
 }
 
 export function DailyHistoryCarousel() {
-  const [selectedLayout, setSelectedLayout] = useState<LayoutType>('monthly-heatmap'); // Iniciar com calendário mensal
+  const [selectedLayout, setSelectedLayout] = useState<LayoutType>('monthly-heatmap');
   const { data: dailyData, isLoading } = useDailyActivity(30);
   const { data: extendedData, isLoading: isLoadingExtended } = useExtendedDailyActivity(12);
   const [selectedDay, setSelectedDay] = useState<DayActivity | null>(null);
@@ -304,92 +304,140 @@ export function DailyHistoryCarousel() {
 
   if (currentLoading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-2xl font-bold text-white mb-2">Histórico de Atividades</h3>
-            <p className="text-navy-400">Acompanhe seu progresso diário</p>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="glass-card-ultra border-navy-600/30 p-8 rounded-3xl relative overflow-hidden"
+      >
+        {/* Background effects */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-cyan-500/10" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-radial from-blue-500/20 to-transparent rounded-full blur-3xl" />
+        
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
+                <Calendar className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-white">Histórico de Atividades</h3>
+                <p className="text-navy-300">Acompanhe seu progresso diário</p>
+              </div>
+            </div>
+            <LayoutSelector selectedLayout={selectedLayout} onLayoutChange={setSelectedLayout} />
           </div>
-          <LayoutSelector selectedLayout={selectedLayout} onLayoutChange={setSelectedLayout} />
-        </div>
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-navy-700/30 rounded-lg w-1/3"></div>
-          <div className="grid grid-cols-7 gap-4">
-            {[...Array(28)].map((_, i) => (
-              <div key={i} className="h-12 bg-navy-700/30 rounded-xl" />
-            ))}
+          
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-navy-700/30 rounded-lg w-1/3"></div>
+            <div className="grid grid-cols-7 gap-4">
+              {[...Array(28)].map((_, i) => (
+                <div key={i} className="h-12 bg-navy-700/30 rounded-xl" />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="flex items-center justify-between flex-wrap gap-4"
-      >
-        <div>
-          <h3 className="text-2xl font-bold text-white mb-2 flex items-center gap-3">
-            <Calendar className="w-7 h-7 text-accent-orange" />
-            Histórico de Atividades
-          </h3>
-          <p className="text-navy-400">
-            {selectedLayout === 'monthly-heatmap' ? 'Clique em um dia para ver detalhes completos' : 
-             selectedLayout === 'yearly-heatmap' ? 'Visão geral do seu ano de atividades' :
-             'Navegue pelos últimos dias de atividades'}
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-2 text-sm text-navy-400 bg-navy-800/30 px-3 py-2 rounded-lg">
-            <TrendingUp className="w-4 h-4" />
-            <span>
-              {currentData?.filter(day => day.totalActivities > 0).length || 0} dias ativos
-            </span>
-          </div>
-          <LayoutSelector selectedLayout={selectedLayout} onLayoutChange={setSelectedLayout} />
-        </div>
-      </motion.div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="glass-card-ultra border-navy-600/30 rounded-3xl relative overflow-hidden"
+    >
+      {/* Premium background effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-cyan-500/10" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-radial from-blue-500/20 to-transparent rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-radial from-purple-500/15 to-transparent rounded-full blur-2xl" />
       
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-      >
-        {selectedLayout === 'carousel' && (
-          <div className="bg-gradient-to-r from-navy-800/50 to-navy-700/50 p-6 rounded-2xl border border-navy-600/30">
-            <Carousel className="w-full">
-              <CarouselContent className="-ml-2 md:-ml-4">
-                {currentData?.map((day) => (
-                  <CarouselItem key={day.date} className="pl-2 md:pl-4 basis-28 md:basis-32">
-                    <DayCard day={day} onClick={() => handleDayClick(day)} />
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="glass-card border-navy-600/30 bg-navy-800/50 text-white hover:bg-navy-700/50 -left-6" />
-              <CarouselNext className="glass-card border-navy-600/30 bg-navy-800/50 text-white hover:bg-navy-700/50 -right-6" />
-            </Carousel>
+      <div className="relative z-10 p-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="flex items-center justify-between flex-wrap gap-4 mb-8"
+        >
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+              <Calendar className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-white mb-1">
+                Histórico de Atividades
+              </h3>
+              <p className="text-navy-300 text-lg">
+                {selectedLayout === 'monthly-heatmap' ? 'Clique em um dia para ver detalhes completos' : 
+                 selectedLayout === 'yearly-heatmap' ? 'Visão geral do seu ano de atividades' :
+                 'Navegue pelos últimos dias de atividades'}
+              </p>
+            </div>
           </div>
-        )}
+          
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-2 text-sm text-navy-300 bg-navy-800/40 backdrop-blur-sm px-4 py-2 rounded-xl border border-navy-600/30">
+              <TrendingUp className="w-4 h-4 text-blue-400" />
+              <span className="font-medium">
+                {currentData?.filter(day => day.totalActivities > 0).length || 0} dias ativos
+              </span>
+            </div>
+            <LayoutSelector selectedLayout={selectedLayout} onLayoutChange={setSelectedLayout} />
+          </div>
+        </motion.div>
         
-        {selectedLayout === 'monthly-heatmap' && currentData && (
-          <MonthlyHeatmap dailyData={currentData} onDayClick={handleDayClick} />
-        )}
-        
-        {selectedLayout === 'yearly-heatmap' && currentData && (
-          <YearlyHeatmap dailyData={currentData} onDayClick={handleDayClick} />
-        )}
-      </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="space-y-6"
+        >
+          {selectedLayout === 'carousel' && (
+            <div className="bg-gradient-to-r from-navy-800/60 to-navy-700/60 backdrop-blur-sm p-6 rounded-2xl border border-navy-600/30">
+              <Carousel className="w-full">
+                <CarouselContent className="-ml-2 md:-ml-4">
+                  {currentData?.map((day) => (
+                    <CarouselItem key={day.date} className="pl-2 md:pl-4 basis-28 md:basis-32">
+                      <DayCard day={day} onClick={() => handleDayClick(day)} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="glass-card border-navy-600/30 bg-navy-800/80 backdrop-blur-sm text-white hover:bg-navy-700/80 -left-6" />
+                <CarouselNext className="glass-card border-navy-600/30 bg-navy-800/80 backdrop-blur-sm text-white hover:bg-navy-700/80 -right-6" />
+              </Carousel>
+            </div>
+          )}
+          
+          {selectedLayout === 'monthly-heatmap' && currentData && (
+            <div className="bg-gradient-to-br from-navy-800/40 to-navy-700/40 backdrop-blur-sm p-6 rounded-2xl border border-navy-600/30">
+              <MonthlyHeatmap dailyData={currentData} onDayClick={handleDayClick} />
+            </div>
+          )}
+          
+          {selectedLayout === 'yearly-heatmap' && currentData && (
+            <div className="bg-gradient-to-br from-navy-800/40 to-navy-700/40 backdrop-blur-sm p-6 rounded-2xl border border-navy-600/30">
+              <YearlyHeatmap dailyData={currentData} onDayClick={handleDayClick} />
+            </div>
+          )}
+        </motion.div>
+      </div>
+
+      {/* Subtle shimmer effect on hover */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 -skew-x-12"
+        whileHover={{ 
+          opacity: 1,
+          x: ['-100%', '100%'],
+          transition: { duration: 0.8 }
+        }}
+      />
 
       <DayDetailsModal 
         day={selectedDay}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
-    </div>
+    </motion.div>
   );
 }
