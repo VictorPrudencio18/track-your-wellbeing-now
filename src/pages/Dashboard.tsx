@@ -41,7 +41,8 @@ import {
   Award,
   Users,
   MapPin,
-  Clock
+  Clock,
+  Calendar
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -98,18 +99,18 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 space-y-12"
+        className="relative z-10 space-y-8"
       >
         {/* Hero Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-center relative"
+          className="text-center relative mb-8"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-accent-orange/5 to-transparent blur-3xl" />
           
-          <div className="relative z-10 mb-8">
+          <div className="relative z-10">
             <motion.div
               animate={{ 
                 scale: [1, 1.02, 1],
@@ -141,45 +142,92 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
+        {/* Histórico de Atividades - Movido para o topo */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <div className="flex items-center gap-2 mb-6">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
+              <Calendar className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="text-xl font-bold text-white">
+              Histórico de Atividades
+            </h3>
+          </div>
+          <DailyHistoryCarousel />
+        </motion.div>
+
         {/* Dashboard principal em grid */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
           
           {/* Coluna Principal - Score e Insights */}
           <div className="xl:col-span-8 space-y-8">
             
-            {/* Score VIVA Holográfico */}
+            {/* Score VIVA Holográfico Melhorado */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="glass-card border-navy-700/30 p-8 rounded-3xl relative overflow-hidden"
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="glass-card-ultra border-accent-orange/20 p-8 rounded-3xl relative overflow-hidden"
             >
-              {/* Background effects */}
-              <div className="absolute inset-0 bg-gradient-to-br from-accent-orange/5 via-transparent to-purple-500/5" />
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-l from-accent-orange/10 to-transparent rounded-full blur-3xl" />
+              {/* Background effects melhorados */}
+              <div className="absolute inset-0 bg-gradient-to-br from-accent-orange/10 via-purple-500/5 to-blue-500/10" />
+              <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-radial from-accent-orange/20 to-transparent rounded-full blur-3xl" />
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-radial from-purple-500/15 to-transparent rounded-full blur-2xl" />
               
               <div className="relative z-10">
                 <div className="text-center mb-8">
-                  <h2 className="text-2xl font-bold text-white mb-2 flex items-center justify-center gap-2">
-                    <Brain className="w-6 h-6 text-accent-orange" />
+                  <h2 className="text-3xl font-bold text-white mb-2 flex items-center justify-center gap-3">
+                    <div className="p-2 bg-gradient-to-br from-accent-orange to-orange-600 rounded-xl">
+                      <Brain className="w-7 h-7 text-white" />
+                    </div>
                     Score VIVA Unificado
                   </h2>
-                  <p className="text-navy-400">Análise integrada de todos os seus dados de bem-estar</p>
+                  <p className="text-navy-300 text-lg">Análise integrada de todos os seus dados de bem-estar</p>
                 </div>
 
                 <div className="flex justify-center">
                   <HolographicScoreRing
-                    score={vivaData?.score || 87}
+                    score={vivaData?.score || 46}
                     trend={vivaData?.trendPercentage || 5}
-                    level={vivaData?.level || 'excellent'}
+                    level={vivaData?.level || 'needs_attention'}
                     breakdown={vivaData?.breakdown || {
-                      physical: 85,
-                      mental: 89,
-                      sleep: 92,
-                      energy: 82
+                      physical: 42,
+                      mental: 38,
+                      sleep: 55,
+                      energy: 48
                     }}
                   />
                 </div>
+              </div>
+            </motion.div>
+
+            {/* Bem-estar Hoje - Card Melhorado */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="glass-card-holographic border-navy-600/30 rounded-2xl overflow-hidden"
+            >
+              <div className="p-8">
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl">
+                      <Heart className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-white">Bem-estar Hoje</h3>
+                      <p className="text-navy-300">Status atual dos seus indicadores</p>
+                    </div>
+                  </div>
+                  <div className="px-4 py-2 bg-red-500/20 border border-red-500/30 rounded-full">
+                    <span className="text-red-400 font-medium">Atenção Necessária</span>
+                  </div>
+                </div>
+
+                <WellbeingOverview />
               </div>
             </motion.div>
 
@@ -187,11 +235,11 @@ export default function Dashboard() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
             >
               <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                 <Activity className="w-5 h-5 text-accent-orange" />
-                Status de Hoje
+                Métricas de Desempenho
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -242,7 +290,7 @@ export default function Dashboard() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
+              transition={{ duration: 0.6, delay: 1.0 }}
             >
               <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                 <Brain className="w-5 h-5 text-accent-orange" />
@@ -260,9 +308,6 @@ export default function Dashboard() {
               </div>
             </motion.div>
 
-            {/* Wellbeing Overview Enhanced */}
-            <WellbeingOverview />
-
             {/* Mental Health Dashboard */}
             <MentalHealthDashboard />
 
@@ -270,7 +315,7 @@ export default function Dashboard() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
+              transition={{ duration: 0.6, delay: 1.2 }}
             >
               <div className="flex items-center gap-2 mb-6">
                 <div className="p-2 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl">
@@ -287,7 +332,7 @@ export default function Dashboard() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 1.0 }}
+              transition={{ duration: 0.6, delay: 1.4 }}
             >
               <div className="flex items-center gap-2 mb-6">
                 <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl">
@@ -308,7 +353,7 @@ export default function Dashboard() {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
             >
               <UserProfileCard />
             </motion.div>
@@ -317,7 +362,7 @@ export default function Dashboard() {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              transition={{ duration: 0.6, delay: 0.7 }}
             >
               <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                 <Target className="w-4 h-4 text-accent-orange" />
@@ -359,7 +404,7 @@ export default function Dashboard() {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
+              transition={{ duration: 0.6, delay: 0.9 }}
             >
               <WeeklyGoalsCard />
             </motion.div>
@@ -368,7 +413,7 @@ export default function Dashboard() {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
+              transition={{ duration: 0.6, delay: 1.1 }}
             >
               <AchievementsCard />
             </motion.div>
@@ -377,7 +422,7 @@ export default function Dashboard() {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.7 }}
+              transition={{ duration: 0.6, delay: 1.3 }}
             >
               <SmartAlertsSection />
             </motion.div>
@@ -390,7 +435,7 @@ export default function Dashboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.2 }}
+          transition={{ duration: 0.6, delay: 1.6 }}
           className="space-y-6"
         >
           <div className="flex items-center gap-2">
@@ -408,7 +453,7 @@ export default function Dashboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.4 }}
+          transition={{ duration: 0.6, delay: 1.8 }}
           className="space-y-6"
         >
           <div className="flex items-center gap-2">
@@ -426,35 +471,18 @@ export default function Dashboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.6 }}
+          transition={{ duration: 0.6, delay: 2.0 }}
           className="grid grid-cols-1 lg:grid-cols-2 gap-8"
         >
           <ModernActivityChart />
           <SupabaseRecentActivitiesCard />
         </motion.div>
 
-        {/* Histórico de Check-ins */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.8 }}
-        >
-          <div className="flex items-center gap-2 mb-6">
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
-              <Clock className="w-5 h-5 text-white" />
-            </div>
-            <h3 className="text-xl font-bold text-white">
-              Histórico de Check-ins
-            </h3>
-          </div>
-          <DailyHistoryCarousel />
-        </motion.div>
-
         {/* Chat IA VIVA Enhanced */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 2.0 }}
+          transition={{ duration: 0.6, delay: 2.2 }}
         >
           <VivaAIChat />
         </motion.div>

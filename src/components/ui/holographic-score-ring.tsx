@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { TrendingUp, TrendingDown, Minus, Sparkles, Star } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, Star } from 'lucide-react';
 
 interface HolographicScoreRingProps {
   score: number;
@@ -24,7 +24,7 @@ export function HolographicScoreRing({
   breakdown,
   className 
 }: HolographicScoreRingProps) {
-  const circumference = 2 * Math.PI * 100;
+  const circumference = 2 * Math.PI * 90;
   const strokeDasharray = circumference;
   const strokeDashoffset = circumference - (score / 100) * circumference;
 
@@ -35,13 +35,49 @@ export function HolographicScoreRing({
     return '#EF4444'; // Vermelho
   };
 
-  const getLevelEmoji = (level: string) => {
+  const getLevelConfig = (level: string, score: number) => {
+    if (score < 55) {
+      return {
+        text: 'Needs attention',
+        icon: AlertTriangle,
+        color: '#EF4444',
+        bgColor: 'bg-red-500/20',
+        borderColor: 'border-red-500/30'
+      };
+    }
     switch (level) {
-      case 'excellent': return '⭐';
-      case 'good': return '😊';
-      case 'fair': return '😐';
-      case 'needs_attention': return '⚠️';
-      default: return '😊';
+      case 'excellent':
+        return {
+          text: 'Excelente',
+          icon: Star,
+          color: '#10B981',
+          bgColor: 'bg-green-500/20',
+          borderColor: 'border-green-500/30'
+        };
+      case 'good':
+        return {
+          text: 'Bom',
+          icon: Star,
+          color: '#3B82F6',
+          bgColor: 'bg-blue-500/20',
+          borderColor: 'border-blue-500/30'
+        };
+      case 'fair':
+        return {
+          text: 'Regular',
+          icon: Star,
+          color: '#F59E0B',
+          bgColor: 'bg-yellow-500/20',
+          borderColor: 'border-yellow-500/30'
+        };
+      default:
+        return {
+          text: 'Needs attention',
+          icon: AlertTriangle,
+          color: '#EF4444',
+          bgColor: 'bg-red-500/20',
+          borderColor: 'border-red-500/30'
+        };
     }
   };
 
@@ -51,33 +87,39 @@ export function HolographicScoreRing({
     return <Minus className="w-4 h-4 text-gray-400" />;
   };
 
-  const particles = Array.from({ length: 12 }, (_, i) => ({
+  const levelConfig = getLevelConfig(level, score);
+  const scoreColor = getScoreColor(score);
+
+  // Partículas orbitais
+  const particles = Array.from({ length: 8 }, (_, i) => ({
     id: i,
-    delay: i * 0.1,
-    radius: 120 + Math.random() * 40,
-    angle: (i * 30) * (Math.PI / 180),
+    delay: i * 0.2,
+    radius: 130 + Math.random() * 20,
+    angle: (i * 45) * (Math.PI / 180),
   }));
 
   return (
     <div className={cn("relative flex items-center justify-center", className)}>
-      {/* Partículas de fundo */}
+      {/* Partículas orbitais */}
       <div className="absolute inset-0">
         {particles.map((particle) => (
           <motion.div
             key={particle.id}
-            className="absolute w-2 h-2 rounded-full bg-gradient-to-r from-accent-orange to-yellow-400 opacity-60"
+            className="absolute w-1 h-1 rounded-full"
             style={{
+              background: scoreColor,
               left: '50%',
               top: '50%',
               transform: `translate(-50%, -50%) rotate(${particle.angle}rad) translateX(${particle.radius}px)`,
+              opacity: 0.6,
             }}
             animate={{
-              scale: [0.5, 1, 0.5],
+              scale: [0.5, 1.2, 0.5],
               opacity: [0.3, 0.8, 0.3],
               rotate: 360,
             }}
             transition={{
-              duration: 4,
+              duration: 6,
               delay: particle.delay,
               repeat: Infinity,
               ease: 'easeInOut',
@@ -86,97 +128,112 @@ export function HolographicScoreRing({
         ))}
       </div>
 
-      {/* Anel principal holográfico */}
+      {/* Anel principal */}
       <div className="relative">
-        {/* Glow effect */}
+        {/* Glow effect externo */}
         <div 
-          className="absolute inset-0 rounded-full blur-xl opacity-50"
+          className="absolute inset-0 rounded-full blur-2xl opacity-30"
           style={{
-            background: `radial-gradient(circle, ${getScoreColor(score)}40 0%, transparent 70%)`,
+            background: `radial-gradient(circle, ${scoreColor}60 0%, transparent 70%)`,
+            width: '280px',
+            height: '280px',
+            transform: 'translate(-50%, -50%)',
+            left: '50%',
+            top: '50%'
           }}
         />
         
-        {/* Ring container */}
-        <div className="relative w-64 h-64">
-          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 240 240">
-            {/* Background ring */}
+        {/* Container do anel */}
+        <div className="relative w-56 h-56">
+          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 200 200">
+            {/* Anel de fundo */}
             <circle
-              cx="120"
-              cy="120"
-              r="100"
-              stroke="rgba(100, 116, 139, 0.2)"
-              strokeWidth="8"
+              cx="100"
+              cy="100"
+              r="90"
+              stroke="rgba(30, 41, 59, 0.8)"
+              strokeWidth="6"
               fill="transparent"
             />
             
-            {/* Progress ring */}
+            {/* Anel de fundo mais escuro interno */}
+            <circle
+              cx="100"
+              cy="100"
+              r="90"
+              stroke="rgba(15, 23, 42, 0.9)"
+              strokeWidth="3"
+              fill="transparent"
+            />
+            
+            {/* Anel de progresso */}
             <motion.circle
-              cx="120"
-              cy="120"
-              r="100"
-              stroke={getScoreColor(score)}
-              strokeWidth="8"
+              cx="100"
+              cy="100"
+              r="90"
+              stroke={scoreColor}
+              strokeWidth="6"
               fill="transparent"
               strokeLinecap="round"
               strokeDasharray={strokeDasharray}
               initial={{ strokeDashoffset: circumference }}
               animate={{ strokeDashoffset }}
-              transition={{ duration: 2, ease: 'easeOut' }}
+              transition={{ duration: 2.5, ease: 'easeOut' }}
               style={{
-                filter: `drop-shadow(0 0 8px ${getScoreColor(score)}80)`,
+                filter: `drop-shadow(0 0 12px ${scoreColor}80)`,
               }}
             />
             
-            {/* Inner glow ring */}
+            {/* Anel interno decorativo */}
             <circle
-              cx="120"
-              cy="120"
-              r="85"
-              stroke={`${getScoreColor(score)}20`}
-              strokeWidth="2"
+              cx="100"
+              cy="100"
+              r="75"
+              stroke={`${scoreColor}30`}
+              strokeWidth="1"
               fill="transparent"
             />
           </svg>
 
-          {/* Center content */}
+          {/* Conteúdo central */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              {/* Score */}
+              {/* Score principal */}
               <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.8, delay: 0.5 }}
-                className="mb-2"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 1, delay: 0.5 }}
+                className="mb-3"
               >
-                <div className="text-4xl font-bold text-white mb-1">
+                <div className="text-5xl font-bold text-white mb-1">
                   {score}
                 </div>
-                <div className="text-sm text-gray-400">/100</div>
+                <div className="text-sm text-gray-400 font-medium">/100</div>
               </motion.div>
 
-              {/* Level indicator */}
+              {/* Level badge */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 1 }}
-                className="flex items-center justify-center gap-2"
+                transition={{ duration: 0.8, delay: 1.2 }}
+                className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border ${levelConfig.bgColor} ${levelConfig.borderColor}`}
               >
-                <span className="text-2xl">{getLevelEmoji(level)}</span>
-                <span className="text-sm font-medium text-accent-orange capitalize">
-                  {level.replace('_', ' ')}
+                <levelConfig.icon className="w-3 h-3" style={{ color: levelConfig.color }} />
+                <span className="text-xs font-medium text-white">
+                  {levelConfig.text}
                 </span>
               </motion.div>
 
-              {/* Trend */}
+              {/* Trend indicator */}
               {trend !== 0 && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.6, delay: 1.2 }}
+                  transition={{ duration: 0.6, delay: 1.5 }}
                   className="flex items-center justify-center gap-1 mt-2"
                 >
                   {getTrendIcon()}
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-400 font-medium">
                     {Math.abs(trend).toFixed(1)}%
                   </span>
                 </motion.div>
@@ -185,74 +242,84 @@ export function HolographicScoreRing({
           </div>
         </div>
 
-        {/* Sparkle effects */}
-        <div className="absolute inset-0 pointer-events-none">
-          {[...Array(6)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute"
-              style={{
-                left: `${20 + i * 12}%`,
-                top: `${15 + (i % 2) * 70}%`,
-              }}
-              animate={{
-                scale: [0, 1, 0],
-                rotate: 180,
-                opacity: [0, 1, 0],
-              }}
-              transition={{
-                duration: 2,
-                delay: i * 0.3,
-                repeat: Infinity,
-                repeatDelay: 3,
-              }}
-            >
-              <Sparkles className="w-4 h-4 text-accent-orange" />
-            </motion.div>
-          ))}
-        </div>
+        {/* Estrelas decorativas para scores baixos */}
+        {score < 55 && (
+          <div className="absolute inset-0 pointer-events-none">
+            {[...Array(4)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute"
+                style={{
+                  left: `${25 + i * 20}%`,
+                  top: `${20 + (i % 2) * 60}%`,
+                }}
+                animate={{
+                  scale: [0.8, 1.2, 0.8],
+                  rotate: [0, 180, 360],
+                  opacity: [0.4, 0.8, 0.4],
+                }}
+                transition={{
+                  duration: 3,
+                  delay: i * 0.5,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              >
+                <AlertTriangle className="w-3 h-3 text-red-400" />
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Breakdown mini rings */}
+      {/* Mini anéis de breakdown - Reposicionados */}
       {breakdown && (
         <div className="absolute inset-0 pointer-events-none">
           {Object.entries(breakdown).map(([key, value], index) => {
-            const angle = (index * 90) * (Math.PI / 180);
-            const radius = 140;
-            const x = Math.cos(angle) * radius;
-            const y = Math.sin(angle) * radius;
+            const positions = [
+              { x: -160, y: -40 }, // Top left
+              { x: 160, y: -40 },  // Top right
+              { x: -160, y: 40 },  // Bottom left
+              { x: 160, y: 40 }    // Bottom right
+            ];
+            
+            const position = positions[index];
+            if (!position) return null;
             
             return (
               <motion.div
                 key={key}
-                className="absolute w-12 h-12"
+                className="absolute w-10 h-10"
                 style={{
                   left: '50%',
                   top: '50%',
-                  transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                  transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`,
                 }}
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.6, delay: 1.5 + index * 0.1 }}
+                transition={{ duration: 0.8, delay: 1.8 + index * 0.1 }}
               >
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 48 48">
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
                   <circle
-                    cx="24"
-                    cy="24"
-                    r="20"
+                    cx="20"
+                    cy="20"
+                    r="16"
                     stroke="rgba(100, 116, 139, 0.3)"
-                    strokeWidth="3"
+                    strokeWidth="2"
                     fill="transparent"
                   />
                   <circle
-                    cx="24"
-                    cy="24"
-                    r="20"
+                    cx="20"
+                    cy="20"
+                    r="16"
                     stroke={getScoreColor(value)}
-                    strokeWidth="3"
+                    strokeWidth="2"
                     fill="transparent"
                     strokeLinecap="round"
-                    strokeDasharray={`${(value / 100) * 126} 126`}
+                    strokeDasharray={`${(value / 100) * 100} 100`}
+                    style={{
+                      filter: `drop-shadow(0 0 4px ${getScoreColor(value)}60)`,
+                    }}
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
