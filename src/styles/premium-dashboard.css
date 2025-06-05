@@ -1,0 +1,327 @@
+
+/* Premium Dashboard Styles */
+
+/* Enhanced Glass Morphism */
+.glass-card-ultra {
+  background: rgba(30, 41, 59, 0.15);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(245, 158, 11, 0.1);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.glass-card-holographic {
+  background: linear-gradient(135deg, 
+    rgba(30, 41, 59, 0.3) 0%, 
+    rgba(51, 65, 85, 0.2) 50%, 
+    rgba(30, 41, 59, 0.3) 100%);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card-holographic::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(245, 158, 11, 0.1),
+    transparent
+  );
+  transition: left 0.8s ease;
+}
+
+.glass-card-holographic:hover::before {
+  left: 100%;
+}
+
+/* Holographic Effects */
+.holographic-text {
+  background: linear-gradient(
+    45deg,
+    #667eea,
+    #764ba2,
+    #f093fb,
+    #f5576c,
+    #667eea
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: holographic-flow 4s ease-in-out infinite;
+}
+
+@keyframes holographic-flow {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Premium Card Animations */
+.premium-card-enter {
+  animation: premium-card-entrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes premium-card-entrance {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9) rotateX(15deg);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateY(-10px) scale(1.02) rotateX(-5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0);
+  }
+}
+
+/* Particle System Support */
+.particle-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.particle-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at 20% 30%,
+    rgba(245, 158, 11, 0.03) 0%,
+    transparent 50%
+  ),
+  radial-gradient(
+    circle at 80% 70%,
+    rgba(139, 92, 246, 0.03) 0%,
+    transparent 50%
+  ),
+  radial-gradient(
+    circle at 50% 50%,
+    rgba(59, 130, 246, 0.02) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
+}
+
+/* Advanced Glow Effects */
+.glow-orange {
+  box-shadow: 
+    0 0 20px rgba(245, 158, 11, 0.3),
+    0 0 40px rgba(245, 158, 11, 0.2),
+    0 0 80px rgba(245, 158, 11, 0.1);
+}
+
+.glow-blue {
+  box-shadow: 
+    0 0 20px rgba(59, 130, 246, 0.3),
+    0 0 40px rgba(59, 130, 246, 0.2),
+    0 0 80px rgba(59, 130, 246, 0.1);
+}
+
+.glow-purple {
+  box-shadow: 
+    0 0 20px rgba(139, 92, 246, 0.3),
+    0 0 40px rgba(139, 92, 246, 0.2),
+    0 0 80px rgba(139, 92, 246, 0.1);
+}
+
+/* Interactive Hover Effects */
+.interactive-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.interactive-card:hover {
+  transform: translateY(-8px) rotateX(5deg) rotateY(5deg);
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    0 0 30px rgba(245, 158, 11, 0.2);
+}
+
+/* Micro-interactions */
+.micro-bounce {
+  animation: micro-bounce 2s ease-in-out infinite;
+}
+
+@keyframes micro-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.micro-pulse {
+  animation: micro-pulse 3s ease-in-out infinite;
+}
+
+@keyframes micro-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+/* Premium Progress Bars */
+.progress-premium {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-premium::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: progress-shine 2s infinite;
+}
+
+@keyframes progress-shine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Floating Elements */
+.floating-element {
+  animation: floating 6s ease-in-out infinite;
+}
+
+@keyframes floating {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+  66% {
+    transform: translateY(-5px) rotate(-1deg);
+  }
+}
+
+/* Score Ring Enhancements */
+.score-ring-glow {
+  filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.6));
+}
+
+.score-ring-container {
+  position: relative;
+}
+
+.score-ring-container::before {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  background: conic-gradient(
+    from 0deg,
+    transparent,
+    rgba(245, 158, 11, 0.1),
+    transparent,
+    rgba(139, 92, 246, 0.1),
+    transparent
+  );
+  border-radius: 50%;
+  animation: score-ring-rotation 10s linear infinite;
+  z-index: -1;
+}
+
+@keyframes score-ring-rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Premium Design */
+@media (max-width: 768px) {
+  .glass-card-ultra {
+    backdrop-filter: blur(16px);
+  }
+  
+  .interactive-card:hover {
+    transform: translateY(-4px);
+  }
+  
+  .glow-orange,
+  .glow-blue,
+  .glow-purple {
+    box-shadow: 
+      0 0 10px rgba(245, 158, 11, 0.2),
+      0 0 20px rgba(245, 158, 11, 0.1);
+  }
+}
+
+/* Dark Mode Enhancements */
+@media (prefers-color-scheme: dark) {
+  .glass-card-ultra {
+    background: rgba(15, 23, 42, 0.2);
+    border-color: rgba(245, 158, 11, 0.15);
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .premium-card-enter,
+  .micro-bounce,
+  .micro-pulse,
+  .floating-element,
+  .score-ring-container::before {
+    animation: none;
+  }
+  
+  .interactive-card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Print Styles */
+@media print {
+  .glass-card-ultra,
+  .glass-card-holographic {
+    background: white;
+    border: 1px solid #ccc;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+  
+  .holographic-text {
+    -webkit-text-fill-color: initial;
+    background: none;
+    color: #000;
+  }
+}
