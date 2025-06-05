@@ -11,6 +11,9 @@ import { UserProfileCard } from "@/components/dashboard/UserProfileCard";
 import { DailyHistoryCarousel } from "@/components/health/DailyHistoryCarousel";
 import { VivaScoreOverview } from "@/components/dashboard/VivaScoreOverview";
 import { SmartInsights } from "@/components/dashboard/SmartInsights";
+import { WellbeingOverview } from "@/components/dashboard/WellbeingOverview";
+import { MentalHealthDashboard } from "@/components/dashboard/MentalHealthDashboard";
+import { SmartAlertsSection } from "@/components/dashboard/SmartAlertsSection";
 
 export default function Dashboard() {
   return (
@@ -30,6 +33,9 @@ export default function Dashboard() {
         </p>
       </div>
 
+      {/* FASE 2: Wellbeing Overview Section */}
+      <WellbeingOverview />
+
       {/* Nova estrutura focada em bem-estar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Coluna Principal - Score VIVA e Insights */}
@@ -37,8 +43,14 @@ export default function Dashboard() {
           {/* Score VIVA Unificado */}
           <VivaScoreOverview />
           
-          {/* Insights Inteligentes */}
-          <SmartInsights />
+          {/* Smart Insights & Alerts Section */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <SmartInsights />
+            <SmartAlertsSection />
+          </div>
+          
+          {/* Mental Health Dashboard */}
+          <MentalHealthDashboard />
           
           {/* Histórico de Check-ins */}
           <DailyHistoryCarousel />
