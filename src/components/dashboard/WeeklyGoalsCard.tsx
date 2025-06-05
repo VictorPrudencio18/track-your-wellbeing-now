@@ -133,7 +133,7 @@ export function WeeklyGoalsCard() {
                         {goal.title}
                       </span>
                       <div className="text-xs text-navy-400 mt-1">
-                        {goal.current_value.toFixed(goal.goal_type === 'distance' ? 1 : 0)}/{goal.target_value.toFixed(goal.goal_type === 'distance' ? 1 : 0)} {goal.unit}
+                        {goal.current_value.toFixed(1)}/{goal.target_value.toFixed(1)} {goal.unit}
                       </div>
                     </div>
                   </div>

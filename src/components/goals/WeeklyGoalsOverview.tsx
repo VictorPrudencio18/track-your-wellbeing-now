@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useWeeklyGoals, WeeklyGoal } from '@/hooks/useWeeklyGoals';
 import { useDailyProgress } from '@/hooks/useDailyProgress';
-import { Target, Clock, CheckCircle, TrendingUp, Calendar, Flame, Route, Zap } from 'lucide-react';
+import { Target, Clock, CheckCircle, TrendingUp, Calendar, Flame, Dumbbell, Heart } from 'lucide-react';
 
 export function WeeklyGoalsOverview() {
   const { goals, updateGoal } = useWeeklyGoals();
@@ -21,20 +21,24 @@ export function WeeklyGoalsOverview() {
 
   const getGoalIcon = (type: string) => {
     switch (type) {
-      case 'distance': return Route;
-      case 'duration': return Clock;
-      case 'frequency': return Target;
-      case 'calories': return Flame;
-      default: return Zap;
+      case 'endurance': return Target;
+      case 'strength': return Dumbbell;
+      case 'flexibility': return Heart;
+      case 'weight_loss': return Flame;
+      case 'muscle_gain': return Dumbbell;
+      case 'wellness': return Heart;
+      default: return Target;
     }
   };
 
   const getGoalColor = (type: string) => {
     switch (type) {
-      case 'distance': return 'text-blue-400';
-      case 'duration': return 'text-purple-400';
-      case 'frequency': return 'text-green-400';
-      case 'calories': return 'text-orange-400';
+      case 'endurance': return 'text-blue-400';
+      case 'strength': return 'text-purple-400';
+      case 'flexibility': return 'text-green-400';
+      case 'weight_loss': return 'text-orange-400';
+      case 'muscle_gain': return 'text-red-400';
+      case 'wellness': return 'text-pink-400';
       default: return 'text-gray-400';
     }
   };
@@ -132,14 +136,14 @@ export function WeeklyGoalsOverview() {
                       <div className="flex items-center justify-between">
                         <div className="text-center">
                           <div className="text-lg font-bold text-white">
-                            {goal.current_value.toFixed(goal.goal_type === 'distance' ? 1 : 0)}
+                            {goal.current_value.toFixed(1)}
                           </div>
                           <div className="text-xs text-navy-400">Atual</div>
                         </div>
                         <div className="text-navy-500">/</div>
                         <div className="text-center">
                           <div className="text-lg font-bold text-accent-orange">
-                            {goal.target_value.toFixed(goal.goal_type === 'distance' ? 1 : 0)}
+                            {goal.target_value.toFixed(1)}
                           </div>
                           <div className="text-xs text-navy-400">{goal.unit}</div>
                         </div>
@@ -226,7 +230,7 @@ export function WeeklyGoalsOverview() {
                               {Math.round(goal.completion_percentage)}%
                             </span>
                             <span className="text-navy-400">
-                              {goal.current_value.toFixed(goal.goal_type === 'distance' ? 1 : 0)}/{goal.target_value.toFixed(goal.goal_type === 'distance' ? 1 : 0)} {goal.unit}
+                              {goal.current_value.toFixed(1)}/{goal.target_value.toFixed(1)} {goal.unit}
                             </span>
                           </div>
                         </div>
