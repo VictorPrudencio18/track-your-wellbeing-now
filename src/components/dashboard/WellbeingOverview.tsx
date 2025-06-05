@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
   Heart, 
   Droplets, 
@@ -12,15 +14,19 @@ import {
   AlertCircle,
   CheckCircle,
   TrendingUp,
-  Zap
+  TrendingDown,
+  Zap,
+  ExternalLink
 } from 'lucide-react';
 import { useDailyCheckins } from '@/hooks/useDailyCheckins';
-import { useVivaScore } from '@/hooks/useVivaScore';
+import { useWellnessScores } from '@/hooks/useWellnessScores';
 import { DailyMoodThermometer } from '@/components/wellness/DailyMoodThermometer';
+import { useNavigate } from 'react-router-dom';
 
 export function WellbeingOverview() {
   const { todayCheckin, isLoading } = useDailyCheckins();
-  const { data: vivaData } = useVivaScore();
+  const { data: wellnessScores } = useWellnessScores();
+  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -40,69 +46,85 @@ export function WellbeingOverview() {
   }
 
   const getHealthStatus = () => {
-    if (!todayCheckin) return { status: 'pending', color: 'text-gray-400', icon: AlertCircle };
+    if (!wellnessScores) return { status: 'pending', color: 'text-gray-400', icon: AlertCircle };
     
-    const metrics = [
-      todayCheckin.mood_rating >= 7,
-      todayCheckin.energy_level >= 7,
-      todayCheckin.stress_level <= 4,
-      todayCheckin.hydration_glasses >= 6,
-      todayCheckin.exercise_completed
-    ];
+    const avgScore = (wellnessScores.mood.score + wellnessScores.activity.score + wellnessScores.energy.score) / 3;
     
-    const positiveMetrics = metrics.filter(Boolean).length;
-    
-    if (positiveMetrics >= 4) return { status: 'excellent', color: 'text-green-400', icon: CheckCircle };
-    if (positiveMetrics >= 3) return { status: 'good', color: 'text-blue-400', icon: CheckCircle };
-    if (positiveMetrics >= 2) return { status: 'fair', color: 'text-yellow-400', icon: AlertCircle };
+    if (avgScore >= 80) return { status: 'excellent', color: 'text-green-400', icon: CheckCircle };
+    if (avgScore >= 65) return { status: 'good', color: 'text-blue-400', icon: CheckCircle };
+    if (avgScore >= 45) return { status: 'fair', color: 'text-yellow-400', icon: AlertCircle };
     return { status: 'needs_attention', color: 'text-red-400', icon: AlertCircle };
   };
 
   const healthStatus = getHealthStatus();
   const StatusIcon = healthStatus.icon;
 
-  const quickMetrics = [
+  const getTrendIcon = (trend: number) => {
+    if (trend > 5) return <TrendingUp className="w-3 h-3 text-green-400" />;
+    if (trend < -5) return <TrendingDown className="w-3 h-3 text-red-400" />;
+    return null;
+  };
+
+  const getLevelColor = (level: string) => {
+    switch (level) {
+      case 'excellent': return 'text-green-400';
+      case 'good': return 'text-blue-400';
+      case 'fair': return 'text-yellow-400';
+      default: return 'text-red-400';
+    }
+  };
+
+  const quickMetrics = wellnessScores ? [
     {
       key: 'mood',
       label: 'Humor',
-      value: todayCheckin?.mood_rating || 0,
-      max: 10,
+      value: wellnessScores.mood.score,
+      max: 100,
       icon: Smile,
-      color: 'text-yellow-400',
+      color: getLevelColor(wellnessScores.mood.level),
       bgColor: 'bg-yellow-400/10',
-      borderColor: 'border-yellow-400/20'
+      borderColor: 'border-yellow-400/20',
+      description: wellnessScores.mood.description,
+      trend: wellnessScores.mood.trend
     },
     {
       key: 'energy',
       label: 'Energia',
-      value: todayCheckin?.energy_level || 0,
-      max: 10,
+      value: wellnessScores.energy.score,
+      max: 100,
       icon: Zap,
-      color: 'text-orange-400',
+      color: getLevelColor(wellnessScores.energy.level),
       bgColor: 'bg-orange-400/10',
-      borderColor: 'border-orange-400/20'
+      borderColor: 'border-orange-400/20',
+      description: wellnessScores.energy.description,
+      trend: wellnessScores.energy.trend
     },
     {
-      key: 'hydration',
-      label: 'Hidratação',
-      value: todayCheckin?.hydration_glasses || 0,
-      max: 8,
-      icon: Droplets,
-      color: 'text-blue-400',
-      bgColor: 'bg-blue-400/10',
-      borderColor: 'border-blue-400/20'
+      key: 'activity',
+      label: 'Atividade',
+      value: wellnessScores.activity.score,
+      max: 100,
+      icon: Activity,
+      color: getLevelColor(wellnessScores.activity.level),
+      bgColor: 'bg-green-400/10',
+      borderColor: 'border-green-400/20',
+      description: wellnessScores.activity.description,
+      trend: wellnessScores.activity.trend
     },
     {
       key: 'sleep',
       label: 'Sono',
-      value: todayCheckin?.sleep_quality || 0,
-      max: 10,
+      value: wellnessScores.sleep.score,
+      max: 100,
       icon: Moon,
-      color: 'text-indigo-400',
+      color: getLevelColor(wellnessScores.sleep.level),
       bgColor: 'bg-indigo-400/10',
-      borderColor: 'border-indigo-400/20'
+      borderColor: 'border-indigo-400/20',
+      description: wellnessScores.sleep.description,
+      trend: wellnessScores.sleep.trend,
+      hasData: wellnessScores.sleep.hasData
     }
-  ];
+  ] : [];
 
   const getStatusText = (status: string) => {
     switch (status) {
@@ -130,7 +152,7 @@ export function WellbeingOverview() {
           <div className="p-2 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl">
             <Heart className="w-5 h-5 text-white" />
           </div>
-          <h3 className="text-xl font-bold text-white">Bem-estar Hoje</h3>
+          <h3 className="text-xl font-bold text-white">Métricas de Desempenho</h3>
         </div>
         <Badge 
           variant="outline" 
@@ -155,33 +177,59 @@ export function WellbeingOverview() {
               hover:scale-105 transition-all duration-300
               cursor-pointer group
             `}
+            onClick={() => {
+              if (metric.key === 'sleep' && !metric.hasData) {
+                navigate('/sleep');
+              }
+            }}
           >
             {/* Ícone e Label */}
             <div className="flex items-center gap-2 mb-3">
               <metric.icon className={`w-4 h-4 ${metric.color}`} />
               <span className="text-sm text-gray-300 font-medium">{metric.label}</span>
+              {metric.trend !== undefined && getTrendIcon(metric.trend)}
             </div>
             
             {/* Valor Principal */}
             <div className="mb-2">
               <div className="flex items-baseline gap-1">
                 <span className={`text-2xl font-bold ${metric.color}`}>
-                  {metric.value}
+                  {metric.key === 'activity' && wellnessScores?.activity.weeklyCount 
+                    ? wellnessScores.activity.weeklyCount 
+                    : metric.value
+                  }
                 </span>
-                <span className="text-sm text-gray-500">/{metric.max}</span>
+                <span className="text-sm text-gray-500">
+                  {metric.key === 'activity' && wellnessScores?.activity.weeklyCount ? '/7' : '/100'}
+                </span>
               </div>
+            </div>
+            
+            {/* Descrição */}
+            <div className="text-xs text-gray-400 mb-2">
+              {metric.description}
             </div>
             
             {/* Barra de Progresso */}
             <div className="space-y-1">
               <Progress 
-                value={(metric.value / metric.max) * 100} 
+                value={metric.value} 
                 className="h-2 bg-navy-800/50"
               />
               <div className="text-xs text-gray-500 text-center">
-                {Math.round((metric.value / metric.max) * 100)}%
+                {Math.round(metric.value)}%
               </div>
             </div>
+
+            {/* Ação especial para sono sem dados */}
+            {metric.key === 'sleep' && !metric.hasData && (
+              <div className="absolute inset-0 bg-blue-400/5 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="text-center">
+                  <ExternalLink className="w-4 h-4 text-blue-400 mx-auto mb-1" />
+                  <span className="text-xs text-blue-400">Conhecer</span>
+                </div>
+              </div>
+            )}
 
             {/* Hover effect */}
             <div className="absolute inset-0 bg-white/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -219,7 +267,10 @@ export function WellbeingOverview() {
                   {todayCheckin?.exercise_completed ? 'Exercício concluído' : 'Exercício pendente'}
                 </div>
                 <div className="text-xs text-gray-400">
-                  {todayCheckin?.exercise_completed ? 'Parabéns!' : 'Que tal se movimentar?'}
+                  {wellnessScores?.activity.weeklyCount 
+                    ? `${wellnessScores.activity.weeklyCount} atividades esta semana`
+                    : 'Que tal se movimentar?'
+                  }
                 </div>
               </div>
             </div>
@@ -257,7 +308,7 @@ export function WellbeingOverview() {
             </div>
           </motion.div>
 
-          {/* VIVA Score */}
+          {/* Wellness Score Geral */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -268,10 +319,13 @@ export function WellbeingOverview() {
               <TrendingUp className="w-5 h-5 text-accent-orange" />
               <div>
                 <div className="text-sm font-medium text-white">
-                  Score VIVA: {vivaData?.score || 46}/100
+                  Score Geral: {wellnessScores 
+                    ? Math.round((wellnessScores.mood.score + wellnessScores.activity.score + wellnessScores.energy.score) / 3)
+                    : todayCheckin?.wellness_score || 0
+                  }/100
                 </div>
                 <div className="text-xs text-accent-orange/80">
-                  {vivaData?.level === 'needs_attention' ? 'Atenção necessária' : 'Em análise'}
+                  {healthStatus.status === 'needs_attention' ? 'Atenção necessária' : 'Em progresso'}
                 </div>
               </div>
             </div>
