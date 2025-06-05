@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -189,6 +188,47 @@ export function useSleepSessions() {
 
       if (error) throw error;
       return data as SleepSession[];
+    },
+    enabled: !!user,
+  });
+}
+
+export function useSleepInsights() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['sleep-insights', user?.id],
+    queryFn: async () => {
+      if (!user) throw new Error('User not authenticated');
+
+      // For now, return mock data since we don't have a specific insights table
+      // In a real implementation, this would fetch from a sleep_insights table
+      return [
+        {
+          id: '1',
+          insight_type: 'improvement',
+          title: 'Melhoria na Consistência',
+          description: 'Sua regularidade de horários melhorou 34% nas últimas duas semanas.',
+          severity: 'positive',
+          confidence: 92
+        },
+        {
+          id: '2',
+          insight_type: 'pattern',
+          title: 'Padrão de Fim de Semana',
+          description: 'Você tende a dormir 2h mais tarde nos fins de semana, afetando a segunda-feira.',
+          severity: 'warning',
+          confidence: 88
+        },
+        {
+          id: '3',
+          insight_type: 'correlation',
+          title: 'Exercício e Sono Profundo',
+          description: 'Exercícios pela manhã aumentam seu sono profundo em 23%.',
+          severity: 'positive',
+          confidence: 95
+        }
+      ];
     },
     enabled: !!user,
   });
