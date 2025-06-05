@@ -47,6 +47,11 @@ const data = {
       icon: Heart,
     },
     {
+      title: "Saúde Avançada",
+      url: "/advanced-health",
+      icon: Heart,
+    },
+    {
       title: "Sono",
       url: "/sleep",
       icon: Moon,

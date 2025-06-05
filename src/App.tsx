@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,6 +13,7 @@ import { OnboardingCheck } from "@/components/onboarding/OnboardingCheck";
 import Index from "@/pages/Index";
 import Dashboard from "@/pages/Dashboard";
 import HealthPage from "@/pages/HealthPage";
+import AdvancedHealthPage from "@/pages/AdvancedHealthPage";
 import VivaChatPage from "@/pages/VivaChatPage";
 import SleepPage from "@/pages/SleepPage";
 import NotFound from "@/pages/NotFound";
@@ -59,6 +59,7 @@ function App() {
                           <Route path="/" element={<Index />} />
                           <Route path="/dashboard" element={<Dashboard />} />
                           <Route path="/health" element={<HealthPage />} />
+                          <Route path="/advanced-health" element={<AdvancedHealthPage />} />
                           <Route path="/sleep" element={<SleepPage />} />
                           <Route path="/viva" element={<VivaChatPage />} />
                           <Route path="/reports" element={<ReportsPage />} />
