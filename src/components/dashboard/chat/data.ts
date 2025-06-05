@@ -18,8 +18,10 @@ export const initialMessages: ChatMessage[] = [
 ];
 
 export const quickSuggestions = [
-  'Como melhorar meu sono?',
-  'Dicas para reduzir estresse',
-  'Exercícios para ansiedade',
-  'Alimentação saudável'
+  "Como posso melhorar meu sono?",
+  "Dicas para reduzir o estresse.",
+  "Como definir metas de bem-estar?",
+  "Analise minhas atividades recentes.",
+  "Sugestões de exercícios para fazer em casa.",
+  "Como lidar com a ansiedade?"
 ];

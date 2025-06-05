@@ -10,6 +10,7 @@ import { QuickSuggestions } from "./chat/QuickSuggestions";
 import { TypingIndicator } from "./chat/TypingIndicator";
 import { quickSuggestions } from "./chat/data";
 import { ChatMessage as ChatMessageType } from "./chat/types";
+import { generateGeminiResponse } from "@/integrations/gemini/client";
 import { useActivities } from "@/hooks/useSupabaseActivities";
 import { useUserScores } from "@/hooks/useSupabaseScores";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,20 +32,21 @@ export function VivaAIChat() {
       const currentStreak = userScores?.current_streak || 0;
       const totalPoints = userScores?.total_points || 0;
 
-      let personalizedMessage = 'Olá! Eu sou a VIVA, sua assistente de saúde e bem-estar! 🌟 Estou aqui para te ajudar com dicas personalizadas baseadas em suas atividades e responder suas dúvidas sobre saúde mental e qualidade de vida.';
+      let personalizedMessage = 'Olá! Eu sou a VIVA, sua assistente IA para saúde e bem-estar! 🌟 Estou aqui para te ajudar com insights sobre suas atividades, dicas personalizadas e responder suas dúvidas sobre qualidade de vida, saúde mental e como atingir seus objetivos. Como posso te ajudar hoje?';
       
       if (totalActivities > 0) {
-        personalizedMessage += ` \n\nVi que você já registrou ${totalActivities} atividade${totalActivities > 1 ? 's' : ''}! 💪`;
-        
+        personalizedMessage += `\n\nVi que você já registrou ${totalActivities} atividade${totalActivities > 1 ? 's' : ''}`;
         if (currentStreak > 0) {
-          personalizedMessage += ` Você está em uma sequência de ${currentStreak} dia${currentStreak > 1 ? 's' : ''}! Continue assim! 🔥`;
+          personalizedMessage += ` e está em uma sequência de ${currentStreak} dia${currentStreak > 1 ? 's' : ''}! 🔥`;
+        } else {
+          personalizedMessage += ".";
         }
-        
         if (totalPoints > 0) {
-          personalizedMessage += ` Você já acumulou ${totalPoints} pontos! 🏆`;
+          personalizedMessage += ` Você acumulou ${totalPoints} pontos! 🏆`;
         }
+        personalizedMessage += " Continue com o ótimo trabalho!";
       } else {
-        personalizedMessage += '\n\nVejo que você ainda não registrou nenhuma atividade. Que tal começar hoje mesmo? Posso te ajudar com dicas para começar! 🚀';
+        personalizedMessage += '\n\nVejo que você ainda não registrou nenhuma atividade. Que tal explorar algumas dicas para começar ou definir suas primeiras metas? Estou aqui para ajudar! 🚀';
       }
 
       const initialMessage: ChatMessageType = {
@@ -53,8 +55,8 @@ export function VivaAIChat() {
         content: personalizedMessage,
         timestamp: new Date().toISOString(),
         suggestions: totalActivities > 0 
-          ? ['Análise do meu progresso', 'Dicas para melhorar', 'Próximos objetivos']
-          : ['Como começar', 'Sugestões de atividades', 'Definir metas']
+          ? ['Analise meu progresso', 'Dicas para melhorar', 'Como definir novas metas?']
+          : ['Como começar?', 'Sugestões de atividades leves', 'Dicas de bem-estar']
       };
 
       setMessages([initialMessage]);
@@ -74,56 +76,7 @@ export function VivaAIChat() {
     scrollToBottom();
   }, [messages]);
 
-  const simulateAIResponse = (userMessage: string) => {
-    setIsTyping(true);
-    
-    setTimeout(() => {
-      const totalActivities = activities?.length || 0;
-      const currentStreak = userScores?.current_streak || 0;
-      const totalDistance = activities?.reduce((sum, activity) => sum + (activity.distance || 0), 0) || 0;
-      const totalCalories = activities?.reduce((sum, activity) => sum + (activity.calories || 0), 0) || 0;
-
-      const responses = {
-        'sono': `Para melhorar seu sono, recomendo: 1) Manter horários regulares, 2) Evitar telas 1h antes de dormir, 3) Criar um ambiente escuro e fresco, 4) Praticar técnicas de relaxamento. ${totalActivities > 0 ? `Baseado em suas ${totalActivities} atividades registradas, vejo que você tem sido ativo - isso é ótimo para o sono!` : 'Exercícios regulares podem ajudar muito com o sono!'} 😴`,
-        
-        'estresse': `Para reduzir o estresse, experimente: 1) Respiração profunda (4-7-8), 2) Exercícios leves, 3) Mindfulness por 10 min/dia, 4) Pausas regulares. ${totalActivities > 0 ? `Seus dados mostram ${totalActivities} atividades registradas - continue assim!` : 'Que tal começar com uma caminhada leve?'} 🧘‍♀️`,
-        
-        'ansiedade': `Para ansiedade, recomendo: 1) Técnica de aterramento 5-4-3-2-1, 2) Exercícios aeróbicos, 3) Journaling, 4) Respiração controlada. ${currentStreak > 0 ? `Vejo que você tem uma sequência de ${currentStreak} dias - isso é excelente para controlar a ansiedade!` : 'Atividade física regular pode ajudar muito!'} 💪`,
-        
-        'alimentação': `Para alimentação saudável: 1) Hidrate-se bem, 2) Coma de 3 em 3h, 3) Inclua proteínas magras, 4) Frutas e vegetais coloridos. ${totalCalories > 0 ? `Baseado em suas atividades, você já queimou ${totalCalories} calorias - seu metabolismo está ativo!` : 'Exercícios ajudam a acelerar o metabolismo!'} 🥗`,
-        
-        'progresso': totalActivities > 0 
-          ? `Analisando seu progresso: 📊\n\n• ${totalActivities} atividades registradas\n• ${currentStreak} dias de sequência atual\n• ${totalDistance.toFixed(1)} km percorridos\n• ${totalCalories} calorias queimadas\n\nVocê está indo muito bem! Continue assim! 🎉`
-          : 'Você ainda não tem atividades registradas para analisar. Que tal começar hoje mesmo? Posso te ajudar a definir suas primeiras metas! 🚀',
-        
-        'análise': totalActivities > 0
-          ? `Baseado em seus dados reais:\n\n✅ ${totalActivities} atividades completadas\n✅ Sequência atual: ${currentStreak} dias\n✅ Total de pontos: ${userScores?.total_points || 0}\n\n${currentStreak >= 7 ? 'Excelente consistência!' : 'Foque em manter regularidade para criar o hábito!'} 💪`
-          : 'Para fazer uma análise personalizada, preciso que você registre algumas atividades primeiro. Vamos começar? 📈'
-      };
-
-      const keyword = Object.keys(responses).find(key => 
-        userMessage.toLowerCase().includes(key)
-      );
-
-      const response = keyword ? responses[keyword as keyof typeof responses] : 
-        `Entendo sua pergunta! Como sua assistente de saúde, posso te ajudar com temas como sono, estresse, alimentação, exercícios e bem-estar mental. ${totalActivities > 0 ? `Baseado em seus dados, vejo que você tem ${totalActivities} atividades registradas - parabéns!` : 'Vamos começar registrando suas primeiras atividades?'} 🎉 Pode me contar mais sobre o que especificamente te preocupa?`;
-
-      const newMessage: ChatMessageType = {
-        id: Date.now().toString(),
-        type: 'ai',
-        content: response,
-        timestamp: new Date().toISOString(),
-        suggestions: totalActivities > 0 
-          ? ['Mais dicas', 'Análise detalhada', 'Próximos passos']
-          : ['Como começar', 'Definir metas', 'Sugestões de atividades']
-      };
-
-      setMessages(prev => [...prev, newMessage]);
-      setIsTyping(false);
-    }, 1500);
-  };
-
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
     const userMessage: ChatMessageType = {
@@ -134,9 +87,36 @@ export function VivaAIChat() {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue('');
-    
-    simulateAIResponse(inputValue);
+    setIsTyping(true);
+
+    try {
+      const aiResponseText = await generateGeminiResponse(currentInput);
+      const aiMessage: ChatMessageType = {
+        id: Date.now().toString() + '-ai',
+        type: 'ai',
+        content: aiResponseText,
+        timestamp: new Date().toISOString(),
+        // Optional: Add suggestions if your Gemini setup can provide them
+        // suggestions: ['Suggestion 1', 'Suggestion 2'],
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error("Error getting AI response:", error);
+      const errorMessage: ChatMessageType = {
+        id: Date.now().toString() + '-error',
+        type: 'ai',
+        content: "Desculpe, não consegui processar sua solicitação no momento. Tente novamente mais tarde.",
+        timestamp: new Date().toISOString(),
+        isError: true, // You might want to add an isError field to your ChatMessageType
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsTyping(false);
+      // Ensure scrollToBottom is called after messages update
+      // This might need a slight delay or to be called in the useEffect for messages
+    }
   };
 
   const handleSuggestionClick = (suggestion: string) => {
