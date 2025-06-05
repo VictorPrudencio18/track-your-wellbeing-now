@@ -12,7 +12,7 @@ interface CheckinPrompt {
   id: string;
   prompt_key: string;
   question: string;
-  response_type: 'scale' | 'boolean' | 'number' | 'text' | 'select';
+  response_type: 'scale' | 'boolean' | 'number' | 'text' | 'select' | 'time';
   options?: any;
 }
 
@@ -76,6 +76,16 @@ export function SmartCheckinCard({ prompt, onSubmit, isLoading }: SmartCheckinCa
             onChange={(e) => setValue(e.target.value)}
             placeholder="Digite sua resposta..."
             className="w-full"
+          />
+        );
+
+      case 'time':
+        return (
+          <input
+            type="time"
+            value={value || ''}
+            onChange={(e) => setValue(e.target.value)}
+            className="w-full p-2 rounded border border-navy-600 bg-navy-800 text-white"
           />
         );
 
