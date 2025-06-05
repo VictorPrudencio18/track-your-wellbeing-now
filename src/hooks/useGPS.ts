@@ -51,7 +51,8 @@ export function useGPS() {
       return false;
     }
     
-    if (coords.accuracy > 500) {
+    // Ser mais tolerante com a precisão inicial - aceitar até 5000m para começar
+    if (coords.accuracy > 5000) {
       console.warn(`GPS precisão muito baixa: ${coords.accuracy}m - rejeitando posição`);
       return false;
     }
@@ -69,11 +70,11 @@ export function useGPS() {
     setState(prev => ({ ...prev, error: null }));
 
     try {
-      // Primeiro, obter posição inicial
+      // Primeiro, obter posição inicial com configurações mais permissivas
       const initialPosition = await new Promise<GeolocationPosition>((resolve, reject) => {
         const timeoutId = setTimeout(() => {
           reject(new Error('Timeout ao obter posição inicial'));
-        }, 15000);
+        }, 20000); // Aumentar timeout para 20s
 
         navigator.geolocation.getCurrentPosition(
           (position) => {
@@ -89,9 +90,9 @@ export function useGPS() {
             reject(error);
           }, 
           {
-            enableHighAccuracy: true,
-            timeout: 12000,
-            maximumAge: 60000
+            enableHighAccuracy: false, // Começar com baixa precisão
+            timeout: 15000,
+            maximumAge: 300000 // Aceitar posições até 5 minutos antigas
           }
         );
       });
@@ -100,7 +101,7 @@ export function useGPS() {
         latitude: initialPosition.coords.latitude,
         longitude: initialPosition.coords.longitude,
         altitude: initialPosition.coords.altitude || undefined,
-        accuracy: Math.min(initialPosition.coords.accuracy, 100),
+        accuracy: initialPosition.coords.accuracy,
         speed: initialPosition.coords.speed || undefined,
         heading: initialPosition.coords.heading || undefined,
         timestamp: Date.now()
@@ -118,7 +119,7 @@ export function useGPS() {
       positionHistoryRef.current = [gpsPosition];
       console.log(`GPS inicializado: lat=${gpsPosition.latitude}, lng=${gpsPosition.longitude}, precisão=${gpsPosition.accuracy?.toFixed(1)}m`);
 
-      // Iniciar rastreamento contínuo
+      // Iniciar rastreamento contínuo com alta precisão
       watchIdRef.current = navigator.geolocation.watchPosition(
         (position) => {
           if (!isValidPosition(position)) {
@@ -130,21 +131,21 @@ export function useGPS() {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             altitude: position.coords.altitude || undefined,
-            accuracy: Math.min(position.coords.accuracy, 100),
+            accuracy: position.coords.accuracy,
             speed: position.coords.speed || undefined,
             heading: position.coords.heading || undefined,
             timestamp: Date.now()
           };
 
-          // Filtrar posições com baixa precisão
-          if ((newGpsPosition.accuracy || 100) > 50) {
-            console.warn(`GPS com baixa precisão: ${newGpsPosition.accuracy}m - ignorando`);
+          // Durante o tracking, ser mais seletivo com a precisão
+          if ((newGpsPosition.accuracy || 100) > 100) {
+            console.warn(`GPS com baixa precisão durante tracking: ${newGpsPosition.accuracy}m - ignorando`);
             return;
           }
 
-          // Filtrar movimentos muito pequenos
+          // Filtrar movimentos muito pequenos apenas se já temos uma posição anterior válida
           const lastPosition = positionHistoryRef.current[positionHistoryRef.current.length - 1];
-          if (lastPosition) {
+          if (lastPosition && (newGpsPosition.accuracy || 100) < 50) {
             const distance = calculateDistance(lastPosition, newGpsPosition);
             if (distance < 0.003) {
               return;
@@ -188,8 +189,8 @@ export function useGPS() {
           }));
         },
         {
-          enableHighAccuracy: true,
-          timeout: 8000,
+          enableHighAccuracy: true, // Alta precisão apenas no tracking contínuo
+          timeout: 10000,
           maximumAge: 5000
         }
       );
@@ -229,7 +230,12 @@ export function useGPS() {
     if (!initializationAttempted.current) {
       initializationAttempted.current = true;
       console.log('Auto-inicializando GPS...');
-      startTracking();
+      // Aguardar um pouco antes de inicializar
+      const timer = setTimeout(() => {
+        startTracking();
+      }, 1000);
+      
+      return () => clearTimeout(timer);
     }
 
     return () => {

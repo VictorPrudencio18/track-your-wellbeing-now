@@ -25,8 +25,17 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
   const TOMTOM_API_KEY = import.meta.env.VITE_TOMTOM_API_KEY as string;
 
   const initializeTomTomMaps = async () => {
+    console.log('Verificando container do mapa...');
+    
     if (!mapContainer.current) {
-      console.error('Container do mapa não encontrado');
+      console.error('Container do mapa não encontrado - aguardando...');
+      // Tentar novamente após um delay
+      setTimeout(() => {
+        if (mapContainer.current) {
+          console.log('Container encontrado após delay');
+          initializeTomTomMaps();
+        }
+      }, 500);
       return;
     }
 
@@ -73,12 +82,20 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
     }
   };
 
-  // Inicializar mapa automaticamente
+  // Aguardar que o container esteja pronto antes de inicializar
   useEffect(() => {
-    const timer = setTimeout(() => {
-      initializeTomTomMaps();
-    }, 1000); // Aguardar um pouco para o container estar pronto
+    // Verificar se o container está disponível
+    const checkContainer = () => {
+      if (mapContainer.current) {
+        console.log('Container do mapa encontrado, inicializando...');
+        initializeTomTomMaps();
+      } else {
+        console.log('Container não encontrado, tentando novamente...');
+        setTimeout(checkContainer, 100);
+      }
+    };
 
+    const timer = setTimeout(checkContainer, 500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -198,9 +215,12 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
           </div>
         )}
 
-        {!loading && !showMapError && (
-          <div ref={mapContainer} className="w-full h-full" />
-        )}
+        {/* Container do mapa - garantir que esteja sempre presente */}
+        <div 
+          ref={mapContainer} 
+          className={`w-full h-full ${loading || showMapError ? 'hidden' : 'block'}`}
+          style={{ minHeight: '384px' }}
+        />
         
         {/* Overlay de informações */}
         {mapLoaded && !showMapError && (
