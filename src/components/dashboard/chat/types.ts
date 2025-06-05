@@ -5,4 +5,5 @@ export interface ChatMessage {
   content: string;
   timestamp: string;
   suggestions?: string[];
+  isError?: boolean; // Add this line
 }
