@@ -1,4 +1,3 @@
-
 import { motion } from 'framer-motion';
 import { Timer, MapPin, Heart, Zap, TrendingUp, Activity } from 'lucide-react';
 import { ProgressRing } from '@/components/ui/progress-ring';

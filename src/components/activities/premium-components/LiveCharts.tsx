@@ -159,7 +159,7 @@ export function LiveCharts({ data, gpsState, isActive }: LiveChartsProps) {
                     y={currentConfig.target} 
                     stroke="#f59e0b" 
                     strokeDasharray="5 5"
-                    label={{ value: "Meta", position: "topRight", fill: "#f59e0b" }}
+                    label={{ value: "Meta", position: "top", fill: "#f59e0b" }}
                   />
                 )}
                 <Line

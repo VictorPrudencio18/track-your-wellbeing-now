@@ -1,4 +1,3 @@
-
 import { motion } from 'framer-motion';
 import { Timer, MapPin, Zap, Heart, TrendingUp, Activity, Target } from 'lucide-react';
 import { PremiumCard } from '@/components/ui/premium-card';

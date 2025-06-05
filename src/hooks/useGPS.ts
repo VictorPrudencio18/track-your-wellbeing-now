@@ -17,10 +17,14 @@ export interface GPSState {
   error: string | null;
   accuracy: number;
   isHighAccuracy: boolean;
+  getPositionHistory: () => GPSPosition[];
+  calculateTotalDistance: () => number;
+  calculateCurrentSpeed: () => number;
+  calculateDistance: (pos1: GPSPosition, pos2: GPSPosition) => number;
 }
 
 export function useGPS() {
-  const [state, setState] = useState<GPSState>({
+  const [state, setState] = useState<Omit<GPSState, 'getPositionHistory' | 'calculateTotalDistance' | 'calculateCurrentSpeed' | 'calculateDistance'>>({
     position: null,
     isTracking: false,
     error: null,
