@@ -109,6 +109,15 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
+      {/* Daily History Carousel - Movido para o topo */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+      >
+        <DailyHistoryCarousel />
+      </motion.div>
+
       {/* Estatísticas Reais do Supabase */}
       <SupabaseStatsCards />
 
@@ -119,15 +128,6 @@ export default function Dashboard() {
         transition={{ duration: 0.6, delay: 0.4 }}
       >
         <SupabaseActivityTracker />
-      </motion.div>
-
-      {/* Daily History Carousel */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.5 }}
-      >
-        <DailyHistoryCarousel />
       </motion.div>
 
       {/* Charts and Activities Section - Layout responsivo */}
