@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +24,10 @@ export function SupabaseActivityTracker() {
     distance: '',
     calories: '',
     notes: '',
+    avg_heart_rate: '',
+    max_heart_rate: '',
+    pace: '',
+    elevation_gain: ''
   });
 
   if (authLoading) {
@@ -89,6 +92,10 @@ export function SupabaseActivityTracker() {
         duration: parseInt(formData.duration) * 60, // Convert minutes to seconds
         distance: formData.distance ? parseFloat(formData.distance) : undefined,
         calories: formData.calories ? parseInt(formData.calories) : undefined,
+        avg_heart_rate: formData.avg_heart_rate ? parseInt(formData.avg_heart_rate) : undefined,
+        max_heart_rate: formData.max_heart_rate ? parseInt(formData.max_heart_rate) : undefined,
+        pace: formData.pace ? parseFloat(formData.pace) : undefined,
+        elevation_gain: formData.elevation_gain ? parseInt(formData.elevation_gain) : undefined,
         notes: formData.notes || undefined,
       });
       
@@ -100,6 +107,10 @@ export function SupabaseActivityTracker() {
         distance: '',
         calories: '',
         notes: '',
+        avg_heart_rate: '',
+        max_heart_rate: '',
+        pace: '',
+        elevation_gain: ''
       });
     } catch (error: any) {
       // Error is handled by the mutation
@@ -170,8 +181,8 @@ export function SupabaseActivityTracker() {
           </div>
         </div>
 
-        {/* Metrics Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Enhanced Metrics Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-accent-orange" />
@@ -220,6 +231,67 @@ export function SupabaseActivityTracker() {
               value={formData.calories}
               onChange={(e) => setFormData(prev => ({ ...prev, calories: e.target.value }))}
               placeholder="300"
+              className="glass-card border-navy-600/30 bg-navy-800/50 text-white placeholder:text-navy-400 hover:border-navy-500/50 focus:border-accent-orange/50"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-accent-orange" />
+              <Label htmlFor="avg_heart_rate" className="text-white font-medium">FC Média</Label>
+            </div>
+            <Input
+              id="avg_heart_rate"
+              type="number"
+              min="0"
+              max="220"
+              value={formData.avg_heart_rate}
+              onChange={(e) => setFormData(prev => ({ ...prev, avg_heart_rate: e.target.value }))}
+              placeholder="120"
+              className="glass-card border-navy-600/30 bg-navy-800/50 text-white placeholder:text-navy-400 hover:border-navy-500/50 focus:border-accent-orange/50"
+            />
+          </div>
+        </div>
+
+        {/* Additional Metrics Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-3">
+            <Label htmlFor="max_heart_rate" className="text-white font-medium">FC Máxima</Label>
+            <Input
+              id="max_heart_rate"
+              type="number"
+              min="0"
+              max="220"
+              value={formData.max_heart_rate}
+              onChange={(e) => setFormData(prev => ({ ...prev, max_heart_rate: e.target.value }))}
+              placeholder="150"
+              className="glass-card border-navy-600/30 bg-navy-800/50 text-white placeholder:text-navy-400 hover:border-navy-500/50 focus:border-accent-orange/50"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <Label htmlFor="pace" className="text-white font-medium">Pace (min/km)</Label>
+            <Input
+              id="pace"
+              type="number"
+              step="0.1"
+              min="0"
+              value={formData.pace}
+              onChange={(e) => setFormData(prev => ({ ...prev, pace: e.target.value }))}
+              placeholder="6.0"
+              className="glass-card border-navy-600/30 bg-navy-800/50 text-white placeholder:text-navy-400 hover:border-navy-500/50 focus:border-accent-orange/50"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <Label htmlFor="elevation_gain" className="text-white font-medium">Elevação (m)</Label>
+            <Input
+              id="elevation_gain"
+              type="number"
+              min="0"
+              value={formData.elevation_gain}
+              onChange={(e) => setFormData(prev => ({ ...prev, elevation_gain: e.target.value }))}
+              placeholder="100"
               className="glass-card border-navy-600/30 bg-navy-800/50 text-white placeholder:text-navy-400 hover:border-navy-500/50 focus:border-accent-orange/50"
             />
           </div>

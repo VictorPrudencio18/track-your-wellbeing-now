@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { MapPin, Timer, Footprints, Heart, Navigation, Target, Zap, TrendingUp } from 'lucide-react';
 import { ModernActivityBase } from './ModernActivityBase';
@@ -6,6 +5,7 @@ import { MetricsGrid } from './MetricsGrid';
 import { Button } from '@/components/ui/button';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { motion } from 'framer-motion';
+import { useCreateActivity } from '@/hooks/useSupabaseActivities';
 
 interface ModernWalkingActivityProps {
   onComplete: (data: any) => void;
@@ -29,6 +29,8 @@ const terrainTypes = [
 ];
 
 export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingActivityProps) {
+  const createActivity = useCreateActivity();
+  
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -110,26 +112,35 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
     setIsPaused(!isPaused);
   };
 
-  const handleStop = () => {
+  const handleStop = async () => {
     const sessionData = {
-      type: 'walking',
+      type: 'walking' as const,
       name: `Caminhada ${selectedGoal.name}`,
       duration,
-      steps: Math.round(steps),
       distance: Number(distance.toFixed(2)),
       calories: Math.round(calories),
       avg_heart_rate: Math.round(avgHeartRate),
       max_heart_rate: Math.round(heartRate),
       pace: Number(pace.toFixed(2)),
-      max_speed: Number(maxSpeed.toFixed(2)),
-      terrain: selectedTerrain.name,
       elevation_gain: Math.round(elevation),
-      heart_rate_zone: heartRateZone,
-      goal_achieved: steps >= selectedGoal.steps,
-      date: new Date()
+      notes: `Meta: ${selectedGoal.name} | Terreno: ${selectedTerrain.name} | Zona Cardíaca: ${heartRateZone}`,
+      gps_data: {
+        steps: Math.round(steps),
+        max_speed: Number(maxSpeed.toFixed(2)),
+        terrain: selectedTerrain.name,
+        heart_rate_zone: heartRateZone,
+        goal_achieved: steps >= selectedGoal.steps,
+        terrain_modifier: selectedTerrain.modifier
+      }
     };
     
-    onComplete(sessionData);
+    try {
+      await createActivity.mutateAsync(sessionData);
+      onComplete(sessionData);
+    } catch (error) {
+      console.error('Error saving walking activity:', error);
+      onComplete(sessionData); // Still complete the activity even if save fails
+    }
   };
 
   const goalProgress = (steps / selectedGoal.steps) * 100;

@@ -1,11 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
-import { Heart, Timer, Waves, Brain, Flame, PlayCircle, PauseCircle, RotateCcw } from 'lucide-react';
+import { Waves, Timer, Heart, Zap, Target, Sparkles, Sun } from 'lucide-react';
 import { ModernActivityBase } from './ModernActivityBase';
 import { MetricsGrid } from './MetricsGrid';
 import { Button } from '@/components/ui/button';
 import { PremiumCard } from '@/components/ui/premium-card';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { useCreateActivity } from '@/hooks/useSupabaseActivities';
 
 interface ModernYogaActivityProps {
   onComplete: (data: any) => void;
@@ -21,6 +21,21 @@ const yogaStyles = [
   { name: 'Kundalini', description: 'Foco em energia e espiritualidade', intensity: 2, color: 'from-indigo-500 to-purple-600' }
 ];
 
+const breathingTechniques = [
+  { name: 'Ujjayi', pattern: '4-4-4-4', description: 'Respiração oceânica' },
+  { name: 'Anulom Vilom', pattern: '4-2-4-2', description: 'Respiração alternada' },
+  { name: 'Bhramari', pattern: '4-0-6-0', description: 'Respiração da abelha' },
+  { name: 'Kapalabhati', pattern: '1-0-1-0', description: 'Respiração do fogo' }
+];
+
+const chakras = [
+  { name: 'Muladhara', color: 'from-red-500 to-pink-600' },
+  { name: 'Manipura', color: 'from-blue-500 to-cyan-600' },
+  { name: 'Svadhisthana', color: 'from-orange-500 to-red-600' },
+  { name: 'Anahata', color: 'from-purple-500 to-pink-600' },
+  { name: 'Sahasrara', color: 'from-indigo-500 to-purple-600' }
+];
+
 const poses = [
   { name: 'Montanha (Tadasana)', duration: 60, difficulty: 1, chakra: 'Muladhara' },
   { name: 'Saudação ao Sol', duration: 120, difficulty: 2, chakra: 'Manipura' },
@@ -34,14 +49,9 @@ const poses = [
   { name: 'Lótus', duration: 300, difficulty: 4, chakra: 'Sahasrara' }
 ];
 
-const breathingPatterns = [
-  { name: 'Ujjayi', pattern: '4-4-4-4', description: 'Respiração oceânica' },
-  { name: 'Anulom Vilom', pattern: '4-2-4-2', description: 'Respiração alternada' },
-  { name: 'Bhramari', pattern: '4-0-6-0', description: 'Respiração da abelha' },
-  { name: 'Kapalabhati', pattern: '1-0-1-0', description: 'Respiração do fogo' }
-];
-
 export function ModernYogaActivity({ onComplete, onCancel }: ModernYogaActivityProps) {
+  const createActivity = useCreateActivity();
+  
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -53,10 +63,17 @@ export function ModernYogaActivity({ onComplete, onCancel }: ModernYogaActivityP
   const [mindfulness, setMindfulness] = useState(50);
   const [flexibility, setFlexibility] = useState(60);
   const [energy, setEnergy] = useState(100);
-  const [selectedBreathing, setSelectedBreathing] = useState(breathingPatterns[0]);
+  const [selectedBreathing, setSelectedBreathing] = useState(breathingTechniques[0]);
   const [breathingPhase, setBreathingPhase] = useState('inspire');
   const [breathTimer, setBreathTimer] = useState(0);
   const [completedPoses, setCompletedPoses] = useState<string[]>([]);
+  const [posesCompleted, setPosesCompleted] = useState(0);
+  const [currentChakra, setCurrentChakra] = useState(chakras[0]);
+  const [currentPoses, setCurrentPoses] = useState(poses);
+  const [calories, setCalories] = useState(0);
+  const [avgHeartRate, setAvgHeartRate] = useState(72);
+  const [balance, setBalance] = useState(60);
+  const [breathingCycles, setBreathingCycles] = useState(0);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -94,24 +111,38 @@ export function ModernYogaActivity({ onComplete, onCancel }: ModernYogaActivityP
     setIsPaused(!isPaused);
   };
 
-  const handleStop = () => {
+  const handleStop = async () => {
     const sessionData = {
-      type: 'yoga',
+      type: 'yoga' as const,
       name: `Yoga ${selectedStyle.name}`,
       duration,
-      style: selectedStyle.name,
-      poses_completed: completedPoses.length,
-      total_poses: poses.length,
-      breath_count: breathCount,
-      avg_heart_rate: Math.round(heartRate),
-      mindfulness_score: Math.round(mindfulness),
-      flexibility_improvement: Math.round(flexibility - 60),
-      calories: Math.round(duration * 0.05 * selectedStyle.intensity),
-      breathing_technique: selectedBreathing.name,
-      date: new Date()
+      calories: Math.round(calories),
+      avg_heart_rate: Math.round(avgHeartRate),
+      max_heart_rate: Math.round(heartRate),
+      notes: `Estilo: ${selectedStyle.name} | Respiração: ${selectedBreathing.name} | Poses: ${posesCompleted} | Chakra: ${currentChakra.name}`,
+      gps_data: {
+        yoga_style: selectedStyle.name,
+        breathing_technique: selectedBreathing.name,
+        poses_completed: posesCompleted,
+        poses_total: currentPoses.length,
+        current_chakra: currentChakra.name,
+        mindfulness_score: Math.round(mindfulness),
+        flexibility_score: Math.round(flexibility),
+        energy_score: Math.round(energy),
+        balance_score: Math.round(balance),
+        breathing_cycles: breathingCycles,
+        session_intensity: selectedStyle.intensity,
+        completion_rate: (posesCompleted / currentPoses.length) * 100
+      }
     };
     
-    onComplete(sessionData);
+    try {
+      await createActivity.mutateAsync(sessionData);
+      onComplete(sessionData);
+    } catch (error) {
+      console.error('Error saving yoga activity:', error);
+      onComplete(sessionData); // Still complete the activity even if save fails
+    }
   };
 
   const nextPose = () => {
@@ -303,7 +334,7 @@ export function ModernYogaActivity({ onComplete, onCancel }: ModernYogaActivityP
                 <h4 className="text-lg font-semibold text-white">Guia de Respiração</h4>
                 
                 <div className="grid grid-cols-4 gap-2 mb-4">
-                  {breathingPatterns.map((pattern) => (
+                  {breathingTechniques.map((pattern) => (
                     <button
                       key={pattern.name}
                       onClick={() => setSelectedBreathing(pattern)}
