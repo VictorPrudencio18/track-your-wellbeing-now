@@ -45,12 +45,15 @@ export function useDailyProgress(weeklyGoalId?: string) {
   });
 
   const updateProgress = useMutation({
-    mutationFn: async (progressData: Partial<DailyProgress>) => {
+    mutationFn: async (progressData: Partial<DailyProgress> & { 
+      weekly_goal_id: string; 
+      progress_date: string; 
+    }) => {
       if (!user?.id) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
         .from('daily_goal_progress')
-        .upsert([{ ...progressData, user_id: user.id }])
+        .upsert({ ...progressData, user_id: user.id })
         .select()
         .single();
       

@@ -3,10 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
+type GoalType = 'distance' | 'duration' | 'frequency' | 'calories';
+
 export interface WeeklyGoal {
   id: string;
   user_id: string;
-  goal_type: string;
+  goal_type: GoalType;
   title: string;
   description?: string;
   target_value: number;
@@ -49,12 +51,19 @@ export function useWeeklyGoals() {
   });
 
   const createGoal = useMutation({
-    mutationFn: async (goalData: Partial<WeeklyGoal>) => {
+    mutationFn: async (goalData: Partial<WeeklyGoal> & {
+      goal_type: GoalType;
+      title: string;
+      target_value: number;
+      unit: string;
+      week_start_date: string;
+      week_end_date: string;
+    }) => {
       if (!user?.id) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
         .from('weekly_goals')
-        .insert([{ ...goalData, user_id: user.id }])
+        .insert({ ...goalData, user_id: user.id })
         .select()
         .single();
       

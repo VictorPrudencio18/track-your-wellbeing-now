@@ -3,10 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
+type GoalType = 'distance' | 'duration' | 'frequency' | 'calories';
+
 export interface GoalRecommendation {
   id: string;
   user_id: string;
-  recommended_goal_type: string;
+  recommended_goal_type: GoalType;
   recommended_title: string;
   recommended_description?: string;
   recommended_target_value: number;

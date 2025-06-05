@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +13,7 @@ import { AdvancedMetricsComparison } from '@/components/reports/AdvancedMetricsC
 import { SocialFeed } from '@/components/social/SocialFeed';
 import { UserProfileCard } from '@/components/social/UserProfileCard';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -25,8 +27,13 @@ import { WeeklyGoalsSystem } from '@/components/goals/WeeklyGoalsSystem';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
 
   if (!user) {
     navigate('/login');
@@ -43,7 +50,7 @@ export default function Dashboard() {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-navy-300">{user.email}</span>
-          <Button variant="outline" size="sm" onClick={() => signOut()}>
+          <Button variant="outline" size="sm" onClick={handleSignOut}>
             Sair
           </Button>
         </div>
