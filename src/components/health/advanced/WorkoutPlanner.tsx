@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useCreateActivity } from '@/hooks/useSupabaseActivities';
 import { 
   Plus, 
   Play, 
@@ -20,51 +21,41 @@ import {
   Calendar,
   Dumbbell,
   Edit3,
-  Trash2
+  Trash2,
+  Save,
+  X
 } from 'lucide-react';
 
-interface WorkoutPlan {
-  id: string;
-  name: string;
-  description: string;
-  difficulty_level: number;
-  duration_weeks: number;
-  workout_data: any[];
-  progress_tracking: any;
-  is_active: boolean;
-}
-
-interface WorkoutSession {
-  id: string;
-  session_name: string;
-  exercises: any[];
-  duration: number;
-  calories_burned: number;
-  intensity_level: number;
-  completed_at: string;
-}
-
 export function WorkoutPlanner() {
+  const createActivity = useCreateActivity();
   const [activeTab, setActiveTab] = useState('plans');
-  const [isCreatingPlan, setIsCreatingPlan] = useState(false);
-  const [newPlan, setNewPlan] = useState({
+  const [isCreatingWorkout, setIsCreatingWorkout] = useState(false);
+  const [isLogging, setIsLogging] = useState(false);
+  
+  const [newWorkout, setNewWorkout] = useState({
     name: '',
-    description: '',
-    difficulty_level: 1,
-    duration_weeks: 4,
+    type: 'gym',
+    duration: '',
+    exercises: [] as Array<{name: string, sets: string, reps: string, weight: string}>
   });
 
-  // Mock data - substituir pelos hooks reais
-  const workoutPlans: WorkoutPlan[] = [
+  const [workoutLog, setWorkoutLog] = useState({
+    type: 'gym',
+    duration: '',
+    calories: '',
+    notes: ''
+  });
+
+  // Mock workout plans - em uma implementação real, viria do banco de dados
+  const workoutPlans = [
     {
       id: '1',
       name: 'Plano de Força Iniciante',
       description: 'Programa focado no desenvolvimento de força básica',
       difficulty_level: 2,
       duration_weeks: 8,
-      workout_data: [],
-      progress_tracking: { completed_sessions: 12, total_sessions: 24 },
-      is_active: true,
+      sessions_per_week: 3,
+      progress: 50
     },
     {
       id: '2',
@@ -72,231 +63,424 @@ export function WorkoutPlanner() {
       description: 'Treinos de alta intensidade para queima de gordura',
       difficulty_level: 4,
       duration_weeks: 6,
-      workout_data: [],
-      progress_tracking: { completed_sessions: 8, total_sessions: 18 },
-      is_active: false,
-    },
+      sessions_per_week: 4,
+      progress: 75
+    }
   ];
 
-  const recentSessions: WorkoutSession[] = [
-    {
-      id: '1',
-      session_name: 'Treino de Peito e Tríceps',
-      exercises: [
-        { name: 'Supino Reto', sets: 4, reps: 10, weight: 80 },
-        { name: 'Supino Inclinado', sets: 3, reps: 12, weight: 70 },
-        { name: 'Flexões', sets: 3, reps: 15, weight: 0 },
-      ],
-      duration: 3600, // 1 hora
-      calories_burned: 450,
-      intensity_level: 7,
-      completed_at: new Date().toISOString(),
-    },
+  const addExercise = () => {
+    setNewWorkout({
+      ...newWorkout,
+      exercises: [...newWorkout.exercises, { name: '', sets: '', reps: '', weight: '' }]
+    });
+  };
+
+  const updateExercise = (index: number, field: string, value: string) => {
+    const updatedExercises = newWorkout.exercises.map((exercise, i) => 
+      i === index ? { ...exercise, [field]: value } : exercise
+    );
+    setNewWorkout({ ...newWorkout, exercises: updatedExercises });
+  };
+
+  const removeExercise = (index: number) => {
+    setNewWorkout({
+      ...newWorkout,
+      exercises: newWorkout.exercises.filter((_, i) => i !== index)
+    });
+  };
+
+  const handleLogWorkout = () => {
+    if (!workoutLog.type || !workoutLog.duration) return;
+    
+    createActivity.mutate({
+      name: `Treino ${workoutLog.type}`,
+      type: workoutLog.type as any,
+      duration: parseInt(workoutLog.duration) * 60, // converter para segundos
+      calories: workoutLog.calories ? parseInt(workoutLog.calories) : undefined,
+      notes: workoutLog.notes,
+      completed_at: new Date().toISOString()
+    });
+    
+    setWorkoutLog({
+      type: 'gym',
+      duration: '',
+      calories: '',
+      notes: ''
+    });
+    setIsLogging(false);
+  };
+
+  const activityTypes = [
+    { value: 'gym', label: 'Academia' },
+    { value: 'running', label: 'Corrida' },
+    { value: 'cycling', label: 'Ciclismo' },
+    { value: 'swimming', label: 'Natação' },
+    { value: 'yoga', label: 'Yoga' },
+    { value: 'dance', label: 'Dança' },
+    { value: 'hiking', label: 'Caminhada' },
+    { value: 'walking', label: 'Caminhada Leve' }
   ];
-
-  const handleCreatePlan = () => {
-    console.log('Criando plano:', newPlan);
-    setIsCreatingPlan(false);
-    setNewPlan({ name: '', description: '', difficulty_level: 1, duration_weeks: 4 });
-  };
-
-  const getDifficultyLabel = (level: number) => {
-    const labels = ['Muito Fácil', 'Fácil', 'Moderado', 'Difícil', 'Muito Difícil'];
-    return labels[level - 1] || 'Desconhecido';
-  };
-
-  const getDifficultyColor = (level: number) => {
-    const colors = ['bg-green-500', 'bg-yellow-500', 'bg-orange-500', 'bg-red-500', 'bg-purple-500'];
-    return colors[level - 1] || 'bg-gray-500';
-  };
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <motion.div
+      <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-center"
+        className="text-center relative"
       >
-        <h1 className="text-3xl font-bold text-white mb-4">
-          Planejador de Treinos
-        </h1>
-        <p className="text-navy-400 max-w-2xl mx-auto">
-          Crie planos personalizados, acompanhe seu progresso e registre suas sessões de treino
-        </p>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent rounded-3xl" />
+        <div className="relative z-10 space-y-4">
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="p-4 bg-gradient-to-br from-blue-500/20 to-blue-600/10 rounded-3xl border border-blue-500/20">
+              <Dumbbell className="w-8 h-8 text-blue-400" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                Planejador de Treinos
+              </h1>
+              <p className="text-navy-400 text-lg max-w-2xl mx-auto">
+                Crie, acompanhe e registre seus treinos personalizados
+              </p>
+            </div>
+          </div>
+        </div>
       </motion.div>
 
-      {/* Navigation */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-navy-800/50 border border-navy-600/30">
-          <TabsTrigger value="plans" className="data-[state=active]:bg-accent-orange">
-            <Dumbbell className="w-4 h-4 mr-2" />
-            Planos
-          </TabsTrigger>
-          <TabsTrigger value="active" className="data-[state=active]:bg-accent-orange">
-            <Play className="w-4 h-4 mr-2" />
-            Treino Ativo
-          </TabsTrigger>
-          <TabsTrigger value="history" className="data-[state=active]:bg-accent-orange">
-            <Calendar className="w-4 h-4 mr-2" />
-            Histórico
-          </TabsTrigger>
-          <TabsTrigger value="progress" className="data-[state=active]:bg-accent-orange">
-            <TrendingUp className="w-4 h-4 mr-2" />
-            Progresso
-          </TabsTrigger>
-        </TabsList>
+      {/* Quick Actions */}
+      <div className="flex flex-wrap gap-4 justify-center">
+        <Button 
+          onClick={() => setIsLogging(true)}
+          className="bg-gradient-to-r from-accent-orange to-accent-orange/80 hover:from-accent-orange/80 hover:to-accent-orange text-white"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Registrar Treino
+        </Button>
+        <Button 
+          onClick={() => setIsCreatingWorkout(true)}
+          variant="outline"
+          className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+        >
+          <Target className="w-4 h-4 mr-2" />
+          Criar Plano
+        </Button>
+      </div>
 
-        {/* Planos de Treino */}
-        <TabsContent value="plans" className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-white">Meus Planos de Treino</h2>
-            <Button 
-              onClick={() => setIsCreatingPlan(true)}
-              className="bg-accent-orange hover:bg-accent-orange/80"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Plano
-            </Button>
-          </div>
+      {/* Quick Workout Log Modal */}
+      {isLogging && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+        >
+          <Card className="glass-card border-navy-600/30 bg-navy-800/90 backdrop-blur-xl max-w-md w-full">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-white">Registrar Treino</CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setIsLogging(false)}
+                  className="text-navy-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-navy-300 text-sm">Tipo de Treino</label>
+                <select
+                  value={workoutLog.type}
+                  onChange={(e) => setWorkoutLog({ ...workoutLog, type: e.target.value })}
+                  className="w-full p-2 bg-navy-800/50 border border-navy-600/30 rounded-md text-white mt-1"
+                >
+                  {activityTypes.map(type => (
+                    <option key={type.value} value={type.value}>{type.label}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="text-navy-300 text-sm">Duração (minutos)</label>
+                <Input
+                  type="number"
+                  value={workoutLog.duration}
+                  onChange={(e) => setWorkoutLog({ ...workoutLog, duration: e.target.value })}
+                  className="bg-navy-800/50 border-navy-600/30 text-white mt-1"
+                  placeholder="Ex: 45"
+                />
+              </div>
+              
+              <div>
+                <label className="text-navy-300 text-sm">Calorias (opcional)</label>
+                <Input
+                  type="number"
+                  value={workoutLog.calories}
+                  onChange={(e) => setWorkoutLog({ ...workoutLog, calories: e.target.value })}
+                  className="bg-navy-800/50 border-navy-600/30 text-white mt-1"
+                  placeholder="Ex: 300"
+                />
+              </div>
+              
+              <div>
+                <label className="text-navy-300 text-sm">Notas (opcional)</label>
+                <Textarea
+                  value={workoutLog.notes}
+                  onChange={(e) => setWorkoutLog({ ...workoutLog, notes: e.target.value })}
+                  className="bg-navy-800/50 border-navy-600/30 text-white mt-1"
+                  placeholder="Como foi o treino hoje?"
+                  rows={3}
+                />
+              </div>
+              
+              <div className="flex gap-3 pt-4">
+                <Button 
+                  onClick={handleLogWorkout}
+                  disabled={!workoutLog.type || !workoutLog.duration || createActivity.isPending}
+                  className="flex-1 bg-accent-orange hover:bg-accent-orange/80"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {createActivity.isPending ? 'Salvando...' : 'Registrar'}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsLogging(false)}
+                  className="border-navy-600/30 text-navy-300 hover:bg-navy-800/50"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
-          {isCreatingPlan && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="glass-card rounded-xl p-6 border border-navy-600/30"
-            >
-              <h3 className="text-xl font-bold text-white mb-4">Criar Novo Plano</h3>
-              <div className="space-y-4">
+      {/* Create Workout Plan Modal */}
+      {isCreatingWorkout && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto"
+        >
+          <Card className="glass-card border-navy-600/30 bg-navy-800/90 backdrop-blur-xl max-w-2xl w-full my-8">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-white">Criar Plano de Treino</CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setIsCreatingWorkout(false)}
+                  className="text-navy-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-navy-300 text-sm">Nome do Plano</label>
                   <Input
-                    value={newPlan.name}
-                    onChange={(e) => setNewPlan({ ...newPlan, name: e.target.value })}
-                    placeholder="Ex: Hipertrofia Avançada"
-                    className="bg-navy-800/50 border-navy-600/30 text-white"
+                    value={newWorkout.name}
+                    onChange={(e) => setNewWorkout({ ...newWorkout, name: e.target.value })}
+                    className="bg-navy-800/50 border-navy-600/30 text-white mt-1"
+                    placeholder="Ex: Treino de Força"
                   />
                 </div>
+                
                 <div>
-                  <label className="text-navy-300 text-sm">Descrição</label>
-                  <Textarea
-                    value={newPlan.description}
-                    onChange={(e) => setNewPlan({ ...newPlan, description: e.target.value })}
-                    placeholder="Descreva os objetivos e características do plano"
-                    className="bg-navy-800/50 border-navy-600/30 text-white"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-navy-300 text-sm">Nível de Dificuldade</label>
-                    <select
-                      value={newPlan.difficulty_level}
-                      onChange={(e) => setNewPlan({ ...newPlan, difficulty_level: Number(e.target.value) })}
-                      className="w-full p-2 bg-navy-800/50 border border-navy-600/30 rounded-md text-white"
-                    >
-                      {[1, 2, 3, 4, 5].map(level => (
-                        <option key={level} value={level}>
-                          {level} - {getDifficultyLabel(level)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-navy-300 text-sm">Duração (semanas)</label>
-                    <Input
-                      type="number"
-                      value={newPlan.duration_weeks}
-                      onChange={(e) => setNewPlan({ ...newPlan, duration_weeks: Number(e.target.value) })}
-                      className="bg-navy-800/50 border-navy-600/30 text-white"
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <Button onClick={handleCreatePlan} className="bg-accent-orange hover:bg-accent-orange/80">
-                    Criar Plano
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsCreatingPlan(false)}
-                    className="border-navy-600/30 text-navy-300 hover:bg-navy-800/50"
+                  <label className="text-navy-300 text-sm">Tipo</label>
+                  <select
+                    value={newWorkout.type}
+                    onChange={(e) => setNewWorkout({ ...newWorkout, type: e.target.value })}
+                    className="w-full p-2 bg-navy-800/50 border border-navy-600/30 rounded-md text-white mt-1"
                   >
-                    Cancelar
-                  </Button>
+                    {activityTypes.map(type => (
+                      <option key={type.value} value={type.value}>{type.label}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
-            </motion.div>
-          )}
+              
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-white font-medium">Exercícios</h4>
+                  <Button 
+                    onClick={addExercise}
+                    size="sm"
+                    variant="outline"
+                    className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Adicionar
+                  </Button>
+                </div>
+                
+                <div className="space-y-3 max-h-60 overflow-y-auto">
+                  {newWorkout.exercises.map((exercise, index) => (
+                    <div key={index} className="flex gap-2 items-center p-3 bg-navy-700/30 rounded-lg">
+                      <Input
+                        placeholder="Nome do exercício"
+                        value={exercise.name}
+                        onChange={(e) => updateExercise(index, 'name', e.target.value)}
+                        className="bg-navy-800/50 border-navy-600/30 text-white text-sm"
+                      />
+                      <Input
+                        placeholder="Séries"
+                        value={exercise.sets}
+                        onChange={(e) => updateExercise(index, 'sets', e.target.value)}
+                        className="bg-navy-800/50 border-navy-600/30 text-white text-sm w-20"
+                      />
+                      <Input
+                        placeholder="Reps"
+                        value={exercise.reps}
+                        onChange={(e) => updateExercise(index, 'reps', e.target.value)}
+                        className="bg-navy-800/50 border-navy-600/30 text-white text-sm w-20"
+                      />
+                      <Input
+                        placeholder="Peso"
+                        value={exercise.weight}
+                        onChange={(e) => updateExercise(index, 'weight', e.target.value)}
+                        className="bg-navy-800/50 border-navy-600/30 text-white text-sm w-20"
+                      />
+                      <Button
+                        onClick={() => removeExercise(index)}
+                        size="sm"
+                        variant="ghost"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  
+                  {newWorkout.exercises.length === 0 && (
+                    <div className="text-center py-8 text-navy-400">
+                      <Dumbbell className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p>Nenhum exercício adicionado</p>
+                      <p className="text-sm">Clique em "Adicionar" para começar</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex gap-3 pt-4 border-t border-navy-700/30">
+                <Button 
+                  onClick={() => {
+                    console.log('Criando plano:', newWorkout);
+                    setNewWorkout({
+                      name: '',
+                      type: 'gym',
+                      duration: '',
+                      exercises: []
+                    });
+                    setIsCreatingWorkout(false);
+                  }}
+                  disabled={!newWorkout.name}
+                  className="flex-1 bg-accent-orange hover:bg-accent-orange/80"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Criar Plano
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsCreatingWorkout(false)}
+                  className="border-navy-600/30 text-navy-300 hover:bg-navy-800/50"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Main Content Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3 gap-2 bg-navy-800/50 p-2 rounded-2xl backdrop-blur-sm border border-navy-600/30 h-auto">
+          {[
+            { value: 'plans', label: 'Planos', icon: Target },
+            { value: 'progress', label: 'Progresso', icon: TrendingUp },
+            { value: 'calendar', label: 'Calendário', icon: Calendar }
+          ].map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="flex items-center gap-2 px-4 py-3 rounded-xl text-navy-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent-orange data-[state=active]:to-accent-orange/80 data-[state=active]:text-white transition-all duration-300 hover:text-white"
+            >
+              <tab.icon className="w-4 h-4" />
+              <span className="font-medium">{tab.label}</span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        <TabsContent value="plans" className="space-y-6 mt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {workoutPlans.map((plan, index) => (
               <motion.div
                 key={plan.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ scale: 1.02, y: -5 }}
               >
-                <Card className="glass-card border-navy-600/30 bg-navy-800/50 hover-lift">
+                <Card className="glass-card border-navy-600/20 bg-navy-800/40 backdrop-blur-xl hover-lift group">
                   <CardHeader>
                     <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-white text-lg">{plan.name}</CardTitle>
-                        <p className="text-navy-400 text-sm mt-1">{plan.description}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="border-navy-600/30 p-2">
-                          <Edit3 className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" className="border-red-600/30 text-red-400 p-2">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-gradient-to-br from-blue-500/20 to-blue-600/10 rounded-lg">
+                          <Dumbbell className="w-5 h-5 text-blue-400" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-white group-hover:text-blue-400 transition-colors">
+                            {plan.name}
+                          </CardTitle>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge className="bg-blue-500/20 text-blue-400">
+                              Nível {plan.difficulty_level}
+                            </Badge>
+                            <Badge className="bg-navy-700/50 text-navy-300">
+                              {plan.duration_weeks} semanas
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </CardHeader>
+                  
                   <CardContent className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <Badge 
-                        className={`${getDifficultyColor(plan.difficulty_level)} text-white`}
-                      >
-                        {getDifficultyLabel(plan.difficulty_level)}
-                      </Badge>
-                      <div className="flex items-center gap-2 text-navy-400 text-sm">
-                        <Clock className="w-4 h-4" />
-                        {plan.duration_weeks} semanas
+                    <p className="text-navy-400">{plan.description}</p>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-navy-300">Progresso</span>
+                        <span className="text-blue-400 font-semibold">{plan.progress}%</span>
                       </div>
-                      {plan.is_active && (
-                        <Badge className="bg-green-500/20 text-green-400">
-                          Ativo
-                        </Badge>
-                      )}
+                      <Progress value={plan.progress} className="h-2" />
                     </div>
-
-                    {plan.progress_tracking && (
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-navy-300">Progresso</span>
-                          <span className="text-white">
-                            {plan.progress_tracking.completed_sessions}/{plan.progress_tracking.total_sessions} sessões
-                          </span>
-                        </div>
-                        <Progress 
-                          value={(plan.progress_tracking.completed_sessions / plan.progress_tracking.total_sessions) * 100}
-                          className="h-2"
-                        />
+                    
+                    <div className="flex items-center justify-between pt-3 border-t border-navy-700/30">
+                      <div className="text-navy-400 text-sm">
+                        {plan.sessions_per_week}x por semana
                       </div>
-                    )}
-
-                    <div className="flex gap-2 pt-2">
-                      <Button 
-                        className="flex-1 bg-accent-orange hover:bg-accent-orange/80"
-                        onClick={() => setActiveTab('active')}
-                      >
-                        <Play className="w-4 h-4 mr-2" />
-                        Iniciar Treino
-                      </Button>
-                      <Button variant="outline" className="border-navy-600/30 text-navy-300">
-                        Ver Detalhes
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-navy-600/30 text-navy-300 hover:bg-navy-700/50"
+                        >
+                          <Edit3 className="w-3 h-3 mr-1" />
+                          Editar
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
+                        >
+                          <Play className="w-3 h-3 mr-1" />
+                          Iniciar
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -305,121 +489,39 @@ export function WorkoutPlanner() {
           </div>
         </TabsContent>
 
-        {/* Treino Ativo */}
-        <TabsContent value="active" className="space-y-6">
-          <div className="text-center py-12">
+        <TabsContent value="progress" className="space-y-6 mt-8">
+          <div className="text-center py-16">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="glass-card rounded-xl p-8 max-w-md mx-auto"
+              className="glass-card rounded-2xl p-12 max-w-md mx-auto bg-navy-800/40 backdrop-blur-xl"
             >
-              <div className="w-16 h-16 bg-accent-orange/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Play className="w-8 h-8 text-accent-orange" />
+              <div className="w-20 h-20 bg-gradient-to-br from-green-500/20 to-green-600/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <TrendingUp className="w-10 h-10 text-green-400" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Nenhum Treino Ativo</h3>
-              <p className="text-navy-400 mb-6">
-                Selecione um plano e inicie uma sessão de treino
+              <h3 className="text-2xl font-bold text-white mb-3">Acompanhamento de Progresso</h3>
+              <p className="text-navy-400 leading-relaxed">
+                Análises detalhadas do seu progresso nos treinos estarão disponíveis em breve
               </p>
-              <Button 
-                onClick={() => setActiveTab('plans')}
-                className="bg-accent-orange hover:bg-accent-orange/80"
-              >
-                Ver Planos
-              </Button>
             </motion.div>
           </div>
         </TabsContent>
 
-        {/* Histórico */}
-        <TabsContent value="history" className="space-y-6">
-          <h2 className="text-2xl font-bold text-white">Histórico de Treinos</h2>
-          
-          <div className="space-y-4">
-            {recentSessions.map((session, index) => (
-              <motion.div
-                key={session.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <Card className="glass-card border-navy-600/30 bg-navy-800/50">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-white font-semibold text-lg">{session.session_name}</h3>
-                        <p className="text-navy-400 text-sm">
-                          {new Date(session.completed_at).toLocaleDateString('pt-BR')}
-                        </p>
-                      </div>
-                      <Badge className="bg-green-500/20 text-green-400">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Concluído
-                      </Badge>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-1 text-navy-400 text-sm mb-1">
-                          <Clock className="w-4 h-4" />
-                          Duração
-                        </div>
-                        <div className="text-white font-semibold">
-                          {Math.floor(session.duration / 60)}min
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-1 text-navy-400 text-sm mb-1">
-                          <Flame className="w-4 h-4" />
-                          Calorias
-                        </div>
-                        <div className="text-white font-semibold">
-                          {session.calories_burned}
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-1 text-navy-400 text-sm mb-1">
-                          <Target className="w-4 h-4" />
-                          Intensidade
-                        </div>
-                        <div className="text-white font-semibold">
-                          {session.intensity_level}/10
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <h4 className="text-navy-300 text-sm font-medium">Exercícios</h4>
-                      {session.exercises.map((exercise, idx) => (
-                        <div key={idx} className="flex justify-between items-center py-2 px-3 bg-navy-900/30 rounded-lg">
-                          <span className="text-white text-sm">{exercise.name}</span>
-                          <span className="text-navy-400 text-sm">
-                            {exercise.sets}x{exercise.reps}
-                            {exercise.weight > 0 && ` • ${exercise.weight}kg`}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </TabsContent>
-
-        {/* Progresso */}
-        <TabsContent value="progress" className="space-y-6">
-          <h2 className="text-2xl font-bold text-white">Análise de Progresso</h2>
-          
-          <div className="text-center py-12">
-            <div className="glass-card rounded-xl p-8 max-w-md mx-auto">
-              <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="w-8 h-8 text-blue-400" />
+        <TabsContent value="calendar" className="space-y-6 mt-8">
+          <div className="text-center py-16">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="glass-card rounded-2xl p-12 max-w-md mx-auto bg-navy-800/40 backdrop-blur-xl"
+            >
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-500/20 to-purple-600/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Calendar className="w-10 h-10 text-purple-400" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Análises em Desenvolvimento</h3>
-              <p className="text-navy-400">
-                Gráficos e estatísticas detalhadas do seu progresso estarão disponíveis em breve
+              <h3 className="text-2xl font-bold text-white mb-3">Calendário de Treinos</h3>
+              <p className="text-navy-400 leading-relaxed">
+                Planejamento e agendamento de treinos com visualização em calendário
               </p>
-            </div>
+            </motion.div>
           </div>
         </TabsContent>
       </Tabs>

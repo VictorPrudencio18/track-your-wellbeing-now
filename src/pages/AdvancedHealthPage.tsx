@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -70,78 +69,6 @@ const healthTabs = [
     component: ReportsCenter,
     color: 'from-orange-500/20 to-orange-600/10',
     iconColor: 'text-orange-400'
-  },
-  {
-    value: 'metrics',
-    label: 'Métricas',
-    icon: TrendingUp,
-    component: () => (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="glass-card rounded-2xl p-12 max-w-md mx-auto bg-navy-800/40 backdrop-blur-xl text-center"
-        >
-          <div className="w-20 h-20 bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <TrendingUp className="w-10 h-10 text-indigo-400" />
-          </div>
-          <h3 className="text-2xl font-bold text-white mb-3">Métricas Avançadas</h3>
-          <p className="text-navy-400 leading-relaxed">
-            Analytics detalhados e métricas personalizadas estarão disponíveis em breve
-          </p>
-        </motion.div>
-      </div>
-    ),
-    color: 'from-indigo-500/20 to-indigo-600/10',
-    iconColor: 'text-indigo-400'
-  },
-  {
-    value: 'goals',
-    label: 'Metas',
-    icon: Target,
-    component: () => (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="glass-card rounded-2xl p-12 max-w-md mx-auto bg-navy-800/40 backdrop-blur-xl text-center"
-        >
-          <div className="w-20 h-20 bg-gradient-to-br from-amber-500/20 to-amber-600/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Target className="w-10 h-10 text-amber-400" />
-          </div>
-          <h3 className="text-2xl font-bold text-white mb-3">Gerenciador de Metas</h3>
-          <p className="text-navy-400 leading-relaxed">
-            Sistema inteligente de definição e acompanhamento de metas em desenvolvimento
-          </p>
-        </motion.div>
-      </div>
-    ),
-    color: 'from-amber-500/20 to-amber-600/10',
-    iconColor: 'text-amber-400'
-  },
-  {
-    value: 'insights',
-    label: 'Insights',
-    icon: Brain,
-    component: () => (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="glass-card rounded-2xl p-12 max-w-md mx-auto bg-navy-800/40 backdrop-blur-xl text-center"
-        >
-          <div className="w-20 h-20 bg-gradient-to-br from-violet-500/20 to-violet-600/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Brain className="w-10 h-10 text-violet-400" />
-          </div>
-          <h3 className="text-2xl font-bold text-white mb-3">Engine de Insights</h3>
-          <p className="text-navy-400 leading-relaxed">
-            Inteligência artificial para insights personalizados e recomendações inteligentes
-          </p>
-        </motion.div>
-      </div>
-    ),
-    color: 'from-violet-500/20 to-violet-600/10',
-    iconColor: 'text-violet-400'
   }
 ];
 
@@ -182,13 +109,15 @@ export default function AdvancedHealthPage() {
 
       <div className="container mx-auto px-4 py-8 relative z-10">
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ staggerChildren: 0.1, delayChildren: 0.1 }}
         >
           {/* Hero Header */}
           <motion.div
-            variants={itemVariants}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
             className="text-center space-y-6 mb-12"
           >
             <div className="flex items-center justify-center gap-4 mb-6">
@@ -210,7 +139,9 @@ export default function AdvancedHealthPage() {
             </div>
             
             <motion.p
-              variants={itemVariants}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
               className="text-navy-400 text-lg md:text-xl max-w-4xl mx-auto leading-relaxed"
             >
               Plataforma completa para monitoramento, análise e otimização da sua saúde com 
@@ -220,7 +151,9 @@ export default function AdvancedHealthPage() {
 
             {/* Feature Pills */}
             <motion.div
-              variants={itemVariants}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
               className="flex flex-wrap justify-center gap-3 mt-8"
             >
               {['IA Avançada', 'Tempo Real', 'Multiplataforma', 'Seguro & Privado'].map((feature, index) => (
@@ -238,9 +171,13 @@ export default function AdvancedHealthPage() {
           </motion.div>
 
           {/* Enhanced Navigation Tabs */}
-          <motion.div variants={itemVariants}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 bg-navy-800/50 p-3 rounded-3xl backdrop-blur-xl border border-navy-600/30 mb-12 h-auto overflow-x-auto">
+              <TabsList className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 bg-navy-800/50 p-3 rounded-3xl backdrop-blur-xl border border-navy-600/30 mb-12 h-auto overflow-x-auto">
                 {healthTabs.map((tab) => {
                   const IconComponent = tab.icon;
                   const isActive = activeTab === tab.value;
@@ -316,7 +253,7 @@ export default function AdvancedHealthPage() {
         </motion.div>
       </div>
 
-      {/* Floating Action Button (opcional) */}
+      {/* Floating Action Button */}
       <motion.div
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
