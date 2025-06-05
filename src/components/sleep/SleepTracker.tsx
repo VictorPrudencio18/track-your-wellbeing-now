@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -13,7 +12,13 @@ import {
   Plus,
   Save,
   AlertCircle,
-  Star
+  Star,
+  Thermometer,
+  Volume2,
+  Bed,
+  Coffee,
+  Dumbbell,
+  TrendingUp
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,6 +29,8 @@ import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { useCreateSleepRecord } from '@/hooks/useSleep';
 import { SleepMetricsCard } from '@/components/ui/sleep-metrics-card';
+import { SleepEnvironmentCard } from '@/components/sleep/SleepEnvironmentCard';
+import { SleepLifestyleCard } from '@/components/sleep/SleepLifestyleCard';
 import { toast } from 'sonner';
 import { SmartAlarmManager } from '@/components/sleep/advanced/SmartAlarmManager';
 
@@ -159,9 +166,9 @@ export function SleepTracker() {
           transition={{ duration: 0.6, delay: 0.2 }}
         >
           <Card className="glass-card border-2 border-indigo-500/30 bg-gradient-to-br from-navy-800/80 to-navy-900/90">
-            <CardHeader className="pb-4">
+            <CardHeader className="pb-6">
               <CardTitle className="text-white flex items-center gap-3 text-xl">
-                <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl">
+                <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl">
                   <Moon className="w-6 h-6 text-white" />
                 </div>
                 Dados Básicos do Sono
@@ -176,7 +183,7 @@ export function SleepTracker() {
                   type="date"
                   value={sleepData.sleep_date}
                   onChange={(e) => setSleepData(prev => ({ ...prev, sleep_date: e.target.value }))}
-                  className="bg-navy-700/70 border-2 border-navy-500/50 text-white h-12 text-base rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20"
+                  className="bg-navy-700/70 border-2 border-navy-500/50 text-white h-14 text-base rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20"
                 />
               </div>
 
@@ -189,7 +196,7 @@ export function SleepTracker() {
                     type="time"
                     value={sleepData.bedtime}
                     onChange={(e) => setSleepData(prev => ({ ...prev, bedtime: e.target.value }))}
-                    className="bg-navy-700/70 border-2 border-navy-500/50 text-white h-12 text-base rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20"
+                    className="bg-navy-700/70 border-2 border-navy-500/50 text-white h-14 text-base rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20"
                   />
                 </div>
                 <div className="space-y-3">
@@ -199,7 +206,7 @@ export function SleepTracker() {
                     type="time"
                     value={sleepData.wake_time}
                     onChange={(e) => setSleepData(prev => ({ ...prev, wake_time: e.target.value }))}
-                    className="bg-navy-700/70 border-2 border-navy-500/50 text-white h-12 text-base rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20"
+                    className="bg-navy-700/70 border-2 border-navy-500/50 text-white h-14 text-base rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20"
                   />
                 </div>
               </div>
@@ -209,7 +216,7 @@ export function SleepTracker() {
                 <Label className="text-white font-medium text-base block">
                   Qualidade do Sono: <span className="text-indigo-400 text-xl font-bold">{sleepData.subjective_quality}/10</span>
                 </Label>
-                <div className="px-4 py-6 bg-navy-700/50 rounded-xl border border-navy-500/30">
+                <div className="px-6 py-8 bg-navy-700/50 rounded-xl border border-navy-500/30">
                   <Slider
                     value={[sleepData.subjective_quality]}
                     onValueChange={(value) => setSleepData(prev => ({ ...prev, subjective_quality: value[0] }))}
@@ -218,7 +225,7 @@ export function SleepTracker() {
                     step={1}
                     className="w-full"
                   />
-                  <div className="flex justify-between text-sm text-gray-400 mt-3">
+                  <div className="flex justify-between text-sm text-gray-400 mt-4">
                     <span>Muito ruim</span>
                     <span>Excelente</span>
                   </div>
@@ -241,7 +248,7 @@ export function SleepTracker() {
                       ...prev, 
                       sleep_latency: parseInt(e.target.value) || 0 
                     }))}
-                    className="bg-navy-700/70 border-2 border-navy-500/50 text-white h-12 text-base rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20"
+                    className="bg-navy-700/70 border-2 border-navy-500/50 text-white h-14 text-base rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20"
                   />
                 </div>
                 <div className="space-y-3">
@@ -258,7 +265,7 @@ export function SleepTracker() {
                       ...prev, 
                       wake_count: parseInt(e.target.value) || 0 
                     }))}
-                    className="bg-navy-700/70 border-2 border-navy-500/50 text-white h-12 text-base rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20"
+                    className="bg-navy-700/70 border-2 border-navy-500/50 text-white h-14 text-base rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20"
                   />
                 </div>
               </div>
@@ -271,8 +278,8 @@ export function SleepTracker() {
                   placeholder="Descreva como foi sua noite de sono..."
                   value={sleepData.notes}
                   onChange={(e) => setSleepData(prev => ({ ...prev, notes: e.target.value }))}
-                  className="bg-navy-700/70 border-2 border-navy-500/50 text-white resize-none rounded-xl min-h-24 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20"
-                  rows={3}
+                  className="bg-navy-700/70 border-2 border-navy-500/50 text-white resize-none rounded-xl min-h-28 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20"
+                  rows={4}
                 />
               </div>
             </CardContent>
@@ -284,174 +291,148 @@ export function SleepTracker() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="space-y-6"
+          className="space-y-8"
         >
           {/* Fatores Ambientais */}
           <Card className="glass-card border-2 border-green-500/30 bg-gradient-to-br from-navy-800/80 to-navy-900/90">
-            <CardHeader className="pb-4">
+            <CardHeader className="pb-6">
               <CardTitle className="text-white flex items-center gap-3 text-xl">
-                <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl">
+                <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl">
                   <Sun className="w-6 h-6 text-white" />
                 </div>
                 Ambiente do Sono
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Temperatura */}
-              <div className="space-y-4">
-                <Label className="text-white font-medium text-base block">
-                  Temperatura do Quarto: <span className="text-green-400 text-lg font-bold">{sleepData.environmental_factors.room_temperature}°C</span>
-                </Label>
-                <div className="px-4 py-6 bg-navy-700/50 rounded-xl border border-navy-500/30">
-                  <Slider
-                    value={[sleepData.environmental_factors.room_temperature]}
-                    onValueChange={(value) => setSleepData(prev => ({
-                      ...prev,
-                      environmental_factors: { ...prev.environmental_factors, room_temperature: value[0] }
-                    }))}
-                    max={30}
-                    min={15}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-sm text-gray-400 mt-3">
-                    <span>15°C</span>
-                    <span>30°C</span>
-                  </div>
-                </div>
-              </div>
+            <CardContent className="space-y-8">
+              <div className="grid gap-8">
+                <SleepEnvironmentCard
+                  title="Temperatura do Quarto"
+                  value={sleepData.environmental_factors.room_temperature}
+                  unit="°C"
+                  icon={Thermometer}
+                  color="text-green-400"
+                  min={15}
+                  max={30}
+                  step={1}
+                  minLabel="15°C"
+                  maxLabel="30°C"
+                  gradient="from-green-500 to-emerald-600"
+                  onValueChange={(value) => setSleepData(prev => ({
+                    ...prev,
+                    environmental_factors: { ...prev.environmental_factors, room_temperature: value[0] }
+                  }))}
+                  delay={0.1}
+                />
 
-              {/* Nível de Ruído */}
-              <div className="space-y-4">
-                <Label className="text-white font-medium text-base block">
-                  Nível de Ruído: <span className="text-green-400 text-lg font-bold">{sleepData.environmental_factors.noise_level}/5</span>
-                </Label>
-                <div className="px-4 py-6 bg-navy-700/50 rounded-xl border border-navy-500/30">
-                  <Slider
-                    value={[sleepData.environmental_factors.noise_level]}
-                    onValueChange={(value) => setSleepData(prev => ({
-                      ...prev,
-                      environmental_factors: { ...prev.environmental_factors, noise_level: value[0] }
-                    }))}
-                    max={5}
-                    min={1}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-sm text-gray-400 mt-3">
-                    <span>Silencioso</span>
-                    <span>Muito barulhento</span>
-                  </div>
-                </div>
-              </div>
+                <SleepEnvironmentCard
+                  title="Nível de Ruído"
+                  value={sleepData.environmental_factors.noise_level}
+                  unit="/5"
+                  icon={Volume2}
+                  color="text-green-400"
+                  min={1}
+                  max={5}
+                  step={1}
+                  minLabel="Silencioso"
+                  maxLabel="Muito barulhento"
+                  gradient="from-green-500 to-emerald-600"
+                  onValueChange={(value) => setSleepData(prev => ({
+                    ...prev,
+                    environmental_factors: { ...prev.environmental_factors, noise_level: value[0] }
+                  }))}
+                  delay={0.2}
+                />
 
-              {/* Conforto */}
-              <div className="space-y-4">
-                <Label className="text-white font-medium text-base block">
-                  Conforto da Cama: <span className="text-green-400 text-lg font-bold">{sleepData.environmental_factors.comfort_level}/10</span>
-                </Label>
-                <div className="px-4 py-6 bg-navy-700/50 rounded-xl border border-navy-500/30">
-                  <Slider
-                    value={[sleepData.environmental_factors.comfort_level]}
-                    onValueChange={(value) => setSleepData(prev => ({
-                      ...prev,
-                      environmental_factors: { ...prev.environmental_factors, comfort_level: value[0] }
-                    }))}
-                    max={10}
-                    min={1}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-sm text-gray-400 mt-3">
-                    <span>Desconfortável</span>
-                    <span>Perfeito</span>
-                  </div>
-                </div>
+                <SleepEnvironmentCard
+                  title="Conforto da Cama"
+                  value={sleepData.environmental_factors.comfort_level}
+                  unit="/10"
+                  icon={Bed}
+                  color="text-green-400"
+                  min={1}
+                  max={10}
+                  step={1}
+                  minLabel="Desconfortável"
+                  maxLabel="Perfeito"
+                  gradient="from-green-500 to-emerald-600"
+                  onValueChange={(value) => setSleepData(prev => ({
+                    ...prev,
+                    environmental_factors: { ...prev.environmental_factors, comfort_level: value[0] }
+                  }))}
+                  delay={0.3}
+                />
               </div>
             </CardContent>
           </Card>
 
           {/* Fatores de Estilo de Vida */}
           <Card className="glass-card border-2 border-orange-500/30 bg-gradient-to-br from-navy-800/80 to-navy-900/90">
-            <CardHeader className="pb-4">
+            <CardHeader className="pb-6">
               <CardTitle className="text-white flex items-center gap-3 text-xl">
-                <div className="p-2 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl">
+                <div className="p-3 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl">
                   <Heart className="w-6 h-6 text-white" />
                 </div>
                 Estilo de Vida
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Cafeína */}
-              <div className="space-y-4">
-                <Label className="text-white font-medium text-base block">
-                  Horas desde a última cafeína: <span className="text-orange-400 text-lg font-bold">{sleepData.lifestyle_factors.caffeine_hours_before}h</span>
-                </Label>
-                <div className="px-4 py-6 bg-navy-700/50 rounded-xl border border-navy-500/30">
-                  <Slider
-                    value={[sleepData.lifestyle_factors.caffeine_hours_before]}
-                    onValueChange={(value) => setSleepData(prev => ({
-                      ...prev,
-                      lifestyle_factors: { ...prev.lifestyle_factors, caffeine_hours_before: value[0] }
-                    }))}
-                    max={12}
-                    min={0}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-sm text-gray-400 mt-3">
-                    <span>Agora</span>
-                    <span>12h+</span>
-                  </div>
-                </div>
-              </div>
+            <CardContent className="space-y-8">
+              <div className="grid gap-8">
+                <SleepLifestyleCard
+                  title="Horas desde a última cafeína"
+                  value={sleepData.lifestyle_factors.caffeine_hours_before}
+                  unit="h"
+                  icon={Coffee}
+                  color="text-orange-400"
+                  min={0}
+                  max={12}
+                  step={1}
+                  minLabel="Agora"
+                  maxLabel="12h+"
+                  gradient="from-orange-500 to-red-600"
+                  onValueChange={(value) => setSleepData(prev => ({
+                    ...prev,
+                    lifestyle_factors: { ...prev.lifestyle_factors, caffeine_hours_before: value[0] }
+                  }))}
+                  delay={0.1}
+                />
 
-              {/* Exercício */}
-              <div className="space-y-4">
-                <Label className="text-white font-medium text-base block">
-                  Horas desde o exercício: <span className="text-orange-400 text-lg font-bold">{sleepData.lifestyle_factors.exercise_hours_before}h</span>
-                </Label>
-                <div className="px-4 py-6 bg-navy-700/50 rounded-xl border border-navy-500/30">
-                  <Slider
-                    value={[sleepData.lifestyle_factors.exercise_hours_before]}
-                    onValueChange={(value) => setSleepData(prev => ({
-                      ...prev,
-                      lifestyle_factors: { ...prev.lifestyle_factors, exercise_hours_before: value[0] }
-                    }))}
-                    max={12}
-                    min={0}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-sm text-gray-400 mt-3">
-                    <span>Agora</span>
-                    <span>12h+</span>
-                  </div>
-                </div>
-              </div>
+                <SleepLifestyleCard
+                  title="Horas desde o exercício"
+                  value={sleepData.lifestyle_factors.exercise_hours_before}
+                  unit="h"
+                  icon={Dumbbell}
+                  color="text-orange-400"
+                  min={0}
+                  max={12}
+                  step={1}
+                  minLabel="Agora"
+                  maxLabel="12h+"
+                  gradient="from-orange-500 to-red-600"
+                  onValueChange={(value) => setSleepData(prev => ({
+                    ...prev,
+                    lifestyle_factors: { ...prev.lifestyle_factors, exercise_hours_before: value[0] }
+                  }))}
+                  delay={0.2}
+                />
 
-              {/* Nível de Stress */}
-              <div className="space-y-4">
-                <Label className="text-white font-medium text-base block">
-                  Nível de Stress: <span className="text-orange-400 text-lg font-bold">{sleepData.lifestyle_factors.stress_level}/10</span>
-                </Label>
-                <div className="px-4 py-6 bg-navy-700/50 rounded-xl border border-navy-500/30">
-                  <Slider
-                    value={[sleepData.lifestyle_factors.stress_level]}
-                    onValueChange={(value) => setSleepData(prev => ({
-                      ...prev,
-                      lifestyle_factors: { ...prev.lifestyle_factors, stress_level: value[0] }
-                    }))}
-                    max={10}
-                    min={1}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-sm text-gray-400 mt-3">
-                    <span>Relaxado</span>
-                    <span>Muito estressado</span>
-                  </div>
-                </div>
+                <SleepLifestyleCard
+                  title="Nível de Stress"
+                  value={sleepData.lifestyle_factors.stress_level}
+                  unit="/10"
+                  icon={TrendingUp}
+                  color="text-orange-400"
+                  min={1}
+                  max={10}
+                  step={1}
+                  minLabel="Relaxado"
+                  maxLabel="Muito estressado"
+                  gradient="from-orange-500 to-red-600"
+                  onValueChange={(value) => setSleepData(prev => ({
+                    ...prev,
+                    lifestyle_factors: { ...prev.lifestyle_factors, stress_level: value[0] }
+                  }))}
+                  delay={0.3}
+                />
               </div>
             </CardContent>
           </Card>
