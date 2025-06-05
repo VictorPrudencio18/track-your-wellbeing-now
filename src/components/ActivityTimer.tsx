@@ -5,6 +5,8 @@ import { SwimmingActivity } from "./activities/SwimmingActivity";
 import { GymActivity } from "./activities/GymActivity";
 import { YogaActivity } from "./activities/YogaActivity";
 import { DanceActivity } from "./activities/DanceActivity";
+import { WalkingActivity } from "./activities/WalkingActivity";
+import { MeditationActivity } from "./activities/MeditationActivity";
 
 interface ActivityTimerProps {
   activityType: string;
@@ -39,9 +41,9 @@ export function ActivityTimer({ activityType, onActivityComplete, onCancel }: Ac
       case "dance":
         return <DanceActivity {...commonProps} />;
       case "walk":
-        return <RunningActivity {...commonProps} />; // Reutiliza corrida com velocidade menor
+        return <WalkingActivity {...commonProps} />;
       case "meditation":
-        return <YogaActivity {...commonProps} />; // Reutiliza yoga focado em meditação
+        return <MeditationActivity {...commonProps} />;
       default:
         return <RunningActivity {...commonProps} />;
     }
