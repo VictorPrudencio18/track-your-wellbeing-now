@@ -121,9 +121,17 @@ export function useCreateSleepRecord() {
     mutationFn: async (data: Partial<SleepRecord>) => {
       if (!user) throw new Error('User not authenticated');
 
+      // Garantir que campos obrigatórios estão presentes
+      const recordData = {
+        ...data,
+        user_id: user.id,
+        sleep_date: data.sleep_date || new Date().toISOString().split('T')[0],
+        wake_count: data.wake_count || 0,
+      };
+
       const { data: result, error } = await supabase
         .from('sleep_records')
-        .insert([{ ...data, user_id: user.id }])
+        .insert(recordData)
         .select()
         .single();
 
@@ -173,9 +181,20 @@ export function useCreateSleepGoal() {
     mutationFn: async (data: Partial<SleepGoal>) => {
       if (!user) throw new Error('User not authenticated');
 
+      // Garantir que campos obrigatórios estão presentes
+      const goalData = {
+        user_id: user.id,
+        target_duration: data.target_duration || 480, // 8 horas padrão
+        target_bedtime: data.target_bedtime || '22:00',
+        target_wake_time: data.target_wake_time || '06:00',
+        consistency_goal: data.consistency_goal || 7,
+        quality_goal: data.quality_goal || 7,
+        is_active: data.is_active !== undefined ? data.is_active : true,
+      };
+
       const { data: result, error } = await supabase
         .from('sleep_goals')
-        .insert([{ ...data, user_id: user.id }])
+        .insert(goalData)
         .select()
         .single();
 
