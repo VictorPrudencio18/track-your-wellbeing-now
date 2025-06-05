@@ -24,10 +24,19 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
   const routePointsRef = useRef<any[]>([]);
 
   // Usar a nova chave API fornecida
-  const GOOGLE_MAPS_API_KEY = 'AIzaSyC4n6Y17OX0PIFYgeL64ibC4ISqQkOxUok';
+  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
 
   const initializeGoogleMaps = async () => {
     if (!mapContainer.current) return;
+
+    if (!GOOGLE_MAPS_API_KEY) {
+      console.error('Chave da API do Google Maps não configurada.');
+      setError('Chave da API do Google Maps não configurada. Verifique o arquivo .env.');
+      setLoading(false);
+      return;
+    }
+    // For debugging: Log that the key is being used (do not log the key itself in production)
+    console.log('Usando chave da API do Google Maps do ambiente.');
 
     try {
       setLoading(true);

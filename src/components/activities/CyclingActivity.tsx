@@ -1,8 +1,11 @@
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Play, Pause, Square, Mountain, Gauge, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RunningMap } from './premium-components/RunningMap';
+import { useActivityTracker, ActivityData } from '@/hooks/useActivityTracker';
+import { GPSState } from '@/hooks/useGPS';
 
 interface CyclingActivityProps {
   onComplete: (data: any) => void;
@@ -10,39 +13,17 @@ interface CyclingActivityProps {
 }
 
 export function CyclingActivity({ onComplete, onCancel }: CyclingActivityProps) {
-  const [isActive, setIsActive] = useState(false);
-  const [time, setTime] = useState(0);
-  const [distance, setDistance] = useState(0);
-  const [speed, setSpeed] = useState(0);
-  const [elevation, setElevation] = useState(0);
-  const [calories, setCalories] = useState(0);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    
-    if (isActive) {
-      interval = setInterval(() => {
-        setTime(prevTime => {
-          const newTime = prevTime + 1;
-          const newSpeed = 15 + Math.random() * 10; // 15-25 km/h
-          const newDistance = distance + (newSpeed / 3600); // km por segundo
-          const newElevation = elevation + (Math.random() * 0.5); // metros
-          const newCalories = Math.floor(newTime * 0.2); // ~12 cal/min
-
-          setSpeed(newSpeed);
-          setDistance(newDistance);
-          setElevation(newElevation);
-          setCalories(newCalories);
-          
-          return newTime;
-        });
-      }, 1000);
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isActive, distance, elevation]);
+  const {
+    isActive,
+    isPaused,
+    data,
+    gpsState,
+    startActivity,
+    pauseActivity,
+    resumeActivity,
+    stopActivity,
+    isGPSReady
+  } = useActivityTracker('cycling');
 
   const formatTime = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600);
@@ -56,16 +37,30 @@ export function CyclingActivity({ onComplete, onCancel }: CyclingActivityProps) 
   };
 
   const handleComplete = () => {
+    // Data from the hook is already structured, might need minor adjustments for onComplete
     onComplete({
-      type: 'cycle',
-      name: 'Ciclismo',
-      duration: time,
-      distance,
-      calories,
-      speed: speed.toFixed(1),
-      elevation: elevation.toFixed(0),
-      date: new Date()
+      type: 'cycle', // Ensure this matches expected type by onComplete
+      name: 'Ciclismo GPS', // Or derive from activityType
+      duration: data.duration,
+      distance: data.distance,
+      calories: data.calories,
+      speed: data.avgSpeed.toFixed(1), // avgSpeed from hook
+      elevation: data.elevationGain.toFixed(0), // elevationGain from hook
+      date: new Date(), // Consider standardizing date handling
+      gpsPoints: data.gpsPoints, // Pass GPS points if needed
+      // Add other relevant data from the hook's `data` object
     });
+    stopActivity(); // Make sure to call stopActivity from the hook
+  };
+
+  const handlePrimaryAction = () => {
+    if (!isActive) {
+      startActivity();
+    } else if (isPaused) {
+      resumeActivity();
+    } else {
+      pauseActivity();
+    }
   };
 
   return (
@@ -80,7 +75,7 @@ export function CyclingActivity({ onComplete, onCancel }: CyclingActivityProps) 
           {/* Timer Principal */}
           <div className="text-center">
             <div className="text-6xl font-mono font-bold text-blue-600 mb-2">
-              {formatTime(time)}
+              {formatTime(data.duration)}
             </div>
           </div>
 
@@ -89,7 +84,7 @@ export function CyclingActivity({ onComplete, onCancel }: CyclingActivityProps) 
             <div className="bg-blue-50 p-4 rounded-lg text-center">
               <Gauge className="w-6 h-6 mx-auto text-blue-600 mb-2" />
               <div className="text-2xl font-bold text-blue-600">
-                {speed.toFixed(1)}
+                {(data.currentSpeed * 3.6).toFixed(1)}
               </div>
               <div className="text-sm text-blue-700">km/h</div>
             </div>
@@ -97,7 +92,7 @@ export function CyclingActivity({ onComplete, onCancel }: CyclingActivityProps) 
             <div className="bg-green-50 p-4 rounded-lg text-center">
               <MapPin className="w-6 h-6 mx-auto text-green-600 mb-2" />
               <div className="text-2xl font-bold text-green-600">
-                {distance.toFixed(2)}
+                {data.distance.toFixed(2)}
               </div>
               <div className="text-sm text-green-700">km</div>
             </div>
@@ -105,60 +100,51 @@ export function CyclingActivity({ onComplete, onCancel }: CyclingActivityProps) 
             <div className="bg-yellow-50 p-4 rounded-lg text-center">
               <Mountain className="w-6 h-6 mx-auto text-yellow-600 mb-2" />
               <div className="text-2xl font-bold text-yellow-600">
-                {elevation.toFixed(0)}
+                {data.elevationGain.toFixed(0)}
               </div>
               <div className="text-sm text-yellow-700">m elevação</div>
             </div>
 
             <div className="bg-red-50 p-4 rounded-lg text-center">
               <div className="w-6 h-6 mx-auto text-red-600 mb-2">🔥</div>
-              <div className="text-2xl font-bold text-red-600">{calories}</div>
+              <div className="text-2xl font-bold text-red-600">{data.calories}</div>
               <div className="text-sm text-red-700">calorias</div>
             </div>
           </div>
 
-          {/* Mapa Simulado */}
-          <div className="bg-gray-100 h-32 rounded-lg flex items-center justify-center">
-            <div className="text-center text-gray-600">
-              <MapPin className="w-8 h-8 mx-auto mb-2" />
-              <p className="text-sm">Mapa da Rota</p>
-              <p className="text-xs">GPS rastreando...</p>
-            </div>
-          </div>
+          {/* RunningMap Integration */}
+          <RunningMap
+            gpsState={gpsState}
+            data={data}
+            isActive={isActive && !isPaused}
+            route={data.gpsPoints || []}
+          />
 
           {/* Controles */}
           <div className="flex gap-3">
-            {!isActive ? (
-              <Button 
-                onClick={() => setIsActive(true)} 
-                className="flex-1 bg-green-600 hover:bg-green-700"
-                size="lg"
-              >
-                <Play className="w-5 h-5 mr-2" />
-                Iniciar Pedalada
-              </Button>
-            ) : (
-              <Button 
-                onClick={() => setIsActive(false)} 
-                variant="outline"
-                className="flex-1"
-                size="lg"
-              >
-                <Pause className="w-5 h-5 mr-2" />
-                Pausar
-              </Button>
-            )}
+            <Button
+              onClick={handlePrimaryAction}
+              className={`flex-1 ${!isActive || isPaused ? 'bg-green-600 hover:bg-green-700' : ''}`}
+              size="lg"
+              disabled={!isGPSReady && !isActive} // Disable start if GPS is not ready
+            >
+              {!isActive ? <Play className="w-5 h-5 mr-2" /> : isPaused ? <Play className="w-5 h-5 mr-2" /> : <Pause className="w-5 h-5 mr-2" />}
+              {!isActive ? "Iniciar Pedalada" : isPaused ? "Retomar" : "Pausar"}
+            </Button>
             
             <Button 
-              onClick={time > 0 ? handleComplete : onCancel} 
-              variant={time > 0 ? "default" : "destructive"}
+              onClick={data.duration > 0 ? handleComplete : () => { stopActivity(); onCancel(); }}
+              variant={data.duration > 0 ? "default" : "destructive"}
               className="flex-1"
               size="lg"
             >
               <Square className="w-5 h-5 mr-2" />
-              {time > 0 ? "Finalizar" : "Cancelar"}
+              {data.duration > 0 ? "Finalizar" : "Cancelar"}
             </Button>
           </div>
+          {!isGPSReady && !isActive && (
+            <p className="text-center text-sm text-yellow-600">Aguardando sinal GPS para iniciar...</p>
+          )}
         </CardContent>
       </Card>
     </div>
