@@ -1,27 +1,32 @@
-
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { format, parseISO, isToday, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useDailyActivity, DayActivity } from '@/hooks/useDailyActivity';
+import { useExtendedDailyActivity } from '@/hooks/useExtendedDailyActivity';
 import { Card, CardContent } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Activity, Heart, Droplets, Moon, Dumbbell, Clock, Calendar } from 'lucide-react';
+import { LayoutSelector, LayoutType } from '@/components/health/shared/LayoutSelector';
+import { MonthlyHeatmap } from '@/components/health/MonthlyHeatmap';
+import { YearlyHeatmap } from '@/components/health/YearlyHeatmap';
 
 interface DayCardProps {
   day: DayActivity;
   onClick: () => void;
+  isToday?: boolean;
 }
 
-function DayCard({ day, onClick }: DayCardProps) {
+function DayCard({ day, onClick, isToday: isTodayProp }: DayCardProps) {
   const date = parseISO(day.date);
   const dayName = format(date, 'EEE', { locale: ptBR });
   const dayNumber = format(date, 'd');
+  const isTodayDate = isToday(date);
   
   const getDateLabel = () => {
-    if (isToday(date)) return 'Hoje';
+    if (isTodayDate) return 'Hoje';
     if (isYesterday(date)) return 'Ontem';
     return dayName;
   };
@@ -41,20 +46,34 @@ function DayCard({ day, onClick }: DayCardProps) {
       className="cursor-pointer"
       onClick={onClick}
     >
-      <Card className="glass-card border-navy-600/30 bg-navy-800/50 hover-lift h-full min-h-[120px]">
+      <Card className={`
+        glass-card border-navy-600/30 bg-navy-800/50 hover-lift h-full min-h-[140px] transition-all duration-300
+        ${isTodayDate ? 'ring-2 ring-accent-orange shadow-lg shadow-accent-orange/30 bg-gradient-to-br from-accent-orange/20 to-accent-orange/10' : ''}
+      `}>
         <CardContent className="p-3">
-          <div className="text-center mb-2">
-            <div className="text-xs text-navy-400 uppercase tracking-wider">
+          <div className="text-center mb-3">
+            <div className={`text-xs uppercase tracking-wider ${
+              isTodayDate ? 'text-accent-orange font-bold' : 'text-navy-400'
+            }`}>
               {getDateLabel()}
             </div>
-            <div className="text-lg font-bold text-white">
+            <div className={`text-lg font-bold ${
+              isTodayDate ? 'text-accent-orange' : 'text-white'
+            }`}>
               {dayNumber}
             </div>
+            {isTodayDate && (
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="w-2 h-2 bg-accent-orange rounded-full mx-auto mt-1"
+              />
+            )}
           </div>
           
           {/* Wellness Score */}
           {day.wellnessScore > 0 && (
-            <div className="mb-2">
+            <div className="mb-3">
               <div className={`h-2 rounded-full bg-gradient-to-r ${getWellnessColor(day.wellnessScore)}`} />
               <div className="text-xs text-navy-400 text-center mt-1">
                 {day.wellnessScore.toFixed(0)}/100
@@ -71,14 +90,14 @@ function DayCard({ day, onClick }: DayCardProps) {
           
           {/* Atividades */}
           {day.totalActivities > 0 && (
-            <div className="flex items-center justify-center gap-1 text-xs text-navy-300">
+            <div className="flex items-center justify-center gap-1 text-xs text-navy-300 mb-2">
               <Activity className="w-3 h-3" />
               <span>{day.totalActivities}</span>
             </div>
           )}
           
           {/* Highlight */}
-          <div className="text-xs text-center text-navy-400 mt-1 truncate">
+          <div className="text-xs text-center text-navy-400 truncate">
             {day.summary.highlight}
           </div>
         </CardContent>
@@ -268,7 +287,9 @@ function DayDetailsModal({ day, isOpen, onClose }: DayDetailsModalProps) {
 }
 
 export function DailyHistoryCarousel() {
+  const [selectedLayout, setSelectedLayout] = useState<LayoutType>('carousel');
   const { data: dailyData, isLoading } = useDailyActivity(30);
+  const { data: extendedData, isLoading: isLoadingExtended } = useExtendedDailyActivity(12);
   const [selectedDay, setSelectedDay] = useState<DayActivity | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -277,10 +298,16 @@ export function DailyHistoryCarousel() {
     setIsModalOpen(true);
   };
 
-  if (isLoading) {
+  const currentData = selectedLayout === 'carousel' ? dailyData : extendedData;
+  const currentLoading = selectedLayout === 'carousel' ? isLoading : isLoadingExtended;
+
+  if (currentLoading) {
     return (
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-white">Histórico dos Últimos Dias</h3>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-semibold text-white">Histórico de Atividades</h3>
+          <LayoutSelector selectedLayout={selectedLayout} onLayoutChange={setSelectedLayout} />
+        </div>
         <div className="flex gap-4 overflow-hidden">
           {[...Array(7)].map((_, i) => (
             <div key={i} className="w-24 h-32 bg-navy-700/30 rounded-xl animate-pulse" />
@@ -291,25 +318,38 @@ export function DailyHistoryCarousel() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold text-white">Histórico dos Últimos Dias</h3>
-        <div className="text-sm text-navy-400">
-          Clique em um dia para ver detalhes
+    <div className="space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <h3 className="text-xl font-semibold text-white">Histórico de Atividades</h3>
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-navy-400">
+            Clique em um dia para ver detalhes
+          </div>
+          <LayoutSelector selectedLayout={selectedLayout} onLayoutChange={setSelectedLayout} />
         </div>
       </div>
       
-      <Carousel className="w-full">
-        <CarouselContent className="-ml-2 md:-ml-4">
-          {dailyData?.map((day) => (
-            <CarouselItem key={day.date} className="pl-2 md:pl-4 basis-24 md:basis-28">
-              <DayCard day={day} onClick={() => handleDayClick(day)} />
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious className="glass-card border-navy-600/30 bg-navy-800/50 text-white hover:bg-navy-700/50" />
-        <CarouselNext className="glass-card border-navy-600/30 bg-navy-800/50 text-white hover:bg-navy-700/50" />
-      </Carousel>
+      {selectedLayout === 'carousel' && (
+        <Carousel className="w-full">
+          <CarouselContent className="-ml-2 md:-ml-4">
+            {currentData?.map((day) => (
+              <CarouselItem key={day.date} className="pl-2 md:pl-4 basis-24 md:basis-28">
+                <DayCard day={day} onClick={() => handleDayClick(day)} />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="glass-card border-navy-600/30 bg-navy-800/50 text-white hover:bg-navy-700/50" />
+          <CarouselNext className="glass-card border-navy-600/30 bg-navy-800/50 text-white hover:bg-navy-700/50" />
+        </Carousel>
+      )}
+      
+      {selectedLayout === 'monthly-heatmap' && currentData && (
+        <MonthlyHeatmap dailyData={currentData} onDayClick={handleDayClick} />
+      )}
+      
+      {selectedLayout === 'yearly-heatmap' && currentData && (
+        <YearlyHeatmap dailyData={currentData} onDayClick={handleDayClick} />
+      )}
 
       <DayDetailsModal 
         day={selectedDay}
