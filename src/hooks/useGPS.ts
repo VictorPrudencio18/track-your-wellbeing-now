@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 export interface GPSPosition {
@@ -42,11 +41,11 @@ export function useGPS() {
     }
 
     try {
-      // Primeiro, obter permissão e posição inicial
+      // Primeiro, obter permissão e posição inicial com configuração otimizada
       const initialPosition = await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: true,
-          timeout: 10000,
+          timeout: 15000, // Timeout aumentado
           maximumAge: 0
         });
       });
@@ -67,12 +66,12 @@ export function useGPS() {
         isTracking: true,
         error: null,
         accuracy: initialPosition.coords.accuracy,
-        isHighAccuracy: initialPosition.coords.accuracy < 10
+        isHighAccuracy: initialPosition.coords.accuracy < 15 // Relaxado de 10 para 15m
       }));
 
       positionHistoryRef.current = [gpsPosition];
 
-      // Iniciar rastreamento contínuo
+      // Iniciar rastreamento contínuo com configurações otimizadas
       watchIdRef.current = navigator.geolocation.watchPosition(
         (position) => {
           const newGpsPosition: GPSPosition = {
@@ -85,42 +84,80 @@ export function useGPS() {
             timestamp: Date.now()
           };
 
-          // Filtrar posições com baixa precisão
-          if (position.coords.accuracy > 50) return;
+          // Filtrar posições com baixa precisão (aumentado para 30m)
+          if (position.coords.accuracy > 30) {
+            console.warn(`GPS com baixa precisão: ${position.coords.accuracy}m`);
+            return;
+          }
+
+          // Filtrar movimentos muito pequenos para evitar ruído
+          const lastPosition = positionHistoryRef.current[positionHistoryRef.current.length - 1];
+          if (lastPosition) {
+            const distance = calculateDistance(lastPosition, newGpsPosition);
+            if (distance < 0.005) { // Menos de 5 metros
+              return;
+            }
+          }
 
           // Adicionar ao histórico
           positionHistoryRef.current.push(newGpsPosition);
           
-          // Manter apenas as últimas 100 posições para performance
-          if (positionHistoryRef.current.length > 100) {
-            positionHistoryRef.current = positionHistoryRef.current.slice(-100);
+          // Manter apenas as últimas 200 posições para melhor performance
+          if (positionHistoryRef.current.length > 200) {
+            positionHistoryRef.current = positionHistoryRef.current.slice(-200);
           }
 
           setState(prev => ({
             ...prev,
             position: newGpsPosition,
             accuracy: position.coords.accuracy,
-            isHighAccuracy: position.coords.accuracy < 10
+            isHighAccuracy: position.coords.accuracy < 15
           }));
+
+          console.log(`GPS atualizado: ${position.coords.accuracy.toFixed(1)}m precisão`);
         },
         (error) => {
           console.error('GPS Error:', error);
+          let errorMessage = 'Erro GPS desconhecido';
+          
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Permissão de localização negada';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Localização indisponível';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Timeout do GPS';
+              break;
+          }
+          
           setState(prev => ({ 
             ...prev, 
-            error: `Erro GPS: ${error.message}` 
+            error: errorMessage 
           }));
         },
         {
           enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 1000
+          timeout: 8000, // Timeout reduzido para melhor responsividade
+          maximumAge: 2000 // Cache de 2 segundos
         }
       );
 
     } catch (error: any) {
+      let errorMessage = 'Erro ao iniciar GPS';
+      
+      if (error.code === 1) {
+        errorMessage = 'Permissão de localização necessária';
+      } else if (error.code === 2) {
+        errorMessage = 'GPS indisponível no dispositivo';
+      } else if (error.code === 3) {
+        errorMessage = 'Timeout do GPS - tente novamente';
+      }
+      
       setState(prev => ({ 
         ...prev, 
-        error: `Erro ao iniciar GPS: ${error.message}` 
+        error: errorMessage
       }));
     }
   }, []);
@@ -162,19 +199,22 @@ export function useGPS() {
 
   const calculateCurrentSpeed = useCallback(() => {
     const history = positionHistoryRef.current;
-    if (history.length < 2) return 0;
+    if (history.length < 3) return 0; // Precisamos de pelo menos 3 pontos
 
-    const recent = history.slice(-5); // Últimas 5 posições
-    if (recent.length < 2) return 0;
+    const recent = history.slice(-8); // Últimas 8 posições para suavizar
+    if (recent.length < 3) return 0;
 
     let totalDistance = 0;
-    const timeDiff = (recent[recent.length - 1].timestamp - recent[0].timestamp) / 1000; // em segundos
+    const timeDiff = (recent[recent.length - 1].timestamp - recent[0].timestamp) / 1000;
 
     for (let i = 1; i < recent.length; i++) {
       totalDistance += calculateDistance(recent[i-1], recent[i]);
     }
 
-    return timeDiff > 0 ? (totalDistance * 1000) / timeDiff : 0; // m/s
+    const speedMs = timeDiff > 0 ? (totalDistance * 1000) / timeDiff : 0;
+    
+    // Aplicar suavização para evitar oscilações bruscas
+    return Math.max(0, speedMs);
   }, [calculateDistance]);
 
   useEffect(() => {

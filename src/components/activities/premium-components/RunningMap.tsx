@@ -1,10 +1,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Zap, TrendingUp, Mountain } from 'lucide-react';
+import { MapPin, Zap, TrendingUp, Mountain, Settings } from 'lucide-react';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { GPSState, GPSPosition } from '@/hooks/useGPS';
 import { ActivityData } from '@/hooks/useActivityTracker';
+import { googleMapsService } from '@/services/GoogleMapsService';
 
 interface RunningMapProps {
   gpsState: GPSState;
@@ -15,155 +16,120 @@ interface RunningMapProps {
 
 export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const [mapboxToken, setMapboxToken] = useState('');
-  const [showTokenInput, setShowTokenInput] = useState(true);
-  const mapRef = useRef<any>(null);
-  const [routeSource, setRouteSource] = useState<any>(null);
+  const [googleMapsKey, setGoogleMapsKey] = useState('');
+  const [showKeyInput, setShowKeyInput] = useState(true);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
+  const routePointsRef = useRef<google.maps.LatLng[]>([]);
 
-  // Simular mapa 3D quando não há token Mapbox
-  const [simulatedCenter, setSimulatedCenter] = useState({ lat: -23.550520, lng: -46.633308 });
+  const initializeGoogleMaps = async () => {
+    if (!googleMapsKey || !mapContainer.current) return;
 
-  useEffect(() => {
-    if (!mapboxToken || !mapContainer.current) return;
-
-    const initializeMap = async () => {
-      const mapboxgl = await import('mapbox-gl');
+    try {
+      await googleMapsService.loadGoogleMaps(googleMapsKey);
       
-      (mapboxgl as any).accessToken = mapboxToken;
-      
-      const map = new (mapboxgl as any).Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/satellite-streets-v12',
-        center: gpsState.position ? [gpsState.position.longitude, gpsState.position.latitude] : [-46.633308, -23.550520],
+      const map = await googleMapsService.initializeMap(mapContainer.current, {
         zoom: 16,
-        pitch: 60,
-        bearing: 0,
-        antialias: true
+        center: gpsState.position ? 
+          { lat: gpsState.position.latitude, lng: gpsState.position.longitude } :
+          { lat: -23.550520, lng: -46.633308 }, // São Paulo default
+        mapTypeId: google.maps.MapTypeId.HYBRID,
+        gestureHandling: 'greedy',
+        zoomControl: true,
+        streetViewControl: false,
+        fullscreenControl: false
       });
 
-      map.on('load', () => {
-        // Adicionar fonte da rota
-        map.addSource('route', {
-          type: 'geojson',
-          data: {
-            type: 'Feature',
-            properties: {},
-            geometry: {
-              type: 'LineString',
-              coordinates: []
-            }
-          }
-        });
-
-        // Adicionar camada da rota com gradiente de velocidade
-        map.addLayer({
-          id: 'route',
-          type: 'line',
-          source: 'route',
-          layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-          },
-          paint: {
-            'line-color': '#ff6b6b',
-            'line-width': 4,
-            'line-opacity': 0.8
-          }
-        });
-
-        // Adicionar marcador da posição atual
-        if (gpsState.position) {
-          const el = document.createElement('div');
-          el.className = 'current-position-marker';
-          el.style.cssText = `
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #4ade80;
-            border: 3px solid white;
-            box-shadow: 0 0 10px rgba(74, 222, 128, 0.8);
-            animation: pulse 2s infinite;
-          `;
-
-          new (mapboxgl as any).Marker(el)
-            .setLngLat([gpsState.position.longitude, gpsState.position.latitude])
-            .addTo(map);
-        }
-      });
-
-      mapRef.current = map;
-    };
-
-    initializeMap();
-
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
-      }
-    };
-  }, [mapboxToken, gpsState.position]);
+      setMapInstance(map);
+      setMapLoaded(true);
+      
+      console.log('Google Maps inicializado com sucesso');
+    } catch (error) {
+      console.error('Erro ao inicializar Google Maps:', error);
+    }
+  };
 
   // Atualizar rota em tempo real
   useEffect(() => {
-    if (mapRef.current && route.length > 1) {
-      const coordinates = route.map(pos => [pos.longitude, pos.latitude]);
-      
-      mapRef.current.getSource('route')?.setData({
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'LineString',
-          coordinates
-        }
-      });
+    if (!mapLoaded || !route.length) return;
 
-      // Centralizar mapa na posição atual
-      if (route.length > 0 && isActive) {
-        const lastPos = route[route.length - 1];
-        mapRef.current.easeTo({
-          center: [lastPos.longitude, lastPos.latitude],
-          duration: 1000
-        });
+    const googlePoints = route.map(pos => 
+      new google.maps.LatLng(pos.latitude, pos.longitude)
+    );
+
+    routePointsRef.current = googlePoints;
+
+    if (googlePoints.length > 0) {
+      // Desenhar rota atualizada
+      googleMapsService.drawRoute(googlePoints);
+      
+      // Adicionar ponto atual se ativo
+      if (isActive && googlePoints.length > 0) {
+        googleMapsService.addRoutePoint(googlePoints[googlePoints.length - 1]);
       }
     }
-  }, [route, isActive]);
+  }, [route, isActive, mapLoaded]);
 
-  if (showTokenInput && !mapboxToken) {
+  // Centralizar mapa na posição atual
+  useEffect(() => {
+    if (mapInstance && gpsState.position && isActive) {
+      const currentPos = new google.maps.LatLng(
+        gpsState.position.latitude,
+        gpsState.position.longitude
+      );
+      mapInstance.panTo(currentPos);
+    }
+  }, [gpsState.position, isActive, mapInstance]);
+
+  if (showKeyInput && !googleMapsKey) {
     return (
       <PremiumCard className="p-6 text-center">
-        <h3 className="text-xl font-bold text-white mb-4">Configurar Mapa Premium</h3>
+        <h3 className="text-xl font-bold text-white mb-4">Configurar Google Maps</h3>
         <p className="text-navy-400 mb-6">
-          Para usar o mapa 3D interativo, insira seu token público do Mapbox
+          Para usar o mapa GPS premium, insira sua chave da API do Google Maps
         </p>
         <div className="space-y-4">
           <input
             type="text"
-            placeholder="Token público do Mapbox (pk.ey...)"
-            value={mapboxToken}
-            onChange={(e) => setMapboxToken(e.target.value)}
+            placeholder="Chave da API do Google Maps (AIza...)"
+            value={googleMapsKey}
+            onChange={(e) => setGoogleMapsKey(e.target.value)}
             className="w-full px-4 py-3 bg-navy-800 border border-navy-600 rounded-lg text-white placeholder-navy-400 focus:border-accent-orange outline-none"
           />
           <div className="flex gap-3">
             <button
-              onClick={() => setShowTokenInput(false)}
-              className="flex-1 px-4 py-2 bg-accent-orange text-navy-900 rounded-lg font-medium hover:bg-accent-orange/90 transition-colors"
+              onClick={() => {
+                initializeGoogleMaps();
+                setShowKeyInput(false);
+              }}
+              disabled={!googleMapsKey}
+              className="flex-1 px-4 py-2 bg-accent-orange text-navy-900 rounded-lg font-medium hover:bg-accent-orange/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Usar Mapa
+              Inicializar Mapa
             </button>
             <button
-              onClick={() => setShowTokenInput(false)}
+              onClick={() => setShowKeyInput(false)}
               className="px-4 py-2 text-navy-400 hover:text-white transition-colors"
             >
               Usar Visualização Simples
             </button>
           </div>
         </div>
-        <p className="text-xs text-navy-500 mt-4">
-          Obtenha seu token gratuito em{' '}
-          <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer" className="text-accent-orange hover:underline">
-            mapbox.com
-          </a>
-        </p>
+        <div className="text-xs text-navy-500 mt-4 space-y-1">
+          <p>
+            Obtenha sua chave gratuita em{' '}
+            <a 
+              href="https://console.cloud.google.com/apis/credentials" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-accent-orange hover:underline"
+            >
+              Google Cloud Console
+            </a>
+          </p>
+          <p>• Ative as APIs: Maps JavaScript API, Elevation API</p>
+          <p>• Configure restrições de domínio para segurança</p>
+        </div>
       </PremiumCard>
     );
   }
@@ -176,10 +142,17 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
     >
       {/* Mapa principal */}
       <div className="relative h-96 rounded-2xl overflow-hidden glass-card">
-        {mapboxToken ? (
+        {mapLoaded && googleMapsKey ? (
           <div ref={mapContainer} className="w-full h-full" />
+        ) : googleMapsKey ? (
+          <div className="w-full h-full bg-navy-800 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin w-8 h-8 border-4 border-accent-orange border-t-transparent rounded-full mx-auto mb-3"></div>
+              <p className="text-white">Carregando Google Maps...</p>
+            </div>
+          </div>
         ) : (
-          // Visualização simulada sem Mapbox
+          // Visualização simulada sem API
           <div className="w-full h-full bg-gradient-to-br from-green-900/30 via-blue-900/30 to-purple-900/30 relative overflow-hidden">
             {/* Grid de fundo */}
             <div className="absolute inset-0 opacity-20">
@@ -218,7 +191,7 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
               )}
             </svg>
             
-            {/* Posição atual */}
+            {/* Posição atual simulada */}
             {isActive && (
               <motion.div
                 className="absolute w-4 h-4 bg-green-400 rounded-full border-2 border-white shadow-lg"
@@ -248,6 +221,12 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
 
         {/* Controles do mapa */}
         <div className="absolute bottom-4 right-4 flex flex-col gap-2">
+          <button 
+            onClick={() => setShowKeyInput(true)}
+            className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
           <button className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors">
             <TrendingUp className="w-5 h-5" />
           </button>
