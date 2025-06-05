@@ -52,12 +52,10 @@ export function GoalAnalytics() {
         type,
         count: 1,
         completed: goal.is_completed ? 1 : 0,
-        name: type === 'endurance' ? 'Resistência' : 
-              type === 'strength' ? 'Força' : 
-              type === 'flexibility' ? 'Flexibilidade' : 
-              type === 'weight_loss' ? 'Perda de Peso' :
-              type === 'muscle_gain' ? 'Ganho Muscular' :
-              type === 'wellness' ? 'Bem-estar' : type
+        name: type === 'distance' ? 'Distância' : 
+              type === 'duration' ? 'Duração' : 
+              type === 'frequency' ? 'Frequência' : 
+              type === 'calories' ? 'Calorias' : type
       });
     }
     
