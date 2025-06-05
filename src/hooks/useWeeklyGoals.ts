@@ -3,10 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
+export type GoalType = 'weight_loss' | 'muscle_gain' | 'endurance' | 'strength' | 'flexibility' | 'wellness';
+
 export interface WeeklyGoal {
   id: string;
   user_id: string;
-  goal_type: string;
+  goal_type: GoalType;
   title: string;
   description?: string;
   target_value: number;
@@ -14,14 +16,14 @@ export interface WeeklyGoal {
   unit: string;
   week_start_date: string;
   week_end_date: string;
-  priority: number;
-  difficulty_level: number;
-  is_completed: boolean;
-  completion_percentage: number;
-  auto_generated: boolean;
-  parent_goal_id?: string;
-  milestone_rewards: any[];
-  tracking_data: any;
+  priority?: number;
+  difficulty_level?: number;
+  auto_generated?: boolean;
+  tags?: string[];
+  reward_points?: number;
+  streak_count?: number;
+  completion_percentage?: number;
+  is_active?: boolean;
   created_at: string;
   updated_at: string;
   completed_at?: string;
@@ -40,7 +42,7 @@ export function useWeeklyGoals() {
         .from('weekly_goals')
         .select('*')
         .eq('user_id', user.id)
-        .order('week_start_date', { ascending: false });
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data as WeeklyGoal[];
@@ -49,12 +51,21 @@ export function useWeeklyGoals() {
   });
 
   const createGoal = useMutation({
-    mutationFn: async (goalData: Partial<WeeklyGoal>) => {
+    mutationFn: async (goalData: Omit<WeeklyGoal, 'id' | 'user_id' | 'created_at' | 'updated_at'> & {
+      goal_type: GoalType;
+      title: string;
+      target_value: number;
+      unit: string;
+      week_start_date: string;
+    }) => {
       if (!user?.id) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
         .from('weekly_goals')
-        .insert([{ ...goalData, user_id: user.id }])
+        .insert([{ 
+          ...goalData, 
+          user_id: user.id 
+        }])
         .select()
         .single();
       
@@ -67,30 +78,19 @@ export function useWeeklyGoals() {
   });
 
   const updateGoal = useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<WeeklyGoal> & { id: string }) => {
+    mutationFn: async (goalData: Partial<WeeklyGoal> & { id: string }) => {
+      if (!user?.id) throw new Error('User not authenticated');
+      
       const { data, error } = await supabase
         .from('weekly_goals')
-        .update(updates)
-        .eq('id', id)
+        .update(goalData)
+        .eq('id', goalData.id)
+        .eq('user_id', user.id)
         .select()
         .single();
       
       if (error) throw error;
       return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['weeklyGoals'] });
-    },
-  });
-
-  const deleteGoal = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('weekly_goals')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['weeklyGoals'] });
@@ -103,6 +103,5 @@ export function useWeeklyGoals() {
     error,
     createGoal,
     updateGoal,
-    deleteGoal,
   };
 }
