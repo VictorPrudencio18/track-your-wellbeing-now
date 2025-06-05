@@ -1,10 +1,28 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useCategorizedCheckins } from '@/hooks/useCategorizedCheckins';
 import { toast } from '@/hooks/use-toast';
+
+// Update the interface to match the database schema
+interface CheckinPrompt {
+  id: string;
+  prompt_key: string;
+  category: string;
+  subcategory: string | null;
+  question: string;
+  response_type: 'scale' | 'boolean' | 'number' | 'text' | 'select' | 'time';
+  options?: any;
+  time_ranges?: string[];
+  priority: number;
+  scoring_weight: number;
+  frequency: string;
+  is_active: boolean;
+  conditions?: any;
+  context_triggers?: string[];
+  created_at: string;
+}
 
 const getTimeOfDay = (): string => {
   const hour = new Date().getHours();
@@ -88,7 +106,7 @@ export function useSmartCheckins() {
         .order('priority', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as CheckinPrompt[];
     },
     enabled: !!user && userHistory.length >= 0,
   });
