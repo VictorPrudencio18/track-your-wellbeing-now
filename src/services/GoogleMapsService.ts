@@ -21,6 +21,8 @@ export class GoogleMapsService {
   private map: any = null;
   private directionsService: any = null;
   private directionsRenderer: any = null;
+  private polyline: any = null;
+  private markers: any[] = [];
   private routeCache = new Map<string, CachedRoute>();
   private throttleState: ThrottleState = {
     lastRequest: 0,
@@ -43,26 +45,52 @@ export class GoogleMapsService {
   }
 
   async loadGoogleMaps(apiKey: string): Promise<void> {
+    // Verificar se já está carregado
     if ((window as any).google && (window as any).google.maps) {
-      return; // Já carregado
+      console.log('Google Maps já carregado');
+      return;
+    }
+
+    // Verificar se já existe um script carregando
+    const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+    if (existingScript) {
+      return new Promise((resolve) => {
+        const checkLoaded = () => {
+          if ((window as any).google && (window as any).google.maps) {
+            resolve();
+          } else {
+            setTimeout(checkLoaded, 100);
+          }
+        };
+        checkLoaded();
+      });
     }
 
     return new Promise((resolve, reject) => {
+      // Função de callback global
+      (window as any).initGoogleMaps = () => {
+        console.log('Google Maps carregado via callback');
+        resolve();
+      };
+
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry,places&loading=async`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry,places&callback=initGoogleMaps`;
       script.async = true;
       script.defer = true;
       
-      script.onload = () => {
-        console.log('Google Maps API carregado com sucesso');
-        resolve();
-      };
-      
       script.onerror = () => {
+        console.error('Erro ao carregar Google Maps API');
         reject(new Error('Erro ao carregar Google Maps API'));
       };
       
       document.head.appendChild(script);
+
+      // Timeout de segurança
+      setTimeout(() => {
+        if (!(window as any).google || !(window as any).google.maps) {
+          reject(new Error('Timeout ao carregar Google Maps'));
+        }
+      }, 10000);
     });
   }
 
@@ -73,10 +101,21 @@ export class GoogleMapsService {
 
     const google = (window as any).google;
 
-    this.map = new google.maps.Map(container, {
+    // Limpar mapa anterior se existir
+    if (this.map) {
+      this.clearRoute();
+      this.clearMarkers();
+    }
+
+    const defaultOptions = {
       zoom: 16,
       center: { lat: -23.550520, lng: -46.633308 }, // São Paulo default
       mapTypeId: google.maps.MapTypeId.HYBRID,
+      gestureHandling: 'greedy',
+      zoomControl: true,
+      streetViewControl: false,
+      fullscreenControl: false,
+      mapTypeControl: true,
       styles: [
         {
           featureType: 'all',
@@ -88,7 +127,11 @@ export class GoogleMapsService {
           elementType: 'labels.text.stroke',
           stylers: [{ color: '#000000' }, { lightness: 13 }]
         }
-      ],
+      ]
+    };
+
+    this.map = new google.maps.Map(container, {
+      ...defaultOptions,
       ...options
     });
 
@@ -103,6 +146,7 @@ export class GoogleMapsService {
       suppressMarkers: true
     });
 
+    console.log('Mapa inicializado com sucesso');
     return this.map;
   }
 
@@ -112,7 +156,7 @@ export class GoogleMapsService {
     // Reset contador a cada minuto
     if (now > this.throttleState.resetTime) {
       this.throttleState.requestCount = 0;
-      this.throttleState.resetTime = now + 60000; // Próximo reset em 1 minuto
+      this.throttleState.resetTime = now + 60000;
     }
 
     // Verificar limite de requests por minuto
@@ -135,16 +179,9 @@ export class GoogleMapsService {
     this.throttleState.requestCount++;
   }
 
-  private getCacheKey(start: any, end: any): string {
-    return `${start.lat()},${start.lng()}-${end.lat()},${end.lng()}`;
-  }
-
-  private getCachedRoute(cacheKey: string): CachedRoute | null {
-    const cached = this.routeCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
-      return cached;
-    }
-    return null;
+  clearMarkers(): void {
+    this.markers.forEach(marker => marker.setMap(null));
+    this.markers = [];
   }
 
   async addRoutePoint(position: any): Promise<void> {
@@ -152,8 +189,11 @@ export class GoogleMapsService {
 
     const google = (window as any).google;
 
+    // Limpar marcador anterior
+    this.clearMarkers();
+
     // Criar marcador da posição atual
-    new google.maps.Marker({
+    const marker = new google.maps.Marker({
       position,
       map: this.map,
       icon: {
@@ -166,6 +206,8 @@ export class GoogleMapsService {
       }
     });
 
+    this.markers.push(marker);
+
     // Centralizar mapa na nova posição
     this.map.panTo(position);
   }
@@ -175,8 +217,13 @@ export class GoogleMapsService {
 
     const google = (window as any).google;
 
-    // Usar polyline para desenhar a rota em tempo real (mais eficiente)
-    const routePath = new google.maps.Polyline({
+    // Limpar rota anterior
+    if (this.polyline) {
+      this.polyline.setMap(null);
+    }
+
+    // Criar nova polyline
+    this.polyline = new google.maps.Polyline({
       path: points,
       geodesic: true,
       strokeColor: '#4ade80',
@@ -189,6 +236,8 @@ export class GoogleMapsService {
     const bounds = new google.maps.LatLngBounds();
     points.forEach(point => bounds.extend(point));
     this.map.fitBounds(bounds);
+
+    console.log(`Rota desenhada com ${points.length} pontos`);
   }
 
   calculateDistance(point1: any, point2: any): number {
@@ -262,6 +311,10 @@ export class GoogleMapsService {
   }
 
   clearRoute(): void {
+    if (this.polyline) {
+      this.polyline.setMap(null);
+      this.polyline = null;
+    }
     if (this.directionsRenderer) {
       this.directionsRenderer.setDirections({ routes: [] } as any);
     }
@@ -269,6 +322,13 @@ export class GoogleMapsService {
 
   getMapInstance(): any {
     return this.map;
+  }
+
+  setMapType(mapType: string): void {
+    if (this.map && (window as any).google) {
+      const google = (window as any).google;
+      this.map.setMapTypeId(google.maps.MapTypeId[mapType.toUpperCase()]);
+    }
   }
 }
 
