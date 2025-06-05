@@ -1165,6 +1165,90 @@ export type Database = {
         }
         Relationships: []
       }
+      micro_checkins: {
+        Row: {
+          checkin_type: string
+          context: Json | null
+          created_at: string
+          id: string
+          max_value: number | null
+          metric_key: string
+          recorded_at: string
+          session_id: string | null
+          user_id: string
+          value: number
+        }
+        Insert: {
+          checkin_type: string
+          context?: Json | null
+          created_at?: string
+          id?: string
+          max_value?: number | null
+          metric_key: string
+          recorded_at?: string
+          session_id?: string | null
+          user_id: string
+          value: number
+        }
+        Update: {
+          checkin_type?: string
+          context?: Json | null
+          created_at?: string
+          id?: string
+          max_value?: number | null
+          metric_key?: string
+          recorded_at?: string
+          session_id?: string | null
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          frequency_hours: number | null
+          id: string
+          is_enabled: boolean | null
+          last_shown_at: string | null
+          metric_key: string
+          preferred_times: string[] | null
+          snooze_until: string | null
+          total_dismissals: number | null
+          total_responses: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          frequency_hours?: number | null
+          id?: string
+          is_enabled?: boolean | null
+          last_shown_at?: string | null
+          metric_key: string
+          preferred_times?: string[] | null
+          snooze_until?: string | null
+          total_dismissals?: number | null
+          total_responses?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          frequency_hours?: number | null
+          id?: string
+          is_enabled?: boolean | null
+          last_shown_at?: string | null
+          metric_key?: string
+          preferred_times?: string[] | null
+          snooze_until?: string | null
+          total_dismissals?: number | null
+          total_responses?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       nutrition_plans: {
         Row: {
           calorie_target: number | null
@@ -2186,6 +2270,51 @@ export type Database = {
           },
         ]
       }
+      wellness_scores: {
+        Row: {
+          calculation_date: string
+          contributing_metrics: Json | null
+          created_at: string
+          id: string
+          insights: Json | null
+          max_score: number | null
+          score_type: string
+          score_value: number
+          trend_30d: number | null
+          trend_7d: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calculation_date?: string
+          contributing_metrics?: Json | null
+          created_at?: string
+          id?: string
+          insights?: Json | null
+          max_score?: number | null
+          score_type: string
+          score_value?: number
+          trend_30d?: number | null
+          trend_7d?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calculation_date?: string
+          contributing_metrics?: Json | null
+          created_at?: string
+          id?: string
+          insights?: Json | null
+          max_score?: number | null
+          score_type?: string
+          score_value?: number
+          trend_30d?: number | null
+          trend_7d?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       workout_plans: {
         Row: {
           created_at: string | null
@@ -2344,6 +2473,10 @@ export type Database = {
           hydration_glasses: number
         }
         Returns: number
+      }
+      calculate_wellness_scores: {
+        Args: { p_user_id: string }
+        Returns: undefined
       }
       generate_goal_recommendations: {
         Args: { p_user_id: string }

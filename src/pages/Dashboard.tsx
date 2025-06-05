@@ -1,4 +1,3 @@
-
 import React from "react";
 import { motion } from "framer-motion";
 import { SupabaseStatsCards } from "@/components/dashboard/SupabaseStatsCards";
@@ -17,6 +16,8 @@ import { PredictiveWellnessPanel } from "@/components/dashboard/PredictiveWellne
 import { BehavioralPatternsPanel } from "@/components/dashboard/BehavioralPatternsPanel";
 import { SleepWellnessIntegration } from "@/components/dashboard/SleepWellnessIntegration";
 import { EnvironmentalFactorsPanel } from "@/components/dashboard/EnvironmentalFactorsPanel";
+import { WellnessThermometers } from "@/components/dashboard/WellnessThermometers";
+import { FloatingCheckinBox } from "@/components/wellness/FloatingCheckinBox";
 
 // Novos componentes premium
 import { HolographicScoreRing } from "@/components/ui/holographic-score-ring";
@@ -95,6 +96,9 @@ export default function Dashboard() {
       {/* Particle Background */}
       <ParticleBackground density="medium" color="#f59e0b" className="fixed inset-0 z-0" />
       
+      {/* Floating Checkin Box */}
+      <FloatingCheckinBox />
+      
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -140,6 +144,15 @@ export default function Dashboard() {
               Inteligência Artificial aplicada ao seu Bem-estar e Qualidade de Vida
             </motion.p>
           </div>
+        </motion.div>
+
+        {/* Termômetros de Bem-estar - Nova seção no topo */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <WellnessThermometers />
         </motion.div>
 
         {/* Histórico de Atividades - Movido para o topo */}
