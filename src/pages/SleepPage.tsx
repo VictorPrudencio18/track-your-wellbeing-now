@@ -70,36 +70,71 @@ export default function SleepPage() {
         </div>
       </motion.div>
 
-      {/* Navigation Tabs */}
+      {/* Navigation Tabs - Melhorado para melhor legibilidade */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 lg:w-fit lg:grid-cols-5 bg-navy-800/50 border border-navy-700/30">
+        <TabsList className="grid w-full grid-cols-5 lg:w-fit lg:grid-cols-5 bg-navy-800/80 backdrop-blur-xl border border-navy-600/50 rounded-2xl p-2 shadow-2xl">
           <TabsTrigger 
             value="dashboard" 
-            className="data-[state=active]:bg-accent-orange/20 data-[state=active]:text-accent-orange"
+            className="
+              relative px-6 py-3 rounded-xl font-medium transition-all duration-300
+              text-gray-300 hover:text-white
+              data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent-orange data-[state=active]:to-amber-500
+              data-[state=active]:text-navy-900 data-[state=active]:font-bold
+              data-[state=active]:shadow-lg data-[state=active]:shadow-accent-orange/25
+              hover:bg-navy-700/50
+            "
           >
             Dashboard
           </TabsTrigger>
           <TabsTrigger 
             value="tracker"
-            className="data-[state=active]:bg-accent-orange/20 data-[state=active]:text-accent-orange"
+            className="
+              relative px-6 py-3 rounded-xl font-medium transition-all duration-300
+              text-gray-300 hover:text-white
+              data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent-orange data-[state=active]:to-amber-500
+              data-[state=active]:text-navy-900 data-[state=active]:font-bold
+              data-[state=active]:shadow-lg data-[state=active]:shadow-accent-orange/25
+              hover:bg-navy-700/50
+            "
           >
             Registro
           </TabsTrigger>
           <TabsTrigger 
             value="analytics"
-            className="data-[state=active]:bg-accent-orange/20 data-[state=active]:text-accent-orange"
+            className="
+              relative px-6 py-3 rounded-xl font-medium transition-all duration-300
+              text-gray-300 hover:text-white
+              data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent-orange data-[state=active]:to-amber-500
+              data-[state=active]:text-navy-900 data-[state=active]:font-bold
+              data-[state=active]:shadow-lg data-[state=active]:shadow-accent-orange/25
+              hover:bg-navy-700/50
+            "
           >
             Análises
           </TabsTrigger>
           <TabsTrigger 
             value="goals"
-            className="data-[state=active]:bg-accent-orange/20 data-[state=active]:text-accent-orange"
+            className="
+              relative px-6 py-3 rounded-xl font-medium transition-all duration-300
+              text-gray-300 hover:text-white
+              data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent-orange data-[state=active]:to-amber-500
+              data-[state=active]:text-navy-900 data-[state=active]:font-bold
+              data-[state=active]:shadow-lg data-[state=active]:shadow-accent-orange/25
+              hover:bg-navy-700/50
+            "
           >
             Metas
           </TabsTrigger>
           <TabsTrigger 
             value="insights"
-            className="data-[state=active]:bg-accent-orange/20 data-[state=active]:text-accent-orange"
+            className="
+              relative px-6 py-3 rounded-xl font-medium transition-all duration-300
+              text-gray-300 hover:text-white
+              data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent-orange data-[state=active]:to-amber-500
+              data-[state=active]:text-navy-900 data-[state=active]:font-bold
+              data-[state=active]:shadow-lg data-[state=active]:shadow-accent-orange/25
+              hover:bg-navy-700/50
+            "
           >
             Insights
           </TabsTrigger>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -12,7 +11,8 @@ import {
   Target,
   Plus,
   Save,
-  AlertCircle
+  AlertCircle,
+  Star
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
