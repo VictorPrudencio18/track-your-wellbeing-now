@@ -14,6 +14,8 @@ import { SmartInsights } from "@/components/dashboard/SmartInsights";
 import { WellbeingOverview } from "@/components/dashboard/WellbeingOverview";
 import { MentalHealthDashboard } from "@/components/dashboard/MentalHealthDashboard";
 import { SmartAlertsSection } from "@/components/dashboard/SmartAlertsSection";
+import { PredictiveWellnessPanel } from "@/components/dashboard/PredictiveWellnessPanel";
+import { BehavioralPatternsPanel } from "@/components/dashboard/BehavioralPatternsPanel";
 
 export default function Dashboard() {
   return (
@@ -52,6 +54,14 @@ export default function Dashboard() {
           {/* Mental Health Dashboard */}
           <MentalHealthDashboard />
           
+          {/* FASE 3: Predictive Wellness System */}
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+              🔮 Sistema Preditivo de Bem-estar
+            </h2>
+            <PredictiveWellnessPanel />
+          </div>
+          
           {/* Histórico de Check-ins */}
           <DailyHistoryCarousel />
         </div>
@@ -72,6 +82,14 @@ export default function Dashboard() {
           {/* Conquistas */}
           <AchievementsCard />
         </div>
+      </div>
+
+      {/* FASE 3: Behavioral Patterns Analysis */}
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+          🧠 Análise de Padrões Comportamentais
+        </h2>
+        <BehavioralPatternsPanel />
       </div>
 
       {/* Seção de Atividades e Progresso */}
