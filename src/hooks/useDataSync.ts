@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -48,7 +47,7 @@ export function useSyncStatus() {
       };
     },
     enabled: !!user,
-    initialData: cachedStatus ? cachedStatus as SyncStatus : undefined,
+    initialData: cachedStatus ? (cachedStatus as unknown as SyncStatus) : undefined,
   });
 }
 
