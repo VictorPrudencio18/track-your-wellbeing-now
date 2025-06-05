@@ -8,7 +8,7 @@ import { AuthModal } from './AuthModal';
 import { toast } from '@/hooks/use-toast';
 
 export function AuthButton() {
-  const { user, loading } = useAuth();
+  const { user, loading, initialized } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleSignOut = async () => {
@@ -37,7 +37,8 @@ export function AuthButton() {
     }
   };
 
-  if (loading) {
+  // Show loading while auth is being initialized
+  if (!initialized || loading) {
     return (
       <Button 
         variant="ghost" 
