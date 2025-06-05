@@ -28,14 +28,6 @@ export function CheckinFlow() {
     return <CheckinSummary onRestart={() => setFlowState('checkin')} />;
   }
 
-  // Transform the prompt data to match the expected interface
-  const transformedPrompt = currentPrompt ? {
-    prompt_key: currentPrompt.prompt_key,
-    question: currentPrompt.question,
-    response_type: currentPrompt.response_type as 'scale' | 'text' | 'boolean',
-    category: currentPrompt.category || 'Geral'
-  } : null;
-
   return (
     <div className="space-y-6">
       {/* Progress Header */}
@@ -77,7 +69,7 @@ export function CheckinFlow() {
 
       {/* Main Checkin Area */}
       <AnimatePresence mode="wait">
-        {transformedPrompt && (
+        {currentPrompt && (
           <motion.div
             key={currentPromptIndex}
             initial={{ opacity: 0, x: 50 }}
@@ -86,9 +78,9 @@ export function CheckinFlow() {
             transition={{ duration: 0.3 }}
           >
             <SmartCheckinCard
-              prompt={transformedPrompt}
+              prompt={currentPrompt}
               onSubmit={async (value) => {
-                await submitResponse(transformedPrompt.prompt_key, value);
+                await submitResponse(currentPrompt.prompt_key, value);
                 
                 if (currentPromptIndex < currentPrompts.length - 1) {
                   nextPrompt();

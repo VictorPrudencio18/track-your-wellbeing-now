@@ -1,111 +1,86 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
+import { Tables, TablesInsert } from '@/integrations/supabase/types';
 import { toast } from '@/hooks/use-toast';
 
-export interface Activity {
-  id: string;
-  user_id: string;
-  type: string;
-  duration: number;
-  calories?: number;
-  distance?: number;
-  name?: string;
-  notes?: string;
-  completed_at: string;
-  created_at: string;
-  updated_at: string;
-}
+type Activity = Tables<'activities'>;
+type ActivityInsert = TablesInsert<'activities'>;
 
-export function useSupabaseActivities() {
-  const { user } = useAuth();
-
-  const { data: activities, isLoading, error } = useQuery({
-    queryKey: ['activities', user?.id],
+export function useActivities() {
+  return useQuery({
+    queryKey: ['activities'],
     queryFn: async () => {
-      if (!user?.id) return [];
+      console.log('Fetching activities...');
+      const { data: { user } } = await supabase.auth.getUser();
       
+      if (!user) {
+        console.log('No user found, returning empty array');
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('activities')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
+        .order('completed_at', { ascending: false });
       
-      if (error) throw error;
-      return data?.map(activity => ({
-        id: activity.id,
-        user_id: activity.user_id,
-        type: activity.type,
-        duration: activity.duration,
-        calories: activity.calories,
-        distance: activity.distance,
-        name: activity.name,
-        notes: activity.notes,
-        completed_at: activity.completed_at,
-        created_at: activity.created_at,
-        updated_at: activity.updated_at
-      })) as Activity[] || [];
+      if (error) {
+        console.error('Error fetching activities:', error);
+        throw error;
+      }
+      
+      console.log('Activities fetched:', data?.length || 0);
+      return data as Activity[];
     },
-    enabled: !!user?.id,
+    retry: 3,
   });
-
-  return {
-    activities: activities || [],
-    isLoading,
-    error,
-  };
 }
 
-// Export useActivities as an alias
-export const useActivities = useSupabaseActivities;
-
-// Create activity mutation
 export function useCreateActivity() {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
-
+  
   return useMutation({
-    mutationFn: async (activityData: {
-      type: string;
-      name?: string;
-      duration: number;
-      distance?: number;
-      calories?: number;
-      notes?: string;
-    }) => {
-      if (!user?.id) throw new Error('User not authenticated');
+    mutationFn: async (activity: Omit<ActivityInsert, 'user_id' | 'id'>) => {
+      console.log('Creating activity:', activity);
+      const { data: { user } } = await supabase.auth.getUser();
       
+      if (!user) {
+        throw new Error('Usuário não autenticado');
+      }
+
       const { data, error } = await supabase
         .from('activities')
-        .insert([{
+        .insert({
+          ...activity,
           user_id: user.id,
-          type: activityData.type,
-          name: activityData.name,
-          duration: activityData.duration,
-          distance: activityData.distance,
-          calories: activityData.calories,
-          notes: activityData.notes,
-          completed_at: new Date().toISOString(),
-        }])
+        })
         .select()
         .single();
+
+      if (error) {
+        console.error('Error creating activity:', error);
+        throw error;
+      }
       
-      if (error) throw error;
+      console.log('Activity created:', data);
       return data;
     },
     onSuccess: () => {
+      console.log('Activity created successfully, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['activities'] });
+      queryClient.invalidateQueries({ queryKey: ['user-scores'] });
+      
       toast({
         title: "Sucesso!",
-        description: "Atividade registrada com sucesso.",
+        description: "Atividade registrada com sucesso!",
       });
     },
     onError: (error: any) => {
+      console.error('Failed to create activity:', error);
       toast({
         title: "Erro",
-        description: error.message || "Erro ao registrar atividade.",
+        description: `Erro ao registrar atividade: ${error.message}`,
         variant: "destructive",
       });
     },

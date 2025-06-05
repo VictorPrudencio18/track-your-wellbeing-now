@@ -459,56 +459,6 @@ export type Database = {
         }
         Relationships: []
       }
-      daily_goal_progress: {
-        Row: {
-          activities_count: number | null
-          created_at: string | null
-          cumulative_value: number | null
-          daily_value: number | null
-          id: string
-          mood_after_progress: number | null
-          notes: string | null
-          progress_date: string
-          updated_at: string | null
-          user_id: string
-          weekly_goal_id: string
-        }
-        Insert: {
-          activities_count?: number | null
-          created_at?: string | null
-          cumulative_value?: number | null
-          daily_value?: number | null
-          id?: string
-          mood_after_progress?: number | null
-          notes?: string | null
-          progress_date: string
-          updated_at?: string | null
-          user_id: string
-          weekly_goal_id: string
-        }
-        Update: {
-          activities_count?: number | null
-          created_at?: string | null
-          cumulative_value?: number | null
-          daily_value?: number | null
-          id?: string
-          mood_after_progress?: number | null
-          notes?: string | null
-          progress_date?: string
-          updated_at?: string | null
-          user_id?: string
-          weekly_goal_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "daily_goal_progress_weekly_goal_id_fkey"
-            columns: ["weekly_goal_id"]
-            isOneToOne: false
-            referencedRelation: "weekly_goals"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       daily_health_checkins: {
         Row: {
           ate_healthy: boolean | null
@@ -619,54 +569,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      goal_recommendations: {
-        Row: {
-          applied_at: string | null
-          based_on_data: Json | null
-          confidence_score: number | null
-          created_at: string | null
-          id: string
-          reasoning: string | null
-          recommended_description: string | null
-          recommended_goal_type: Database["public"]["Enums"]["goal_type"]
-          recommended_target_value: number
-          recommended_title: string
-          recommended_unit: string
-          status: string | null
-          user_id: string
-        }
-        Insert: {
-          applied_at?: string | null
-          based_on_data?: Json | null
-          confidence_score?: number | null
-          created_at?: string | null
-          id?: string
-          reasoning?: string | null
-          recommended_description?: string | null
-          recommended_goal_type: Database["public"]["Enums"]["goal_type"]
-          recommended_target_value: number
-          recommended_title: string
-          recommended_unit: string
-          status?: string | null
-          user_id: string
-        }
-        Update: {
-          applied_at?: string | null
-          based_on_data?: Json | null
-          confidence_score?: number | null
-          created_at?: string | null
-          id?: string
-          reasoning?: string | null
-          recommended_description?: string | null
-          recommended_goal_type?: Database["public"]["Enums"]["goal_type"]
-          recommended_target_value?: number
-          recommended_title?: string
-          recommended_unit?: string
-          status?: string | null
-          user_id?: string
-        }
-        Relationships: []
       }
       goals: {
         Row: {
@@ -1142,86 +1044,6 @@ export type Database = {
           },
         ]
       }
-      weekly_goals: {
-        Row: {
-          auto_generated: boolean | null
-          completed_at: string | null
-          completion_percentage: number | null
-          created_at: string | null
-          current_value: number | null
-          description: string | null
-          difficulty_level: number | null
-          goal_type: Database["public"]["Enums"]["goal_type"]
-          id: string
-          is_completed: boolean | null
-          milestone_rewards: Json | null
-          parent_goal_id: string | null
-          priority: number | null
-          target_value: number
-          title: string
-          tracking_data: Json | null
-          unit: string
-          updated_at: string | null
-          user_id: string
-          week_end_date: string
-          week_start_date: string
-        }
-        Insert: {
-          auto_generated?: boolean | null
-          completed_at?: string | null
-          completion_percentage?: number | null
-          created_at?: string | null
-          current_value?: number | null
-          description?: string | null
-          difficulty_level?: number | null
-          goal_type: Database["public"]["Enums"]["goal_type"]
-          id?: string
-          is_completed?: boolean | null
-          milestone_rewards?: Json | null
-          parent_goal_id?: string | null
-          priority?: number | null
-          target_value: number
-          title: string
-          tracking_data?: Json | null
-          unit: string
-          updated_at?: string | null
-          user_id: string
-          week_end_date: string
-          week_start_date: string
-        }
-        Update: {
-          auto_generated?: boolean | null
-          completed_at?: string | null
-          completion_percentage?: number | null
-          created_at?: string | null
-          current_value?: number | null
-          description?: string | null
-          difficulty_level?: number | null
-          goal_type?: Database["public"]["Enums"]["goal_type"]
-          id?: string
-          is_completed?: boolean | null
-          milestone_rewards?: Json | null
-          parent_goal_id?: string | null
-          priority?: number | null
-          target_value?: number
-          title?: string
-          tracking_data?: Json | null
-          unit?: string
-          updated_at?: string | null
-          user_id?: string
-          week_end_date?: string
-          week_start_date?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "weekly_goals_parent_goal_id_fkey"
-            columns: ["parent_goal_id"]
-            isOneToOne: false
-            referencedRelation: "goals"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       [_ in never]: never
@@ -1240,15 +1062,6 @@ export type Database = {
         Args: { p_user_id: string; p_category: string; p_date?: string }
         Returns: number
       }
-      calculate_weekly_goal_progress: {
-        Args: {
-          p_user_id: string
-          p_weekly_goal_id: string
-          p_week_start: string
-          p_week_end: string
-        }
-        Returns: number
-      }
       calculate_wellness_score: {
         Args: {
           sleep_qual: number
@@ -1258,10 +1071,6 @@ export type Database = {
           exercise_done: boolean
           hydration_glasses: number
         }
-        Returns: number
-      }
-      generate_goal_recommendations: {
-        Args: { p_user_id: string }
         Returns: number
       }
       log_user_action: {
