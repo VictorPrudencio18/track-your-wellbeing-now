@@ -11,7 +11,7 @@ interface SmartCheckinCardProps {
   prompt: {
     prompt_key: string;
     question: string;
-    type: 'scale' | 'text' | 'boolean';
+    response_type: 'scale' | 'text' | 'boolean';
     category: string;
   };
   onSubmit: (value: any) => void;
@@ -25,7 +25,7 @@ export function SmartCheckinCard({ prompt, onSubmit, isLoading }: SmartCheckinCa
 
   const handleSubmit = () => {
     let value;
-    switch (prompt.type) {
+    switch (prompt.response_type) {
       case 'scale':
         value = scaleValue[0];
         break;
@@ -62,7 +62,7 @@ export function SmartCheckinCard({ prompt, onSubmit, isLoading }: SmartCheckinCa
             {prompt.question}
           </div>
 
-          {prompt.type === 'scale' && (
+          {prompt.response_type === 'scale' && (
             <div className="space-y-4">
               <div className="px-4">
                 <Slider
@@ -84,7 +84,7 @@ export function SmartCheckinCard({ prompt, onSubmit, isLoading }: SmartCheckinCa
             </div>
           )}
 
-          {prompt.type === 'text' && (
+          {prompt.response_type === 'text' && (
             <Textarea
               value={textValue}
               onChange={(e) => setTextValue(e.target.value)}
@@ -94,7 +94,7 @@ export function SmartCheckinCard({ prompt, onSubmit, isLoading }: SmartCheckinCa
             />
           )}
 
-          {prompt.type === 'boolean' && (
+          {prompt.response_type === 'boolean' && (
             <div className="grid grid-cols-2 gap-4">
               <Button
                 variant={booleanValue === true ? "default" : "outline"}
@@ -122,8 +122,8 @@ export function SmartCheckinCard({ prompt, onSubmit, isLoading }: SmartCheckinCa
           <Button
             onClick={handleSubmit}
             disabled={isLoading || 
-              (prompt.type === 'text' && !textValue.trim()) ||
-              (prompt.type === 'boolean' && booleanValue === null)
+              (prompt.response_type === 'text' && !textValue.trim()) ||
+              (prompt.response_type === 'boolean' && booleanValue === null)
             }
             className="w-full bg-accent-orange hover:bg-accent-orange/90"
           >
