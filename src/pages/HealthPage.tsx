@@ -9,7 +9,6 @@ import { BloodPressureTracker } from "@/components/health/BloodPressureTracker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, Moon, Droplets, Scale, Activity, Plus } from "lucide-react";
 import { HealthDashboard } from "@/components/health/HealthDashboard";
-import { DailyCheckinManager } from "@/components/health/DailyCheckinManager";
 
 export default function HealthPage() {
   return (
@@ -107,9 +106,6 @@ export default function HealthPage() {
           </motion.div>
         </Tabs>
       </div>
-      
-      {/* Sistema de Check-ins Inteligente */}
-      <DailyCheckinManager />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { AuthButton } from "@/components/auth/AuthButton";
 import { Toaster } from "@/components/ui/toaster";
+import { DailyCheckinManager } from "@/components/health/DailyCheckinManager";
 
 import Index from "@/pages/Index";
 import Dashboard from "@/pages/Dashboard";
@@ -65,6 +66,10 @@ function App() {
                 </div>
               </main>
             </div>
+            
+            {/* Sistema de Check-ins Inteligente - Agora Global */}
+            <DailyCheckinManager />
+            
             <Toaster />
           </SidebarProvider>
         </Router>
