@@ -37,6 +37,8 @@ export interface CheckinPrompt {
   context_triggers: string[];
   priority: number;
   is_active: boolean;
+  category?: string;
+  subcategory?: string;
 }
 
 export function useDailyCheckins() {
@@ -63,7 +65,7 @@ export function useDailyCheckins() {
     enabled: !!user,
   });
 
-  // Buscar prompts ativos
+  // Buscar prompts ativos (incluindo novos categorizados)
   const { data: prompts } = useQuery({
     queryKey: ['checkin-prompts'],
     queryFn: async () => {
@@ -78,7 +80,26 @@ export function useDailyCheckins() {
     },
   });
 
-  // Criar ou atualizar check-in
+  // Buscar respostas categorizadas de hoje
+  const { data: categorizedResponses } = useQuery({
+    queryKey: ['categorized-responses', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('daily_checkin_responses')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('checkin_date', today);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  // Criar ou atualizar check-in tradicional
   const upsertCheckin = useMutation({
     mutationFn: async (updates: Partial<DailyCheckin>) => {
       if (!user) throw new Error('User not authenticated');
@@ -120,6 +141,7 @@ export function useDailyCheckins() {
   return {
     todayCheckin,
     prompts: prompts || [],
+    categorizedResponses: categorizedResponses || [],
     isLoading,
     upsertCheckin,
   };

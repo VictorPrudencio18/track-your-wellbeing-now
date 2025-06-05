@@ -371,8 +371,11 @@ export type Database = {
       }
       checkin_prompts: {
         Row: {
+          category: string | null
+          conditions: Json | null
           context_triggers: string[] | null
           created_at: string
+          frequency: string | null
           id: string
           is_active: boolean | null
           options: Json | null
@@ -380,11 +383,16 @@ export type Database = {
           prompt_key: string
           question: string
           response_type: string
+          scoring_weight: number | null
+          subcategory: string | null
           time_ranges: string[] | null
         }
         Insert: {
+          category?: string | null
+          conditions?: Json | null
           context_triggers?: string[] | null
           created_at?: string
+          frequency?: string | null
           id?: string
           is_active?: boolean | null
           options?: Json | null
@@ -392,11 +400,16 @@ export type Database = {
           prompt_key: string
           question: string
           response_type: string
+          scoring_weight?: number | null
+          subcategory?: string | null
           time_ranges?: string[] | null
         }
         Update: {
+          category?: string | null
+          conditions?: Json | null
           context_triggers?: string[] | null
           created_at?: string
+          frequency?: string | null
           id?: string
           is_active?: boolean | null
           options?: Json | null
@@ -404,7 +417,45 @@ export type Database = {
           prompt_key?: string
           question?: string
           response_type?: string
+          scoring_weight?: number | null
+          subcategory?: string | null
           time_ranges?: string[] | null
+        }
+        Relationships: []
+      }
+      daily_checkin_responses: {
+        Row: {
+          category: string
+          category_score: number | null
+          checkin_date: string | null
+          id: string
+          prompt_key: string
+          responded_at: string | null
+          response_value: Json
+          subcategory: string | null
+          user_id: string
+        }
+        Insert: {
+          category: string
+          category_score?: number | null
+          checkin_date?: string | null
+          id?: string
+          prompt_key: string
+          responded_at?: string | null
+          response_value: Json
+          subcategory?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string
+          category_score?: number | null
+          checkin_date?: string | null
+          id?: string
+          prompt_key?: string
+          responded_at?: string | null
+          response_value?: Json
+          subcategory?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -1005,6 +1056,10 @@ export type Database = {
           activity_calories?: number
           activity_type?: Database["public"]["Enums"]["activity_type"]
         }
+        Returns: number
+      }
+      calculate_category_score: {
+        Args: { p_user_id: string; p_category: string; p_date?: string }
         Returns: number
       }
       calculate_wellness_score: {
