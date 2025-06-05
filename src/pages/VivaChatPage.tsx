@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -77,7 +78,7 @@ export default function VivaChatPage() {
   const [autoScroll, setAutoScroll] = useState(true);
   const [aiPersonality, setAiPersonality] = useState('friendly');
   const [responseSpeed, setResponseSpeed] = useState([1]);
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(false); // Sidebar fechada por padrão no mobile
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [privacyMode, setPrivacyMode] = useState(false);
   
@@ -489,7 +490,7 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="min-h-[80vh] flex items-center justify-center p-4"
+        className="min-h-screen flex items-center justify-center p-4"
       >
         <Card className="glass-card p-8 text-center max-w-md">
           <AlertCircle className="w-16 h-16 text-accent-orange mx-auto mb-4" />
@@ -503,40 +504,44 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className={`h-screen max-h-screen overflow-hidden p-4 ${isFullscreen ? 'fixed inset-0 z-50 bg-navy-900' : ''}`}
-    >
-      {/* Header Avançado */}
-      <ChatHeader
-        totalActivities={totalActivities}
-        chatMode={chatMode}
-        setChatMode={setChatMode}
-        voiceEnabled={voiceEnabled}
-        setVoiceEnabled={setVoiceEnabled}
-        showSidebar={showSidebar}
-        setShowSidebar={setShowSidebar}
-        isFullscreen={isFullscreen}
-        setIsFullscreen={setIsFullscreen}
-      />
+    <div className="h-screen flex flex-col bg-navy-900 relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-accent-orange/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
+      </div>
 
-      <div className={`grid gap-4 h-[calc(100vh-200px)] ${showSidebar && !isFullscreen ? 'grid-cols-1 xl:grid-cols-4' : 'grid-cols-1'}`}>
+      {/* Header Responsivo */}
+      <div className="flex-shrink-0 relative z-10">
+        <ChatHeader
+          totalActivities={totalActivities}
+          chatMode={chatMode}
+          setChatMode={setChatMode}
+          voiceEnabled={voiceEnabled}
+          setVoiceEnabled={setVoiceEnabled}
+          showSidebar={showSidebar}
+          setShowSidebar={setShowSidebar}
+          isFullscreen={isFullscreen}
+          setIsFullscreen={setIsFullscreen}
+        />
+      </div>
+
+      {/* Conteúdo Principal */}
+      <div className="flex-1 flex overflow-hidden relative z-10">
         {/* Área de Chat Principal */}
-        <div className={showSidebar && !isFullscreen ? "xl:col-span-3" : "col-span-1"}>
-          <Card className="glass-card h-full flex flex-col border-navy-700/30">
-            {/* Chat Header com Controles */}
-            <div className="border-b border-navy-700/20 p-4">
-              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
+        <div className={`flex-1 flex flex-col transition-all duration-300 ${showSidebar ? 'lg:mr-80' : ''}`}>
+          <Card className="flex-1 glass-card border-navy-700/30 m-2 lg:m-4 flex flex-col overflow-hidden">
+            {/* Controles do Chat */}
+            <div className="flex-shrink-0 border-b border-navy-700/20 p-3 lg:p-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
                   <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Search className="w-4 h-4 text-gray-400" />
+                    <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
                     <Input
                       placeholder="Buscar mensagens..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full sm:w-64 h-8 bg-navy-800/50 border-navy-600/30 text-white placeholder:text-gray-400"
+                      className="flex-1 sm:w-48 h-8 bg-navy-800/50 border-navy-600/30 text-white placeholder:text-gray-400"
                     />
                   </div>
                   
@@ -545,7 +550,7 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                       <Filter className="w-3 h-3 mr-1" />
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-navy-800 border-navy-600">
                       <SelectItem value="all">Todas</SelectItem>
                       <SelectItem value="ai">IA</SelectItem>
                       <SelectItem value="user">Usuário</SelectItem>
@@ -558,22 +563,22 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white text-xs lg:text-sm">
-                    <Download className="w-3 h-3 lg:w-4 lg:h-4 mr-1" />
+                  <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white text-xs">
+                    <Download className="w-3 h-3 mr-1" />
                     <span className="hidden sm:inline">Exportar</span>
                   </Button>
-                  <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white text-xs lg:text-sm">
-                    <Share2 className="w-3 h-3 lg:w-4 lg:h-4 mr-1" />
+                  <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white text-xs">
+                    <Share2 className="w-3 h-3 mr-1" />
                     <span className="hidden sm:inline">Compartilhar</span>
                   </Button>
                 </div>
               </div>
             </div>
 
+            {/* Área de Mensagens com Scroll */}
             <CardContent className="flex-1 flex flex-col p-0 min-h-0 overflow-hidden">
-              {/* Mensagens com Scroll */}
-              <ScrollArea className="flex-1 px-4 lg:px-6">
-                <div className="space-y-4 lg:space-y-6 py-4 lg:py-6">
+              <ScrollArea className="flex-1">
+                <div className="space-y-4 p-4 lg:p-6">
                   {searchedMessages.map((message, index) => (
                     <ChatMessage
                       key={message.id}
@@ -588,12 +593,12 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex gap-3 lg:gap-4"
+                      className="flex gap-3"
                     >
-                      <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-accent-orange to-yellow-400 rounded-full flex items-center justify-center shadow-lg">
-                        <Sparkles className="w-5 h-5 lg:w-6 lg:h-6 text-navy-900" />
+                      <div className="w-10 h-10 bg-gradient-to-br from-accent-orange to-yellow-400 rounded-full flex items-center justify-center shadow-lg">
+                        <Sparkles className="w-5 h-5 text-navy-900" />
                       </div>
-                      <div className="bg-navy-800/50 p-3 lg:p-4 rounded-2xl border border-navy-700/30">
+                      <div className="bg-navy-800/50 p-4 rounded-2xl border border-navy-700/30">
                         <div className="flex gap-1">
                           {[0, 1, 2].map((i) => (
                             <motion.div
@@ -609,54 +614,70 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                     </motion.div>
                   )}
                   
-                  {/* Div para scroll automático */}
                   <div ref={messagesEndRef} />
                 </div>
               </ScrollArea>
 
-              {/* Input Component */}
-              <ChatInput
-                inputValue={inputValue}
-                setInputValue={setInputValue}
-                onSendMessage={handleSendMessage}
-                isTyping={isTyping}
-                chatMode={chatMode}
-                privacyMode={privacyMode}
-                setPrivacyMode={setPrivacyMode}
-                autoScroll={autoScroll}
-                setAutoScroll={setAutoScroll}
-                isRecording={isRecording}
-                setIsRecording={setIsRecording}
-                onFileUpload={handleFileUpload}
-              />
+              {/* Input Area */}
+              <div className="flex-shrink-0 border-t border-navy-700/20 bg-gradient-to-r from-navy-800/50 to-navy-700/30 backdrop-blur-sm">
+                <ChatInput
+                  inputValue={inputValue}
+                  setInputValue={setInputValue}
+                  onSendMessage={handleSendMessage}
+                  isTyping={isTyping}
+                  chatMode={chatMode}
+                  privacyMode={privacyMode}
+                  setPrivacyMode={setPrivacyMode}
+                  autoScroll={autoScroll}
+                  setAutoScroll={setAutoScroll}
+                  isRecording={isRecording}
+                  setIsRecording={setIsRecording}
+                  onFileUpload={handleFileUpload}
+                />
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Sidebar Component */}
-        {showSidebar && !isFullscreen && (
-          <ChatSidebar
-            sidebarTab={sidebarTab}
-            setSidebarTab={setSidebarTab}
-            totalActivities={totalActivities}
-            currentStreak={currentStreak}
-            totalPoints={totalPoints}
-            currentLevel={currentLevel}
-            quickActions={quickActions}
-            chatTemplates={chatTemplates}
-            notificationsEnabled={notificationsEnabled}
-            setNotificationsEnabled={setNotificationsEnabled}
-            voiceEnabled={voiceEnabled}
-            setVoiceEnabled={setVoiceEnabled}
-            responseSpeed={responseSpeed}
-            setResponseSpeed={setResponseSpeed}
-            aiPersonality={aiPersonality}
-            setAiPersonality={setAiPersonality}
-            onTemplateUse={handleTemplateUse}
-            onClearChat={handleClearChat}
-          />
+        {/* Sidebar Responsiva */}
+        {showSidebar && (
+          <>
+            {/* Overlay para mobile */}
+            <div 
+              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+              onClick={() => setShowSidebar(false)}
+            />
+            
+            {/* Sidebar */}
+            <div className={`
+              fixed lg:absolute top-0 right-0 h-full w-80 z-50 lg:z-10
+              transform transition-transform duration-300 ease-in-out
+              ${showSidebar ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
+            `}>
+              <ChatSidebar
+                sidebarTab={sidebarTab}
+                setSidebarTab={setSidebarTab}
+                totalActivities={totalActivities}
+                currentStreak={currentStreak}
+                totalPoints={totalPoints}
+                currentLevel={currentLevel}
+                quickActions={quickActions}
+                chatTemplates={[]} // Simplificado para este exemplo
+                notificationsEnabled={notificationsEnabled}
+                setNotificationsEnabled={setNotificationsEnabled}
+                voiceEnabled={voiceEnabled}
+                setVoiceEnabled={setVoiceEnabled}
+                responseSpeed={responseSpeed}
+                setResponseSpeed={setResponseSpeed}
+                aiPersonality={aiPersonality}
+                setAiPersonality={setAiPersonality}
+                onTemplateUse={handleTemplateUse}
+                onClearChat={handleClearChat}
+              />
+            </div>
+          </>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
