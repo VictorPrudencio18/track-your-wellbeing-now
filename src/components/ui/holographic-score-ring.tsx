@@ -150,7 +150,9 @@ export function HolographicScoreRing({
 
       {/* Breakdown metrics */}
       <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
-        {Object.entries(breakdown).map(([key, value], index) => {
+        {Object.entries(breakdown)
+          .filter(([key]) => ['physical', 'mental', 'sleep', 'energy'].includes(key))
+          .map(([key, value], index) => {
           const labels = {
             physical: 'Físico',
             mental: 'Mental', 
