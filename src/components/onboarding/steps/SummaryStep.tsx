@@ -12,6 +12,7 @@ interface SummaryStepProps {
 
 export function SummaryStep({ onNext, onPrevious, canGoBack, responses }: SummaryStepProps) {
   const handleComplete = () => {
+    console.log('Completing onboarding with responses:', responses);
     onNext({});
   };
 
@@ -23,6 +24,11 @@ export function SummaryStep({ onNext, onPrevious, canGoBack, responses }: Summar
       case 'Reduzir estresse': return '🧘';
       default: return '🎯';
     }
+  };
+
+  // Função para obter valor de resposta com fallback
+  const getResponseValue = (key: string, fallback = 'Não informado') => {
+    return responses[key] || fallback;
   };
 
   return (
@@ -48,24 +54,53 @@ export function SummaryStep({ onNext, onPrevious, canGoBack, responses }: Summar
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="text-navy-300">
               <span className="text-white font-medium">Objetivo:</span><br />
-              {getGoalIcon(responses.primary_goal)} {responses.primary_goal || 'Não informado'}
+              {getGoalIcon(getResponseValue('primary_goal'))} {getResponseValue('primary_goal')}
             </div>
             <div className="text-navy-300">
               <span className="text-white font-medium">Tempo disponível:</span><br />
               <Clock className="w-4 h-4 inline mr-1" />
-              {responses.available_time || 'Não informado'}
+              {getResponseValue('available_time')}
             </div>
             <div className="text-navy-300">
               <span className="text-white font-medium">Nível atual:</span><br />
               <Heart className="w-4 h-4 inline mr-1" />
-              {responses.fitness_level ? `Nível ${responses.fitness_level}/5` : 'Não informado'}
+              {getResponseValue('fitness_level') !== 'Não informado' 
+                ? `Nível ${getResponseValue('fitness_level')}/5` 
+                : 'Não informado'}
             </div>
             <div className="text-navy-300">
               <span className="text-white font-medium">Preferência social:</span><br />
               <Users className="w-4 h-4 inline mr-1" />
-              {responses.exercise_preference || 'Não informado'}
+              {getResponseValue('exercise_preference')}
             </div>
           </div>
+
+          {/* Informações adicionais se disponíveis */}
+          {(getResponseValue('age') !== 'Não informado' || 
+            getResponseValue('current_weight') !== 'Não informado') && (
+            <div className="mt-4 pt-4 border-t border-navy-700/30 grid grid-cols-2 gap-4 text-sm text-navy-300">
+              {getResponseValue('age') !== 'Não informado' && (
+                <div>
+                  <span className="text-white font-medium">Idade:</span> {getResponseValue('age')} anos
+                </div>
+              )}
+              {getResponseValue('gender') !== 'Não informado' && (
+                <div>
+                  <span className="text-white font-medium">Gênero:</span> {getResponseValue('gender')}
+                </div>
+              )}
+              {getResponseValue('current_weight') !== 'Não informado' && (
+                <div>
+                  <span className="text-white font-medium">Peso:</span> {getResponseValue('current_weight')} kg
+                </div>
+              )}
+              {getResponseValue('current_height') !== 'Não informado' && (
+                <div>
+                  <span className="text-white font-medium">Altura:</span> {getResponseValue('current_height')} cm
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="bg-accent-orange/10 rounded-xl p-6 border border-accent-orange/20">

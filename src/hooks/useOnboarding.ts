@@ -48,7 +48,6 @@ export function useOnboarding() {
       if (error) throw error;
 
       if (progress) {
-        // Corrigir tipos para evitar erros de TypeScript
         const completedSteps = Array.isArray(progress.completed_steps) 
           ? progress.completed_steps as number[]
           : [];
@@ -76,16 +75,20 @@ export function useOnboarding() {
     if (!user) return;
 
     try {
+      console.log('Saving progress for step:', step, 'with data:', responses);
+      
       const newCompletedSteps = [...data.completedSteps];
       if (!newCompletedSteps.includes(step)) {
         newCompletedSteps.push(step);
       }
 
+      const updatedResponses = { ...data.responses, ...responses };
+
       const updatedData = {
         ...data,
         currentStep: step + 1,
         completedSteps: newCompletedSteps,
-        responses: { ...data.responses, ...responses }
+        responses: updatedResponses
       };
 
       const { error } = await supabase
@@ -96,12 +99,13 @@ export function useOnboarding() {
           total_steps: updatedData.totalSteps,
           completed_steps: updatedData.completedSteps,
           is_completed: updatedData.currentStep > updatedData.totalSteps,
-          data_snapshot: updatedData.responses,
+          data_snapshot: updatedResponses,
           last_active_at: new Date().toISOString()
         });
 
       if (error) throw error;
 
+      console.log('Progress saved successfully');
       setData(updatedData);
     } catch (error) {
       console.error('Error saving onboarding progress:', error);
@@ -112,6 +116,8 @@ export function useOnboarding() {
     if (!user) return;
 
     try {
+      console.log('Saving individual response:', questionKey, value, categoryName);
+      
       const { error } = await supabase
         .from('user_profile_assessment')
         .upsert({
@@ -123,6 +129,7 @@ export function useOnboarding() {
         });
 
       if (error) throw error;
+      console.log('Individual response saved successfully');
     } catch (error) {
       console.error('Error saving response:', error);
     }
@@ -132,6 +139,8 @@ export function useOnboarding() {
     if (!user) return;
 
     try {
+      console.log('Completing onboarding for user:', user.id);
+      
       // Marcar onboarding como completo
       const { error: progressError } = await supabase
         .from('onboarding_progress')
@@ -151,6 +160,7 @@ export function useOnboarding() {
 
       if (profileError) throw profileError;
 
+      console.log('Onboarding completed successfully');
       setData(prev => ({ ...prev, isCompleted: true }));
     } catch (error) {
       console.error('Error completing onboarding:', error);
