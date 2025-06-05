@@ -98,7 +98,7 @@ export function useUpdateUserSettings() {
       // Buscar preferências atuais
       const { data: currentData } = await supabase
         .from('profiles')
-        .select('preferences')
+        .select('preferences, data_version')
         .eq('id', user.id)
         .single();
 

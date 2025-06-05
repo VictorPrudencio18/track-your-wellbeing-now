@@ -48,7 +48,7 @@ export function useSyncStatus() {
       };
     },
     enabled: !!user,
-    initialData: cachedStatus as SyncStatus | undefined,
+    initialData: cachedStatus ? cachedStatus as SyncStatus : undefined,
   });
 }
 
