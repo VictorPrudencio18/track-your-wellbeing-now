@@ -137,8 +137,8 @@ export function WellnessThermometers() {
             Scores de Bem-estar Hoje
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-5'}`}>
+        <CardContent className="p-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
             {wellnessScores.map((score) => {
               const Icon = scoreIcons[score.score_type as keyof typeof scoreIcons];
               const colorClass = scoreColors[score.score_type as keyof typeof scoreColors];
@@ -149,14 +149,14 @@ export function WellnessThermometers() {
                   key={score.score_type}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-center"
+                  className="flex flex-col items-center text-center"
                 >
-                  <div className="flex flex-col items-center gap-2 p-3 bg-navy-700/30 rounded-xl">
+                  <div className="flex flex-col items-center gap-2 p-3 bg-navy-700/30 rounded-xl w-full min-h-[100px]">
                     <Icon className={`w-5 h-5 ${colorClass} flex-shrink-0`} />
                     <div className={`text-xl font-bold ${colorClass}`}>
                       {Math.round(score.score_value)}
                     </div>
-                    <div className="text-xs text-navy-300 text-center">
+                    <div className="text-xs text-navy-300 text-center leading-tight">
                       {name}
                     </div>
                     {score.trend_7d !== 0 && (
