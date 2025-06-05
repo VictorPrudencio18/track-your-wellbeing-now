@@ -9,6 +9,8 @@ import { AchievementsCard } from "@/components/dashboard/AchievementsCard";
 import { VivaAIChat } from "@/components/dashboard/VivaAIChat";
 import { UserProfileCard } from "@/components/dashboard/UserProfileCard";
 import { DailyHistoryCarousel } from "@/components/health/DailyHistoryCarousel";
+import { VivaScoreOverview } from "@/components/dashboard/VivaScoreOverview";
+import { SmartInsights } from "@/components/dashboard/SmartInsights";
 
 export default function Dashboard() {
   return (
@@ -21,36 +23,52 @@ export default function Dashboard() {
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold text-white mb-2">
-          Painel Principal
+          Dashboard VIVA+
         </h1>
         <p className="text-navy-300 text-lg">
-          Acompanhe seu progresso e conquiste seus objetivos
+          Análise Inteligente do seu Bem-estar e Qualidade de Vida
         </p>
       </div>
 
-      {/* Stats Cards */}
-      <SupabaseStatsCards />
-
-      {/* Daily History Calendar */}
-      <DailyHistoryCarousel />
-
-      {/* Main Content Grid */}
+      {/* Nova estrutura focada em bem-estar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column */}
+        {/* Coluna Principal - Score VIVA e Insights */}
         <div className="lg:col-span-2 space-y-8">
-          <ModernActivityChart />
-          <SupabaseRecentActivitiesCard />
+          {/* Score VIVA Unificado */}
+          <VivaScoreOverview />
+          
+          {/* Insights Inteligentes */}
+          <SmartInsights />
+          
+          {/* Histórico de Check-ins */}
+          <DailyHistoryCarousel />
         </div>
 
-        {/* Right Column */}
+        {/* Coluna Lateral - Informações Complementares */}
         <div className="space-y-8">
+          {/* Perfil do Usuário */}
           <UserProfileCard />
+          
+          {/* Estatísticas Rápidas */}
+          <div className="space-y-6">
+            <SupabaseStatsCards />
+          </div>
+          
+          {/* Metas Semanais */}
           <WeeklyGoalsCard />
+          
+          {/* Conquistas */}
           <AchievementsCard />
         </div>
       </div>
 
-      {/* AI Chat */}
+      {/* Seção de Atividades e Progresso */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <ModernActivityChart />
+        <SupabaseRecentActivitiesCard />
+      </div>
+
+      {/* Chat IA VIVA - Agora com contexto dos insights */}
       <VivaAIChat />
     </motion.div>
   );
