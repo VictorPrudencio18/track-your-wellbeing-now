@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
-export type GoalType = 'weight_loss' | 'muscle_gain' | 'endurance' | 'strength' | 'flexibility' | 'wellness';
+export type GoalType = 'weight_loss' | 'muscle_gain' | 'endurance' | 'strength' | 'flexibility' | 'wellness' | 'distance' | 'duration' | 'frequency' | 'calories';
 
 export interface WeeklyGoal {
   id: string;
@@ -23,7 +23,7 @@ export interface WeeklyGoal {
   reward_points?: number;
   streak_count?: number;
   completion_percentage?: number;
-  is_active?: boolean;
+  is_completed?: boolean;
   created_at: string;
   updated_at: string;
   completed_at?: string;
@@ -45,7 +45,10 @@ export function useWeeklyGoals() {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as WeeklyGoal[];
+      return data?.map(goal => ({
+        ...goal,
+        is_completed: goal.is_completed || goal.completion_percentage >= 100
+      })) as WeeklyGoal[];
     },
     enabled: !!user?.id,
   });
@@ -64,7 +67,8 @@ export function useWeeklyGoals() {
         .from('weekly_goals')
         .insert([{ 
           ...goalData, 
-          user_id: user.id 
+          user_id: user.id,
+          current_value: goalData.current_value || 0
         }])
         .select()
         .single();

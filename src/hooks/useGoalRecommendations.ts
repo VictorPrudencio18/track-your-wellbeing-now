@@ -2,19 +2,19 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { GoalType } from './useWeeklyGoals';
 
 export interface GoalRecommendation {
   id: string;
   user_id: string;
-  recommended_goal_type: string;
+  recommended_goal_type: GoalType;
   recommended_title: string;
   recommended_description?: string;
   recommended_target_value: number;
   recommended_unit: string;
   confidence_score: number;
   reasoning?: string;
-  based_on_data: any;
-  status: 'pending' | 'accepted' | 'rejected' | 'modified';
+  status: 'pending' | 'accepted' | 'rejected';
   created_at: string;
   applied_at?: string;
 }
@@ -33,7 +33,7 @@ export function useGoalRecommendations() {
         .select('*')
         .eq('user_id', user.id)
         .eq('status', 'pending')
-        .order('confidence_score', { ascending: false });
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data as GoalRecommendation[];
@@ -61,10 +61,7 @@ export function useGoalRecommendations() {
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { data, error } = await supabase
         .from('goal_recommendations')
-        .update({ 
-          status,
-          applied_at: status === 'accepted' ? new Date().toISOString() : null
-        })
+        .update({ status, applied_at: status === 'accepted' ? new Date().toISOString() : null })
         .eq('id', id)
         .select()
         .single();

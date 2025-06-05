@@ -1,36 +1,39 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Tables } from '@/integrations/supabase/types';
+import { useAuth } from './useAuth';
 
-type UserScore = Tables<'user_scores'>;
+export interface UserScores {
+  id: string;
+  user_id: string;
+  total_points: number;
+  weekly_points: number;
+  monthly_points: number;
+  current_streak: number;
+  longest_streak: number;
+  current_level: number;
+  last_activity_date?: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export function useUserScores() {
-  return useQuery({
-    queryKey: ['user-scores'],
-    queryFn: async () => {
-      console.log('Fetching user scores...');
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        console.log('No user found for scores');
-        return null;
-      }
+  const { user } = useAuth();
 
+  return useQuery({
+    queryKey: ['userScores', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
       const { data, error } = await supabase
         .from('user_scores')
         .select('*')
         .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching user scores:', error);
-        throw error;
-      }
+        .single();
       
-      console.log('User scores fetched:', data);
-      return data as UserScore | null;
+      if (error) throw error;
+      return data as UserScores;
     },
-    retry: 3,
+    enabled: !!user?.id,
   });
 }
