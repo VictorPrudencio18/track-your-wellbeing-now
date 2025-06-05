@@ -143,7 +143,7 @@ export function ModernYogaActivity({ onComplete, onCancel }: ModernYogaActivityP
       value: Math.round(heartRate),
       unit: 'bpm',
       color: 'from-red-500 to-pink-600',
-      trend: heartRate > 75 ? 'up' : 'down',
+      trend: (heartRate > 75 ? 'up' : 'down') as 'up' | 'down' | 'neutral',
       trendValue: '2%'
     },
     {
@@ -161,7 +161,7 @@ export function ModernYogaActivity({ onComplete, onCancel }: ModernYogaActivityP
       value: Math.round(mindfulness),
       unit: '%',
       color: 'from-purple-500 to-indigo-600',
-      trend: 'up',
+      trend: 'up' as 'up' | 'down' | 'neutral',
       trendValue: '5%'
     },
     {
@@ -171,7 +171,7 @@ export function ModernYogaActivity({ onComplete, onCancel }: ModernYogaActivityP
       value: Math.round(energy),
       unit: '%',
       color: 'from-orange-500 to-yellow-600',
-      trend: energy > 50 ? 'up' : 'down',
+      trend: (energy > 50 ? 'up' : 'down') as 'up' | 'down' | 'neutral',
       trendValue: '3%'
     }
   ];

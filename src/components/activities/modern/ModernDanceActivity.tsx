@@ -199,7 +199,7 @@ export function ModernDanceActivity({ onComplete, onCancel }: ModernDanceActivit
       value: Math.round(heartRate),
       unit: 'bpm',
       color: 'from-red-500 to-pink-600',
-      trend: heartRate > 120 ? 'up' : 'down',
+      trend: (heartRate > 120 ? 'up' : 'down') as 'up' | 'down' | 'neutral',
       trendValue: '5%'
     },
     {
@@ -217,7 +217,7 @@ export function ModernDanceActivity({ onComplete, onCancel }: ModernDanceActivit
       value: maxCombo,
       unit: 'hits',
       color: 'from-yellow-500 to-orange-600',
-      trend: combo > 3 ? 'up' : 'neutral',
+      trend: (combo > 3 ? 'up' : 'neutral') as 'up' | 'down' | 'neutral',
       trendValue: '+1'
     },
     {
@@ -227,7 +227,7 @@ export function ModernDanceActivity({ onComplete, onCancel }: ModernDanceActivit
       value: Math.round(energy),
       unit: '%',
       color: 'from-orange-500 to-red-600',
-      trend: energy > 50 ? 'up' : 'down',
+      trend: (energy > 50 ? 'up' : 'down') as 'up' | 'down' | 'neutral',
       trendValue: '2%'
     }
   ];
