@@ -8,6 +8,7 @@ import { WeeklyGoalsCard } from "@/components/dashboard/WeeklyGoalsCard";
 import { AchievementsCard } from "@/components/dashboard/AchievementsCard";
 import { VivaAIChat } from "@/components/dashboard/VivaAIChat";
 import { UserProfileCard } from "@/components/dashboard/UserProfileCard";
+import { DailyHistoryCarousel } from "@/components/health/DailyHistoryCarousel";
 
 export default function Dashboard() {
   return (
@@ -29,6 +30,9 @@ export default function Dashboard() {
 
       {/* Stats Cards */}
       <SupabaseStatsCards />
+
+      {/* Daily History Calendar */}
+      <DailyHistoryCarousel />
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
