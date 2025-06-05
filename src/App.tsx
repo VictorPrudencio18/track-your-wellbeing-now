@@ -1,53 +1,83 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { motion, AnimatePresence } from "framer-motion";
+
 import { AppSidebar } from "@/components/AppSidebar";
-import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
-import HealthPage from "./pages/HealthPage";
-import SleepPage from "./pages/SleepPage";
-import ReportsPage from "./pages/ReportsPage";
-import VivaChatPage from "./pages/VivaChatPage";
-import AdvancedHealthPage from "./pages/AdvancedHealthPage";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { AuthButton } from "@/components/auth/AuthButton";
+import { Toaster } from "@/components/ui/toaster";
+import { DailyCheckinManager } from "@/components/health/DailyCheckinManager";
+import { OnboardingCheck } from "@/components/onboarding/OnboardingCheck";
+
+import Index from "@/pages/Index";
+import Dashboard from "@/pages/Dashboard";
+import HealthPage from "@/pages/HealthPage";
+import VivaChatPage from "@/pages/VivaChatPage";
+import SleepPage from "@/pages/SleepPage";
+import NotFound from "@/pages/NotFound";
+import { HealthProvider } from "@/contexts/HealthContext";
+import ReportsPage from "@/pages/ReportsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      refetchOnWindowFocus: false,
+      retry: 3,
+      staleTime: 5 * 60 * 1000, // 5 minutes
     },
   },
 });
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <BrowserRouter>
-        <SidebarProvider>
-          <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-            <AppSidebar />
-            <main className="flex-1 overflow-hidden">
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/health" element={<HealthPage />} />
-                <Route path="/health-advanced" element={<AdvancedHealthPage />} />
-                <Route path="/sleep" element={<SleepPage />} />
-                <Route path="/reports" element={<ReportsPage />} />
-                <Route path="/chat" element={<VivaChatPage />} />
-              </Routes>
-            </main>
-          </div>
-        </SidebarProvider>
-        <Toaster />
-        <Sonner />
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <HealthProvider>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <OnboardingCheck>
+            <SidebarProvider>
+              <div className="min-h-screen flex w-full bg-navy-900">
+                <div className="fixed inset-0">
+                  <div className="absolute inset-0 bg-gradient-to-br from-navy-900 via-navy-900 to-navy-800" />
+                </div>
+                
+                <AppSidebar />
+                
+                <main className="flex-1 overflow-hidden relative">
+                  <div className="h-full overflow-y-auto">
+                    <div className="flex items-center justify-between p-4 sm:p-6 lg:p-8 glass-card-subtle sticky top-0 z-10 border-b border-navy-700/20">
+                      <div className="flex-1" />
+                      <div className="flex items-center gap-3 sm:gap-6">
+                        <AuthButton />
+                        <ThemeToggle />
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16">
+                      <AnimatePresence mode="wait">
+                        <Routes>
+                          <Route path="/" element={<Index />} />
+                          <Route path="/dashboard" element={<Dashboard />} />
+                          <Route path="/health" element={<HealthPage />} />
+                          <Route path="/sleep" element={<SleepPage />} />
+                          <Route path="/viva" element={<VivaChatPage />} />
+                          <Route path="/reports" element={<ReportsPage />} />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                </main>
+              </div>
+              
+              <DailyCheckinManager />
+              <Toaster />
+            </SidebarProvider>
+          </OnboardingCheck>
+        </Router>
+      </QueryClientProvider>
+    </HealthProvider>
+  );
+}
 
 export default App;
