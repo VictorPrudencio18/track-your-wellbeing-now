@@ -313,6 +313,89 @@ export type Database = {
           },
         ]
       }
+      assessment_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          weight: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          weight?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          weight?: number | null
+        }
+        Relationships: []
+      }
+      assessment_questions: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          is_required: boolean | null
+          options: Json | null
+          question_key: string
+          question_text: string
+          question_type: string
+          scoring_weight: number | null
+          validation_rules: Json | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_required?: boolean | null
+          options?: Json | null
+          question_key: string
+          question_text: string
+          question_type: string
+          scoring_weight?: number | null
+          validation_rules?: Json | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_required?: boolean | null
+          options?: Json | null
+          question_key?: string
+          question_text?: string
+          question_type?: string
+          scoring_weight?: number | null
+          validation_rules?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_questions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       challenges: {
         Row: {
           challenge_type: string
@@ -807,6 +890,45 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_progress: {
+        Row: {
+          completed_at: string | null
+          completed_steps: Json | null
+          current_step: number | null
+          data_snapshot: Json | null
+          id: string
+          is_completed: boolean | null
+          last_active_at: string | null
+          started_at: string | null
+          total_steps: number | null
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_steps?: Json | null
+          current_step?: number | null
+          data_snapshot?: Json | null
+          id?: string
+          is_completed?: boolean | null
+          last_active_at?: string | null
+          started_at?: string | null
+          total_steps?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          completed_steps?: Json | null
+          current_step?: number | null
+          data_snapshot?: Json | null
+          id?: string
+          is_completed?: boolean | null
+          last_active_at?: string | null
+          started_at?: string | null
+          total_steps?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -821,6 +943,7 @@ export type Database = {
           is_premium: boolean | null
           last_backup_at: string | null
           notification_settings: Json | null
+          onboarding_completed: boolean | null
           preferences: Json | null
           privacy_settings: Json | null
           timezone: string | null
@@ -840,6 +963,7 @@ export type Database = {
           is_premium?: boolean | null
           last_backup_at?: string | null
           notification_settings?: Json | null
+          onboarding_completed?: boolean | null
           preferences?: Json | null
           privacy_settings?: Json | null
           timezone?: string | null
@@ -859,6 +983,7 @@ export type Database = {
           is_premium?: boolean | null
           last_backup_at?: string | null
           notification_settings?: Json | null
+          onboarding_completed?: boolean | null
           preferences?: Json | null
           privacy_settings?: Json | null
           timezone?: string | null
@@ -1038,6 +1163,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_assessment_scores: {
+        Row: {
+          calculated_at: string | null
+          calculation_metadata: Json | null
+          category_name: string
+          id: string
+          score_value: number
+          user_id: string | null
+        }
+        Insert: {
+          calculated_at?: string | null
+          calculation_metadata?: Json | null
+          category_name: string
+          id?: string
+          score_value: number
+          user_id?: string | null
+        }
+        Update: {
+          calculated_at?: string | null
+          calculation_metadata?: Json | null
+          category_name?: string
+          id?: string
+          score_value?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_challenges: {
         Row: {
           challenge_id: string | null
@@ -1085,6 +1237,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_profile_assessment: {
+        Row: {
+          category_name: string
+          completed_at: string | null
+          encrypted_data: string | null
+          id: string
+          question_key: string
+          response_value: Json
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category_name: string
+          completed_at?: string | null
+          encrypted_data?: string | null
+          id?: string
+          question_key: string
+          response_value: Json
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category_name?: string
+          completed_at?: string | null
+          encrypted_data?: string | null
+          id?: string
+          question_key?: string
+          response_value?: Json
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       user_scores: {
         Row: {
@@ -1234,6 +1419,10 @@ export type Database = {
           activity_calories?: number
           activity_type?: Database["public"]["Enums"]["activity_type"]
         }
+        Returns: number
+      }
+      calculate_assessment_score: {
+        Args: { p_user_id: string; p_category_name: string }
         Returns: number
       }
       calculate_category_score: {
