@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -71,11 +70,9 @@ export function SleepTracker() {
       await createSleepRecord.mutateAsync({
         ...sleepData,
         sleep_duration: Math.round(sleepDuration * 60),
-        // Novos campos avançados
-        room_temperature: sleepData.environmental_factors.room_temperature,
-        noise_level: sleepData.environmental_factors.noise_level,
-        light_level: sleepData.environmental_factors.light_level,
-        comfort_level: sleepData.environmental_factors.comfort_level
+        // Use correct field names for environmental factors
+        environmental_factors: sleepData.environmental_factors,
+        lifestyle_factors: sleepData.lifestyle_factors
       });
       
       toast.success('Registro de sono salvo com sucesso!');

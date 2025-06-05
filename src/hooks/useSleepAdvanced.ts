@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -239,12 +240,16 @@ export function useCreateSmartAlarm() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: Partial<SmartAlarm>) => {
+    mutationFn: async (data: { alarm_time: string; smart_window_minutes?: number; is_active?: boolean; days_of_week?: number[]; alarm_sound?: string; vibration_enabled?: boolean }) => {
       if (!user) throw new Error('User not authenticated');
 
       const { data: result, error } = await supabase
         .from('smart_alarms')
-        .insert({ ...data, user_id: user.id })
+        .insert({ 
+          ...data, 
+          user_id: user.id,
+          alarm_time: data.alarm_time
+        })
         .select()
         .single();
 
@@ -266,12 +271,16 @@ export function useCreateSleepJournal() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: Partial<SleepJournal>) => {
+    mutationFn: async (data: { sleep_date: string; [key: string]: any }) => {
       if (!user) throw new Error('User not authenticated');
 
       const { data: result, error } = await supabase
         .from('sleep_journal')
-        .upsert({ ...data, user_id: user.id }, {
+        .upsert({ 
+          ...data, 
+          user_id: user.id,
+          sleep_date: data.sleep_date
+        }, {
           onConflict: 'user_id,sleep_date'
         })
         .select()
