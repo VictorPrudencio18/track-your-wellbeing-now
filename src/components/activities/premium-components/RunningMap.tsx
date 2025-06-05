@@ -1,7 +1,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Zap, TrendingUp, Mountain, Settings, Navigation, AlertCircle } from 'lucide-react';
+import { MapPin, Zap, TrendingUp, Mountain, Settings, Navigation, AlertCircle, RefreshCw } from 'lucide-react';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { GPSState, GPSPosition } from '@/hooks/useGPS';
 import { ActivityData } from '@/hooks/useActivityTracker';
@@ -20,6 +20,7 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
   const [mapInstance, setMapInstance] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const routePointsRef = useRef<any[]>([]);
 
   // Usar a nova chave API fornecida
@@ -41,7 +42,7 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
         center: gpsState.position ? 
           { lat: gpsState.position.latitude, lng: gpsState.position.longitude } :
           { lat: -23.550520, lng: -46.633308 }, // São Paulo default
-        mapTypeId: (window as any).google.maps.MapTypeId.HYBRID,
+        mapTypeId: (window as any).google?.maps?.MapTypeId?.ROADMAP || 'roadmap',
         gestureHandling: 'greedy',
         zoomControl: true,
         streetViewControl: false,
@@ -51,11 +52,12 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
       setMapInstance(map);
       setMapLoaded(true);
       setLoading(false);
+      setRetryCount(0);
       
       console.log('Google Maps inicializado com sucesso');
     } catch (error: any) {
       console.error('Erro ao inicializar Google Maps:', error);
-      setError(error.message || 'Erro ao carregar mapa');
+      setError(`Erro ao carregar mapa: ${error.message || 'Erro desconhecido'}`);
       setLoading(false);
     }
   };
@@ -67,40 +69,53 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
 
   // Atualizar rota em tempo real
   useEffect(() => {
-    if (!mapLoaded || !route.length) return;
+    if (!mapLoaded || !route.length || !(window as any).google) return;
 
-    const googlePoints = route.map(pos => 
-      new (window as any).google.maps.LatLng(pos.latitude, pos.longitude)
-    );
+    try {
+      const googlePoints = route.map(pos => 
+        new (window as any).google.maps.LatLng(pos.latitude, pos.longitude)
+      );
 
-    routePointsRef.current = googlePoints;
+      routePointsRef.current = googlePoints;
 
-    if (googlePoints.length > 0) {
-      // Desenhar rota atualizada
-      googleMapsService.drawRoute(googlePoints);
-      
-      // Adicionar ponto atual se ativo
-      if (isActive && googlePoints.length > 0) {
-        googleMapsService.addRoutePoint(googlePoints[googlePoints.length - 1]);
+      if (googlePoints.length > 0) {
+        // Desenhar rota atualizada
+        googleMapsService.drawRoute(googlePoints);
+        
+        // Adicionar ponto atual se ativo
+        if (isActive && googlePoints.length > 0) {
+          googleMapsService.addRoutePoint(googlePoints[googlePoints.length - 1]);
+        }
       }
+    } catch (error) {
+      console.error('Erro ao atualizar rota:', error);
     }
   }, [route, isActive, mapLoaded]);
 
   // Centralizar mapa na posição atual
   useEffect(() => {
     if (mapInstance && gpsState.position && isActive) {
-      const currentPos = new (window as any).google.maps.LatLng(
-        gpsState.position.latitude,
-        gpsState.position.longitude
-      );
-      mapInstance.panTo(currentPos);
+      try {
+        const currentPos = new (window as any).google.maps.LatLng(
+          gpsState.position.latitude,
+          gpsState.position.longitude
+        );
+        mapInstance.panTo(currentPos);
+      } catch (error) {
+        console.error('Erro ao centralizar mapa:', error);
+      }
     }
   }, [gpsState.position, isActive, mapInstance]);
 
   const retryLoadMap = () => {
-    setError(null);
-    setMapLoaded(false);
-    initializeGoogleMaps();
+    if (retryCount < 3) {
+      setError(null);
+      setMapLoaded(false);
+      setRetryCount(prev => prev + 1);
+      initializeGoogleMaps();
+    } else {
+      setError('Muitas tentativas falharam. Verifique sua conexão.');
+    }
   };
 
   return (
@@ -116,6 +131,9 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
             <div className="text-center">
               <div className="animate-spin w-8 h-8 border-4 border-accent-orange border-t-transparent rounded-full mx-auto mb-3"></div>
               <p className="text-white">Carregando Google Maps...</p>
+              {retryCount > 0 && (
+                <p className="text-navy-400 text-sm">Tentativa {retryCount + 1}/4</p>
+              )}
             </div>
           </div>
         )}
@@ -128,12 +146,17 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
                 <p className="text-white font-medium">Erro ao carregar mapa</p>
                 <p className="text-navy-400 text-sm">{error}</p>
               </div>
-              <button 
-                onClick={retryLoadMap}
-                className="px-4 py-2 bg-accent-orange text-navy-900 rounded-lg font-medium hover:bg-accent-orange-light transition-colors"
-              >
-                Tentar novamente
-              </button>
+              {retryCount < 3 ? (
+                <button 
+                  onClick={retryLoadMap}
+                  className="px-4 py-2 bg-accent-orange text-navy-900 rounded-lg font-medium hover:bg-accent-orange-light transition-colors flex items-center gap-2 mx-auto"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Tentar novamente
+                </button>
+              ) : (
+                <p className="text-red-400 text-sm">Limite de tentativas atingido</p>
+              )}
             </div>
           </div>
         )}
@@ -157,6 +180,19 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
           </div>
         )}
 
+        {/* Status do GPS */}
+        <div className="absolute bottom-4 left-4">
+          <div className="glass-card px-3 py-2 rounded-lg flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${
+              gpsState.isHighAccuracy ? 'bg-green-500 animate-pulse' : 
+              gpsState.position ? 'bg-yellow-500' : 'bg-red-500'
+            }`} />
+            <span className="text-xs text-white">
+              GPS: {gpsState.position ? `${gpsState.accuracy.toFixed(0)}m` : 'Sem sinal'}
+            </span>
+          </div>
+        </div>
+
         {/* Controles do mapa */}
         {mapLoaded && (
           <div className="absolute bottom-4 right-4 flex flex-col gap-2">
@@ -165,12 +201,6 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
             </button>
             <button className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors">
               <Settings className="w-5 h-5" />
-            </button>
-            <button className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors">
-              <TrendingUp className="w-5 h-5" />
-            </button>
-            <button className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors">
-              <Mountain className="w-5 h-5" />
             </button>
           </div>
         )}
@@ -197,7 +227,9 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
             </div>
             <div>
               <div className="text-sm text-navy-400">Precisão GPS</div>
-              <div className="text-xl font-bold text-white">{gpsState.accuracy.toFixed(0)}m</div>
+              <div className="text-xl font-bold text-white">
+                {gpsState.position ? `${gpsState.accuracy.toFixed(0)}m` : 'N/A'}
+              </div>
             </div>
           </div>
         </PremiumCard>

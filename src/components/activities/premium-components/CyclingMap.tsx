@@ -1,7 +1,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Zap, TrendingUp, Mountain, Settings, Navigation, AlertCircle } from 'lucide-react';
+import { MapPin, Zap, TrendingUp, Mountain, Settings, Navigation, AlertCircle, RefreshCw } from 'lucide-react';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { Button } from '@/components/ui/button';
 import { GPSState, GPSPosition } from '@/hooks/useGPS';
@@ -20,9 +20,10 @@ export function CyclingMap({ gpsState, data, isActive, route, fullscreen = false
   const mapContainer = useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapInstance, setMapInstance] = useState<any>(null);
-  const [mapType, setMapType] = useState<'roadmap' | 'satellite' | 'hybrid'>('hybrid');
+  const [mapType, setMapType] = useState<'roadmap' | 'satellite' | 'hybrid'>('roadmap');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const routePointsRef = useRef<any[]>([]);
 
   // Usar a nova chave API fornecida
@@ -44,33 +45,22 @@ export function CyclingMap({ gpsState, data, isActive, route, fullscreen = false
         center: gpsState.position ? 
           { lat: gpsState.position.latitude, lng: gpsState.position.longitude } :
           { lat: -23.550520, lng: -46.633308 }, // São Paulo default
-        mapTypeId: (window as any).google.maps.MapTypeId.HYBRID,
+        mapTypeId: (window as any).google?.maps?.MapTypeId?.ROADMAP || 'roadmap',
         gestureHandling: 'greedy',
         zoomControl: true,
         streetViewControl: false,
-        fullscreenControl: false,
-        styles: [
-          {
-            featureType: 'all',
-            elementType: 'labels.text.fill',
-            stylers: [{ color: '#ffffff' }]
-          },
-          {
-            featureType: 'all',
-            elementType: 'labels.text.stroke',
-            stylers: [{ color: '#000000' }, { lightness: 13 }]
-          }
-        ]
+        fullscreenControl: false
       });
 
       setMapInstance(map);
       setMapLoaded(true);
       setLoading(false);
+      setRetryCount(0);
       
       console.log('Google Maps inicializado com sucesso para ciclismo');
     } catch (error: any) {
       console.error('Erro ao inicializar Google Maps:', error);
-      setError(error.message || 'Erro ao carregar mapa');
+      setError(`Erro ao carregar mapa: ${error.message || 'Erro desconhecido'}`);
       setLoading(false);
     }
   };
@@ -82,56 +72,77 @@ export function CyclingMap({ gpsState, data, isActive, route, fullscreen = false
 
   // Atualizar rota em tempo real
   useEffect(() => {
-    if (!mapLoaded || !route.length) return;
+    if (!mapLoaded || !route.length || !(window as any).google) return;
 
-    const googlePoints = route.map(pos => 
-      new (window as any).google.maps.LatLng(pos.latitude, pos.longitude)
-    );
+    try {
+      const googlePoints = route.map(pos => 
+        new (window as any).google.maps.LatLng(pos.latitude, pos.longitude)
+      );
 
-    routePointsRef.current = googlePoints;
+      routePointsRef.current = googlePoints;
 
-    if (googlePoints.length > 0) {
-      // Desenhar rota atualizada
-      googleMapsService.drawRoute(googlePoints);
-      
-      // Adicionar ponto atual se ativo
-      if (isActive && googlePoints.length > 0) {
-        googleMapsService.addRoutePoint(googlePoints[googlePoints.length - 1]);
+      if (googlePoints.length > 0) {
+        // Desenhar rota atualizada
+        googleMapsService.drawRoute(googlePoints);
+        
+        // Adicionar ponto atual se ativo
+        if (isActive && googlePoints.length > 0) {
+          googleMapsService.addRoutePoint(googlePoints[googlePoints.length - 1]);
+        }
       }
+    } catch (error) {
+      console.error('Erro ao atualizar rota:', error);
     }
   }, [route, isActive, mapLoaded]);
 
   // Centralizar mapa na posição atual
   useEffect(() => {
     if (mapInstance && gpsState.position && isActive) {
-      const currentPos = new (window as any).google.maps.LatLng(
-        gpsState.position.latitude,
-        gpsState.position.longitude
-      );
-      mapInstance.panTo(currentPos);
+      try {
+        const currentPos = new (window as any).google.maps.LatLng(
+          gpsState.position.latitude,
+          gpsState.position.longitude
+        );
+        mapInstance.panTo(currentPos);
+      } catch (error) {
+        console.error('Erro ao centralizar mapa:', error);
+      }
     }
   }, [gpsState.position, isActive, mapInstance]);
 
   const changeMapType = (type: 'roadmap' | 'satellite' | 'hybrid') => {
-    googleMapsService.setMapType(type);
-    setMapType(type);
+    try {
+      googleMapsService.setMapType(type);
+      setMapType(type);
+    } catch (error) {
+      console.error('Erro ao alterar tipo de mapa:', error);
+    }
   };
 
   const centerOnCurrentLocation = () => {
     if (mapInstance && gpsState.position) {
-      const currentPos = new (window as any).google.maps.LatLng(
-        gpsState.position.latitude,
-        gpsState.position.longitude
-      );
-      mapInstance.setCenter(currentPos);
-      mapInstance.setZoom(16);
+      try {
+        const currentPos = new (window as any).google.maps.LatLng(
+          gpsState.position.latitude,
+          gpsState.position.longitude
+        );
+        mapInstance.setCenter(currentPos);
+        mapInstance.setZoom(16);
+      } catch (error) {
+        console.error('Erro ao centralizar no local atual:', error);
+      }
     }
   };
 
   const retryLoadMap = () => {
-    setError(null);
-    setMapLoaded(false);
-    initializeGoogleMaps();
+    if (retryCount < 3) {
+      setError(null);
+      setMapLoaded(false);
+      setRetryCount(prev => prev + 1);
+      initializeGoogleMaps();
+    } else {
+      setError('Muitas tentativas falharam. Verifique sua conexão.');
+    }
   };
 
   return (
@@ -180,6 +191,9 @@ export function CyclingMap({ gpsState, data, isActive, route, fullscreen = false
             <div className="text-center">
               <div className="animate-spin w-8 h-8 border-4 border-accent-orange border-t-transparent rounded-full mx-auto mb-3"></div>
               <p className="text-white">Carregando Google Maps...</p>
+              {retryCount > 0 && (
+                <p className="text-navy-400 text-sm">Tentativa {retryCount + 1}/4</p>
+              )}
             </div>
           </div>
         )}
@@ -192,12 +206,17 @@ export function CyclingMap({ gpsState, data, isActive, route, fullscreen = false
                 <p className="text-white font-medium">Erro ao carregar mapa</p>
                 <p className="text-navy-400 text-sm">{error}</p>
               </div>
-              <button 
-                onClick={retryLoadMap}
-                className="px-4 py-2 bg-accent-orange text-navy-900 rounded-lg font-medium hover:bg-accent-orange-light transition-colors"
-              >
-                Tentar novamente
-              </button>
+              {retryCount < 3 ? (
+                <button 
+                  onClick={retryLoadMap}
+                  className="px-4 py-2 bg-accent-orange text-navy-900 rounded-lg font-medium hover:bg-accent-orange-light transition-colors flex items-center gap-2 mx-auto"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Tentar novamente
+                </button>
+              ) : (
+                <p className="text-red-400 text-sm">Limite de tentativas atingido</p>
+              )}
             </div>
           </div>
         )}
@@ -238,12 +257,6 @@ export function CyclingMap({ gpsState, data, isActive, route, fullscreen = false
             <button className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors">
               <Settings className="w-5 h-5" />
             </button>
-            <button className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors">
-              <TrendingUp className="w-5 h-5" />
-            </button>
-            <button className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors">
-              <Mountain className="w-5 h-5" />
-            </button>
           </div>
         )}
 
@@ -251,9 +264,12 @@ export function CyclingMap({ gpsState, data, isActive, route, fullscreen = false
         {mapLoaded && (
           <div className="absolute bottom-4 left-4 pointer-events-none">
             <div className="glass-card px-3 py-2 rounded-lg flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${gpsState.isHighAccuracy ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`} />
+              <div className={`w-2 h-2 rounded-full ${
+                gpsState.isHighAccuracy ? 'bg-green-500 animate-pulse' : 
+                gpsState.position ? 'bg-yellow-500' : 'bg-red-500'
+              }`} />
               <span className="text-xs text-white">
-                GPS: {gpsState.accuracy.toFixed(0)}m
+                GPS: {gpsState.position ? `${gpsState.accuracy.toFixed(0)}m` : 'Sem sinal'}
               </span>
             </div>
           </div>

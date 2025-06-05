@@ -260,9 +260,21 @@ export function useEnhancedActivityTracker(activityType: 'running' | 'cycling' |
   }, [state, gps, saveGPSPoint, saveMetric, detectSegment, setCache, activityType]);
 
   const startActivity = useCallback(async () => {
-    if (!gps.position) {
+    // Iniciar GPS primeiro se não estiver ativo
+    if (!gps.isTracking) {
+      console.log('Iniciando GPS para a atividade...');
       await gps.startTracking();
-      return;
+      
+      // Aguardar um pouco para o GPS obter posição
+      let attempts = 0;
+      while (!gps.position && attempts < 30) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        attempts++;
+      }
+      
+      if (!gps.position) {
+        throw new Error('Não foi possível obter posição GPS');
+      }
     }
 
     activityIdRef.current = `activity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -384,14 +396,7 @@ export function useEnhancedActivityTracker(activityType: 'running' | 'cycling' |
     gps.stopTracking();
   }, [state.data, activityType, createActivity, createHealthMetric, gps]);
 
-  // Auto-start GPS
-  useEffect(() => {
-    if (!gps.isTracking) {
-      gps.startTracking();
-    }
-  }, []);
-
-  // Cleanup
+  // Cleanup - remover auto-start do GPS
   useEffect(() => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
