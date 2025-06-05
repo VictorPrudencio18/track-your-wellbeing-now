@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -18,6 +17,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/hooks/useAuth';
 import { useActivities } from '@/hooks/useSupabaseActivities';
 import { useUserScores } from '@/hooks/useSupabaseScores';
@@ -572,8 +572,8 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
 
             <CardContent className="flex-1 flex flex-col p-0 min-h-0 overflow-hidden">
               {/* Mensagens com Scroll */}
-              <div className="flex-1 overflow-y-auto p-4 lg:p-6">
-                <div className="space-y-4 lg:space-y-6">
+              <ScrollArea className="flex-1 px-4 lg:px-6">
+                <div className="space-y-4 lg:space-y-6 py-4 lg:py-6">
                   {searchedMessages.map((message, index) => (
                     <ChatMessage
                       key={message.id}
@@ -612,7 +612,7 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                   {/* Div para scroll automático */}
                   <div ref={messagesEndRef} />
                 </div>
-              </div>
+              </ScrollArea>
 
               {/* Input Component */}
               <ChatInput
