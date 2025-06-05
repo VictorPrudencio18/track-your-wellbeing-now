@@ -30,11 +30,11 @@ export function LiveCharts({ data, gpsState, isActive }: LiveChartsProps) {
     if (isActive && data.duration > 0) {
       const newDataPoint: ChartDataPoint = {
         time: data.duration,
-        pace: data.pace / 60, // Converter para minutos por km
-        speed: data.currentSpeed * 3.6, // Converter para km/h
-        heartRate: data.heartRate,
-        elevation: data.elevationGain,
-        distance: data.distance
+        pace: (data.pace || 0) / 60, // Converter para minutos por km
+        speed: (data.currentSpeed || 0) * 3.6, // Converter para km/h
+        heartRate: data.heartRate || 0,
+        elevation: data.elevationGain || 0,
+        distance: data.distance || 0
       };
 
       setChartData(prev => {
@@ -52,6 +52,7 @@ export function LiveCharts({ data, gpsState, isActive }: LiveChartsProps) {
   };
 
   const formatPace = (paceMinutes: number) => {
+    if (typeof paceMinutes !== 'number' || isNaN(paceMinutes)) return '0:00';
     const minutes = Math.floor(paceMinutes);
     const seconds = Math.floor((paceMinutes - minutes) * 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -71,7 +72,7 @@ export function LiveCharts({ data, gpsState, isActive }: LiveChartsProps) {
       icon: Zap,
       color: '#a78bfa',
       dataKey: 'speed',
-      formatter: (value: number) => `${value.toFixed(1)} km/h`,
+      formatter: (value: number) => `${(value || 0).toFixed(1)} km/h`,
       target: 8.5, // 8.5 km/h como referência
     },
     heartRate: {
@@ -79,7 +80,7 @@ export function LiveCharts({ data, gpsState, isActive }: LiveChartsProps) {
       icon: Heart,
       color: '#f87171',
       dataKey: 'heartRate',
-      formatter: (value: number) => `${Math.round(value)} bpm`,
+      formatter: (value: number) => `${Math.round(value || 0)} bpm`,
       target: 150, // 150 bpm como referência
     },
     elevation: {
@@ -87,12 +88,18 @@ export function LiveCharts({ data, gpsState, isActive }: LiveChartsProps) {
       icon: Mountain,
       color: '#34d399',
       dataKey: 'elevation',
-      formatter: (value: number) => `${Math.round(value)}m`,
+      formatter: (value: number) => `${Math.round(value || 0)}m`,
       target: null,
     }
   };
 
   const currentConfig = chartConfigs[activeChart];
+
+  // Safely get the current value with fallback
+  const getCurrentValue = () => {
+    const value = data[currentConfig.dataKey as keyof ActivityData] as number;
+    return value || 0;
+  };
 
   return (
     <motion.div
@@ -132,7 +139,7 @@ export function LiveCharts({ data, gpsState, isActive }: LiveChartsProps) {
           </h3>
           <div className="text-right">
             <div className="text-2xl font-bold text-white">
-              {currentConfig.formatter(data[currentConfig.dataKey as keyof ActivityData] as number)}
+              {currentConfig.formatter(getCurrentValue())}
             </div>
             <div className="text-sm text-navy-400">Atual</div>
           </div>
@@ -193,7 +200,7 @@ export function LiveCharts({ data, gpsState, isActive }: LiveChartsProps) {
               <span className="text-xs text-navy-400">Mínimo</span>
               <span className="text-sm text-white">
                 {chartData.length > 0 
-                  ? currentConfig.formatter(Math.min(...chartData.map(d => d[currentConfig.dataKey as keyof ChartDataPoint] as number)))
+                  ? currentConfig.formatter(Math.min(...chartData.map(d => (d[currentConfig.dataKey as keyof ChartDataPoint] as number) || 0)))
                   : '--'
                 }
               </span>
@@ -202,7 +209,7 @@ export function LiveCharts({ data, gpsState, isActive }: LiveChartsProps) {
               <span className="text-xs text-navy-400">Máximo</span>
               <span className="text-sm text-white">
                 {chartData.length > 0 
-                  ? currentConfig.formatter(Math.max(...chartData.map(d => d[currentConfig.dataKey as keyof ChartDataPoint] as number)))
+                  ? currentConfig.formatter(Math.max(...chartData.map(d => (d[currentConfig.dataKey as keyof ChartDataPoint] as number) || 0)))
                   : '--'
                 }
               </span>
@@ -212,7 +219,7 @@ export function LiveCharts({ data, gpsState, isActive }: LiveChartsProps) {
               <span className="text-sm text-white">
                 {chartData.length > 0 
                   ? currentConfig.formatter(
-                      chartData.reduce((sum, d) => sum + (d[currentConfig.dataKey as keyof ChartDataPoint] as number), 0) / chartData.length
+                      chartData.reduce((sum, d) => sum + ((d[currentConfig.dataKey as keyof ChartDataPoint] as number) || 0), 0) / chartData.length
                     )
                   : '--'
                 }
@@ -230,7 +237,7 @@ export function LiveCharts({ data, gpsState, isActive }: LiveChartsProps) {
                   <span className="text-xs text-navy-400">Últimos 30s</span>
                   <span className="text-sm text-white">
                     {currentConfig.formatter(
-                      chartData.slice(-30).reduce((sum, d) => sum + (d[currentConfig.dataKey as keyof ChartDataPoint] as number), 0) / 
+                      chartData.slice(-30).reduce((sum, d) => sum + ((d[currentConfig.dataKey as keyof ChartDataPoint] as number) || 0), 0) / 
                       Math.min(30, chartData.length)
                     )}
                   </span>
@@ -239,7 +246,7 @@ export function LiveCharts({ data, gpsState, isActive }: LiveChartsProps) {
                   <span className="text-xs text-navy-400">Últimos 60s</span>
                   <span className="text-sm text-white">
                     {currentConfig.formatter(
-                      chartData.slice(-60).reduce((sum, d) => sum + (d[currentConfig.dataKey as keyof ChartDataPoint] as number), 0) / 
+                      chartData.slice(-60).reduce((sum, d) => sum + ((d[currentConfig.dataKey as keyof ChartDataPoint] as number) || 0), 0) / 
                       Math.min(60, chartData.length)
                     )}
                   </span>
@@ -248,14 +255,14 @@ export function LiveCharts({ data, gpsState, isActive }: LiveChartsProps) {
                   <span className="text-xs text-navy-400">Tendência</span>
                   <span className={`text-sm font-medium ${
                     chartData.length >= 10 &&
-                    chartData[chartData.length - 1][currentConfig.dataKey as keyof ChartDataPoint] > 
-                    chartData[chartData.length - 10][currentConfig.dataKey as keyof ChartDataPoint]
+                    ((chartData[chartData.length - 1][currentConfig.dataKey as keyof ChartDataPoint] as number) || 0) > 
+                    ((chartData[chartData.length - 10][currentConfig.dataKey as keyof ChartDataPoint] as number) || 0)
                       ? 'text-green-400'
                       : 'text-red-400'
                   }`}>
                     {chartData.length >= 10 ? (
-                      chartData[chartData.length - 1][currentConfig.dataKey as keyof ChartDataPoint] > 
-                      chartData[chartData.length - 10][currentConfig.dataKey as keyof ChartDataPoint]
+                      ((chartData[chartData.length - 1][currentConfig.dataKey as keyof ChartDataPoint] as number) || 0) > 
+                      ((chartData[chartData.length - 10][currentConfig.dataKey as keyof ChartDataPoint] as number) || 0)
                         ? '↗ Subindo'
                         : '↘ Descendo'
                     ) : '--'}
