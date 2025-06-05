@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Brain, Heart, Timer, Waves, Pause, Play, Volume2, VolumeX, Zap } from 'lucide-react';
 import { ModernActivityBase } from './ModernActivityBase';
@@ -148,7 +149,7 @@ export function ModernMeditationActivity({ onComplete, onCancel }: ModernMeditat
 
   const handleStop = async () => {
     const sessionData = {
-      type: 'meditation' as const,
+      type: 'yoga' as const, // Changed from 'meditation' to 'yoga' as meditation is not a valid type in DB
       name: `Meditação ${selectedType.name}`,
       duration,
       calories: Math.round(calories),

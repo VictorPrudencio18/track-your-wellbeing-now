@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Waves, Timer, Heart, Zap, Target, Sparkles, Sun } from 'lucide-react';
+import { Waves, Timer, Heart, Zap, Target, Sparkles, Sun, Brain, Flame, RotateCcw } from 'lucide-react';
 import { ModernActivityBase } from './ModernActivityBase';
 import { MetricsGrid } from './MetricsGrid';
 import { Button } from '@/components/ui/button';
