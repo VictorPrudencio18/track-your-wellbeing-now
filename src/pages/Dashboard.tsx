@@ -16,6 +16,8 @@ import { MentalHealthDashboard } from "@/components/dashboard/MentalHealthDashbo
 import { SmartAlertsSection } from "@/components/dashboard/SmartAlertsSection";
 import { PredictiveWellnessPanel } from "@/components/dashboard/PredictiveWellnessPanel";
 import { BehavioralPatternsPanel } from "@/components/dashboard/BehavioralPatternsPanel";
+import { SleepWellnessIntegration } from "@/components/dashboard/SleepWellnessIntegration";
+import { EnvironmentalFactorsPanel } from "@/components/dashboard/EnvironmentalFactorsPanel";
 
 export default function Dashboard() {
   return (
@@ -90,6 +92,22 @@ export default function Dashboard() {
           🧠 Análise de Padrões Comportamentais
         </h2>
         <BehavioralPatternsPanel />
+      </div>
+
+      {/* FASE 4: Sleep-Wellness Integration */}
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+          🌙 Integração Sono-Bem-estar
+        </h2>
+        <SleepWellnessIntegration />
+      </div>
+
+      {/* FASE 4: Environmental & Social Factors */}
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+          🌍 Fatores Ambientais e Sociais
+        </h2>
+        <EnvironmentalFactorsPanel />
       </div>
 
       {/* Seção de Atividades e Progresso */}
