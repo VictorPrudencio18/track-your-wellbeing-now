@@ -5,6 +5,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdvancedHealthDashboard } from '@/components/health/advanced/AdvancedHealthDashboard';
 import { WorkoutPlanner } from '@/components/health/advanced/WorkoutPlanner';
 import { NutritionCenter } from '@/components/health/advanced/NutritionCenter';
+import { MedicalCenter } from '@/components/health/advanced/MedicalCenter';
+import { DeviceCenter } from '@/components/health/advanced/DeviceCenter';
+import { ReportsCenter } from '@/components/health/advanced/ReportsCenter';
 import { 
   Activity, 
   Apple, 
@@ -37,6 +40,24 @@ const healthTabs = [
     component: NutritionCenter
   },
   {
+    value: 'medical',
+    label: 'Médico',
+    icon: Stethoscope,
+    component: MedicalCenter
+  },
+  {
+    value: 'devices',
+    label: 'Dispositivos',
+    icon: Smartphone,
+    component: DeviceCenter
+  },
+  {
+    value: 'reports',
+    label: 'Relatórios',
+    icon: BarChart3,
+    component: ReportsCenter
+  },
+  {
     value: 'metrics',
     label: 'Métricas',
     icon: TrendingUp,
@@ -53,24 +74,6 @@ const healthTabs = [
     label: 'Insights',
     icon: Brain,
     component: () => <div className="p-8 text-center text-navy-400">Engine de insights em desenvolvimento</div>
-  },
-  {
-    value: 'medical',
-    label: 'Médico',
-    icon: Stethoscope,
-    component: () => <div className="p-8 text-center text-navy-400">Registros médicos em desenvolvimento</div>
-  },
-  {
-    value: 'devices',
-    label: 'Dispositivos',
-    icon: Smartphone,
-    component: () => <div className="p-8 text-center text-navy-400">Integrações com dispositivos em desenvolvimento</div>
-  },
-  {
-    value: 'reports',
-    label: 'Relatórios',
-    icon: BarChart3,
-    component: () => <div className="p-8 text-center text-navy-400">Relatórios detalhados em desenvolvimento</div>
   }
 ];
 
@@ -88,7 +91,7 @@ export default function AdvancedHealthPage() {
           className="text-center space-y-4 mb-8"
         >
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-accent-orange to-white bg-clip-text text-transparent">
-            Centro Avançado de Saúde & Bem-estar
+            Sistema Avançado de Saúde & Bem-estar
           </h1>
           <p className="text-navy-400 text-lg max-w-4xl mx-auto">
             Plataforma completa para monitoramento, análise e otimização da sua saúde com tecnologia de ponta e insights personalizados
