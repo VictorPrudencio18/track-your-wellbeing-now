@@ -143,20 +143,44 @@ export function useDailyCheckins() {
 
       const today = new Date().toISOString().split('T')[0];
       
-      const { data, error } = await supabase
+      // Primeiro, verificar se já existe um check-in para hoje
+      const { data: existingCheckin } = await supabase
         .from('daily_health_checkins')
-        .upsert({
-          user_id: user.id,
-          checkin_date: today,
-          ...updates,
-        }, {
-          onConflict: 'user_id,checkin_date'
-        })
-        .select()
-        .single();
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('checkin_date', today)
+        .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      let result;
+      
+      if (existingCheckin) {
+        // Atualizar check-in existente
+        const { data, error } = await supabase
+          .from('daily_health_checkins')
+          .update(updates)
+          .eq('id', existingCheckin.id)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        result = data;
+      } else {
+        // Criar novo check-in
+        const { data, error } = await supabase
+          .from('daily_health_checkins')
+          .insert({
+            user_id: user.id,
+            checkin_date: today,
+            ...updates,
+          })
+          .select()
+          .single();
+        
+        if (error) throw error;
+        result = data;
+      }
+
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['daily-checkin'] });
