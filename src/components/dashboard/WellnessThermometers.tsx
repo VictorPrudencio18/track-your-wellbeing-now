@@ -131,14 +131,14 @@ export function WellnessThermometers() {
     <div className="space-y-6">
       {/* Scores de Bem-estar */}
       <Card className="glass-card border-navy-600/30 bg-navy-800/30">
-        <CardHeader>
+        <CardHeader className="pb-4">
           <CardTitle className="text-white flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-accent-orange" />
             Scores de Bem-estar Hoje
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+        <CardContent className="px-6 pb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {wellnessScores.map((score) => {
               const Icon = scoreIcons[score.score_type as keyof typeof scoreIcons];
               const colorClass = scoreColors[score.score_type as keyof typeof scoreColors];
@@ -149,14 +149,14 @@ export function WellnessThermometers() {
                   key={score.score_type}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-col items-center text-center"
+                  className="w-full"
                 >
-                  <div className="flex flex-col items-center gap-2 p-3 bg-navy-700/30 rounded-xl w-full min-h-[100px]">
-                    <Icon className={`w-5 h-5 ${colorClass} flex-shrink-0`} />
-                    <div className={`text-xl font-bold ${colorClass}`}>
+                  <div className="bg-navy-700/40 border border-navy-600/30 rounded-xl p-4 h-full min-h-[120px] flex flex-col items-center justify-center text-center hover:bg-navy-700/50 transition-colors">
+                    <Icon className={`w-6 h-6 ${colorClass} mb-2 flex-shrink-0`} />
+                    <div className={`text-2xl font-bold ${colorClass} mb-1`}>
                       {Math.round(score.score_value)}
                     </div>
-                    <div className="text-xs text-navy-300 text-center leading-tight">
+                    <div className="text-xs text-navy-300 font-medium mb-2 leading-tight">
                       {name}
                     </div>
                     {score.trend_7d !== 0 && (
@@ -164,7 +164,9 @@ export function WellnessThermometers() {
                         score.trend_7d > 0 ? 'text-green-400' : 'text-red-400'
                       }`}>
                         <TrendingUp className={`w-3 h-3 ${score.trend_7d < 0 ? 'rotate-180' : ''}`} />
-                        {score.trend_7d > 0 ? '+' : ''}{score.trend_7d.toFixed(1)}%
+                        <span className="font-medium">
+                          {score.trend_7d > 0 ? '+' : ''}{score.trend_7d.toFixed(1)}%
+                        </span>
                       </div>
                     )}
                   </div>
@@ -177,13 +179,13 @@ export function WellnessThermometers() {
 
       {/* Check-ins Rápidos */}
       <Card className="glass-card border-navy-600/30 bg-navy-800/30">
-        <CardHeader>
+        <CardHeader className="pb-4">
           <CardTitle className="text-white flex items-center gap-2">
             <Smile className="w-5 h-5 text-accent-orange" />
             Check-ins Rápidos
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-6 pb-6">
           <div className={`grid gap-4 ${
             isMobile 
               ? 'grid-cols-1 sm:grid-cols-2' 
