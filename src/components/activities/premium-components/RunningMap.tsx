@@ -20,8 +20,8 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
   const [mapInstance, setMapInstance] = useState<any>(null);
   const routePointsRef = useRef<any[]>([]);
 
-  // Usar a chave API fornecida
-  const GOOGLE_MAPS_API_KEY = 'AIzaSyA7MzU_BnzebK6Arhbsaa2E9l3Ckut3YVM';
+  // Usar a nova chave API fornecida
+  const GOOGLE_MAPS_API_KEY = 'AIzaSyC4n6Y17OX0PIFYgeL64ibC4ISqQkOxUok';
 
   const initializeGoogleMaps = async () => {
     if (!mapContainer.current) return;
