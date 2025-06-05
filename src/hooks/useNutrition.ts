@@ -107,7 +107,17 @@ export function useNutrition() {
 
   // Criar plano nutricional
   const createNutritionPlan = useMutation({
-    mutationFn: async (plan: Partial<NutritionPlan>) => {
+    mutationFn: async (plan: {
+      plan_name: string;
+      plan_type?: string;
+      calorie_target?: number;
+      macros_target?: any;
+      meal_schedule?: any[];
+      restrictions?: any[];
+      created_by_nutritionist?: string;
+      start_date?: string;
+      end_date?: string;
+    }) => {
       if (!user) throw new Error('User not authenticated');
 
       // Desativar planos anteriores
@@ -120,8 +130,16 @@ export function useNutrition() {
         .from('nutrition_plans')
         .insert({
           user_id: user.id,
-          ...plan,
+          plan_name: plan.plan_name,
+          plan_type: plan.plan_type || 'general',
+          calorie_target: plan.calorie_target,
+          macros_target: plan.macros_target || {},
+          meal_schedule: plan.meal_schedule || [],
+          restrictions: plan.restrictions || [],
+          created_by_nutritionist: plan.created_by_nutritionist,
           is_active: true,
+          start_date: plan.start_date,
+          end_date: plan.end_date,
         })
         .select()
         .single();
@@ -147,7 +165,17 @@ export function useNutrition() {
 
   // Registrar refeição
   const logMeal = useMutation({
-    mutationFn: async (meal: Partial<MealLog>) => {
+    mutationFn: async (meal: {
+      meal_type: string;
+      meal_name?: string;
+      foods?: any[];
+      total_calories?: number;
+      macros?: any;
+      meal_time?: string;
+      satisfaction_rating?: number;
+      notes?: string;
+      photos?: any[];
+    }) => {
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
@@ -155,7 +183,15 @@ export function useNutrition() {
         .insert({
           user_id: user.id,
           nutrition_plan_id: activePlan?.id,
-          ...meal,
+          meal_type: meal.meal_type,
+          meal_name: meal.meal_name,
+          foods: meal.foods || [],
+          total_calories: meal.total_calories,
+          macros: meal.macros || {},
+          meal_time: meal.meal_time,
+          satisfaction_rating: meal.satisfaction_rating,
+          notes: meal.notes,
+          photos: meal.photos || [],
         })
         .select()
         .single();

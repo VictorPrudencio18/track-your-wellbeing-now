@@ -134,14 +134,30 @@ export function useAdvancedHealth() {
 
   // Adicionar métrica de saúde
   const addHealthMetric = useMutation({
-    mutationFn: async (metric: Partial<AdvancedHealthMetric>) => {
+    mutationFn: async (metric: { 
+      metric_category: string;
+      metric_name: string;
+      value: number;
+      unit?: string;
+      measurement_date?: string;
+      time_of_day?: string;
+      context?: any;
+      trends?: any;
+    }) => {
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
         .from('advanced_health_metrics')
         .insert({
           user_id: user.id,
-          ...metric,
+          metric_category: metric.metric_category,
+          metric_name: metric.metric_name,
+          value: metric.value,
+          unit: metric.unit,
+          measurement_date: metric.measurement_date,
+          time_of_day: metric.time_of_day,
+          context: metric.context || {},
+          trends: metric.trends || {},
         })
         .select()
         .single();
@@ -168,14 +184,33 @@ export function useAdvancedHealth() {
 
   // Criar meta de saúde
   const createHealthGoal = useMutation({
-    mutationFn: async (goal: Partial<HealthGoal>) => {
+    mutationFn: async (goal: {
+      goal_category: string;
+      goal_title: string;
+      goal_description?: string;
+      target_value?: number;
+      unit?: string;
+      target_date?: string;
+      priority?: number;
+    }) => {
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
         .from('health_goals')
         .insert({
           user_id: user.id,
-          ...goal,
+          goal_category: goal.goal_category,
+          goal_title: goal.goal_title,
+          goal_description: goal.goal_description,
+          target_value: goal.target_value,
+          current_value: 0,
+          unit: goal.unit,
+          target_date: goal.target_date,
+          priority: goal.priority || 1,
+          is_active: true,
+          progress_tracking: {},
+          milestones: [],
+          rewards: [],
         })
         .select()
         .single();
