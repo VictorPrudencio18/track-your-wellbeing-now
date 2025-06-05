@@ -23,8 +23,8 @@ import { Button } from '@/components/ui/button';
 
 interface ChatHeaderProps {
   totalActivities: number;
-  chatMode: string;
-  setChatMode: (mode: string) => void;
+  chatMode: 'casual' | 'coaching' | 'analysis' | 'emergency' | 'technical';
+  setChatMode: (mode: 'casual' | 'coaching' | 'analysis' | 'emergency' | 'technical') => void;
   voiceEnabled: boolean;
   setVoiceEnabled: (enabled: boolean) => void;
   showSidebar: boolean;
@@ -91,7 +91,7 @@ export function ChatHeader({
 
             {/* Mode Selector */}
             <div className="flex gap-1 flex-wrap">
-              {['casual', 'coaching', 'analysis', 'emergency', 'technical'].map((mode) => (
+              {(['casual', 'coaching', 'analysis', 'emergency', 'technical'] as const).map((mode) => (
                 <Button
                   key={mode}
                   variant={chatMode === mode ? "default" : "ghost"}
