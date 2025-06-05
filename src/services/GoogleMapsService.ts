@@ -43,7 +43,7 @@ export class GoogleMapsService {
   }
 
   async loadGoogleMaps(apiKey: string): Promise<void> {
-    if (window.google && window.google.maps) {
+    if ((window as any).google && (window as any).google.maps) {
       return; // Já carregado
     }
 
@@ -67,14 +67,14 @@ export class GoogleMapsService {
   }
 
   async initializeMap(container: HTMLElement, options: google.maps.MapOptions): Promise<google.maps.Map> {
-    if (!window.google || !window.google.maps) {
+    if (!(window as any).google || !(window as any).google.maps) {
       throw new Error('Google Maps API não está carregado');
     }
 
-    this.map = new google.maps.Map(container, {
+    this.map = new (window as any).google.maps.Map(container, {
       zoom: 16,
       center: { lat: -23.550520, lng: -46.633308 }, // São Paulo default
-      mapTypeId: google.maps.MapTypeId.HYBRID,
+      mapTypeId: (window as any).google.maps.MapTypeId.HYBRID,
       styles: [
         {
           featureType: 'all',
@@ -90,8 +90,8 @@ export class GoogleMapsService {
       ...options
     });
 
-    this.directionsService = new google.maps.DirectionsService();
-    this.directionsRenderer = new google.maps.DirectionsRenderer({
+    this.directionsService = new (window as any).google.maps.DirectionsService();
+    this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
       map: this.map,
       polylineOptions: {
         strokeColor: '#4ade80',
@@ -149,11 +149,11 @@ export class GoogleMapsService {
     if (!this.map) return;
 
     // Criar marcador da posição atual
-    new google.maps.Marker({
+    new (window as any).google.maps.Marker({
       position,
       map: this.map,
       icon: {
-        path: google.maps.SymbolPath.CIRCLE,
+        path: (window as any).google.maps.SymbolPath.CIRCLE,
         scale: 8,
         fillColor: '#4ade80',
         fillOpacity: 1,
@@ -170,7 +170,7 @@ export class GoogleMapsService {
     if (!this.map || points.length < 2) return;
 
     // Usar polyline para desenhar a rota em tempo real (mais eficiente)
-    const routePath = new google.maps.Polyline({
+    const routePath = new (window as any).google.maps.Polyline({
       path: points,
       geodesic: true,
       strokeColor: '#4ade80',
@@ -180,13 +180,13 @@ export class GoogleMapsService {
     });
 
     // Ajustar bounds para mostrar toda a rota
-    const bounds = new google.maps.LatLngBounds();
+    const bounds = new (window as any).google.maps.LatLngBounds();
     points.forEach(point => bounds.extend(point));
     this.map.fitBounds(bounds);
   }
 
   calculateDistance(point1: google.maps.LatLng, point2: google.maps.LatLng): number {
-    if (!window.google || !window.google.maps || !window.google.maps.geometry) {
+    if (!(window as any).google || !(window as any).google.maps || !(window as any).google.maps.geometry) {
       // Fallback para cálculo manual se geometry não estiver disponível
       const R = 6371; // Raio da Terra em km
       const dLat = (point2.lat() - point1.lat()) * Math.PI / 180;
@@ -200,24 +200,24 @@ export class GoogleMapsService {
     }
     
     // Usar Google Maps geometry library (mais preciso)
-    return google.maps.geometry.spherical.computeDistanceBetween(point1, point2) / 1000; // em km
+    return (window as any).google.maps.geometry.spherical.computeDistanceBetween(point1, point2) / 1000; // em km
   }
 
   async getElevation(points: google.maps.LatLng[]): Promise<number[]> {
-    if (!this.canMakeRequest() || !window.google) {
+    if (!this.canMakeRequest() || !(window as any).google) {
       return points.map(() => 0); // Fallback
     }
 
     return new Promise((resolve, reject) => {
-      const elevator = new google.maps.ElevationService();
+      const elevator = new (window as any).google.maps.ElevationService();
       
       this.updateThrottleState();
       
       elevator.getElevationForLocations({
         locations: points,
-      }, (results, status) => {
-        if (status === google.maps.ElevationStatus.OK && results) {
-          resolve(results.map(result => result.elevation));
+      }, (results: any[], status: any) => {
+        if (status === (window as any).google.maps.ElevationStatus.OK && results) {
+          resolve(results.map((result: any) => result.elevation));
         } else {
           console.warn('Erro ao obter elevação:', status);
           resolve(points.map(() => 0)); // Fallback
@@ -235,7 +235,7 @@ export class GoogleMapsService {
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const latLng = new google.maps.LatLng(
+          const latLng = new (window as any).google.maps.LatLng(
             position.coords.latitude,
             position.coords.longitude
           );
