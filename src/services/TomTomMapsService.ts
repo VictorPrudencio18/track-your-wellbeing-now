@@ -1,4 +1,3 @@
-
 interface TomTomMapsConfig {
   apiKey: string;
   libraries: string[];
@@ -118,12 +117,13 @@ export class TomTomMapsService {
       this.map.remove();
     }
 
+    // Usar estilo básico válido em vez do estilo personalizado que retorna 404
     const defaultOptions = {
       key: options.apiKey,
       container: container,
-      center: options.center || [-46.633308, -23.550520], // São Paulo default [lng, lat]
+      center: options.center || [-46.633308, -23.550520],
       zoom: options.zoom || 16,
-      style: 'https://api.tomtom.com/style/1/style/22.2.1-*?map=2&traffic_incidents=incidents_off&traffic_flow=flow_relative0&poi=poi_off'
+      style: 'basic_main' // Usar estilo básico válido
     };
 
     try {
@@ -284,20 +284,20 @@ export class TomTomMapsService {
 
   setMapType(mapType: string): void {
     if (this.map) {
-      let styleUrl = 'https://api.tomtom.com/style/1/style/22.2.1-*?map=2&traffic_incidents=incidents_off&traffic_flow=flow_relative0&poi=poi_off';
+      let styleUrl = 'basic_main';
       
       switch (mapType.toLowerCase()) {
         case 'satellite':
-          styleUrl = 'https://api.tomtom.com/style/1/style/22.2.1-*?map=3&traffic_incidents=incidents_off&traffic_flow=flow_relative0&poi=poi_off';
+          styleUrl = 'satellite_main';
           break;
         case 'hybrid':
-          styleUrl = 'https://api.tomtom.com/style/1/style/22.2.1-*?map=4&traffic_incidents=incidents_off&traffic_flow=flow_relative0&poi=poi_off';
+          styleUrl = 'hybrid_main';
           break;
         case 'terrain':
-          styleUrl = 'https://api.tomtom.com/style/1/style/22.2.1-*?map=5&traffic_incidents=incidents_off&traffic_flow=flow_relative0&poi=poi_off';
+          styleUrl = 'basic_main';
           break;
         default:
-          styleUrl = 'https://api.tomtom.com/style/1/style/22.2.1-*?map=2&traffic_incidents=incidents_off&traffic_flow=flow_relative0&poi=poi_off';
+          styleUrl = 'basic_main';
       }
       
       this.map.setStyle(styleUrl);
