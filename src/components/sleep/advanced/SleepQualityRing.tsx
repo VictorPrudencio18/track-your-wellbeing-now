@@ -12,14 +12,16 @@ interface SleepQualityRingProps {
 
 export function SleepQualityRing({ quality, efficiency, debt, size = 'md' }: SleepQualityRingProps) {
   const sizeClasses = {
-    sm: 'w-32 h-32',
-    md: 'w-48 h-48',
-    lg: 'w-64 h-64'
+    sm: 'w-40 h-40',
+    md: 'w-56 h-56',
+    lg: 'w-72 h-72'
   };
 
-  const radius = size === 'sm' ? 50 : size === 'md' ? 80 : 110;
+  const radius = size === 'sm' ? 60 : size === 'md' ? 90 : 120;
   const strokeWidth = size === 'sm' ? 8 : size === 'md' ? 12 : 16;
   const circumference = 2 * Math.PI * radius;
+  const viewBoxSize = size === 'sm' ? 160 : size === 'md' ? 240 : 320;
+  const center = viewBoxSize / 2;
 
   const qualityOffset = circumference - (quality / 100) * circumference;
   const efficiencyOffset = circumference - (efficiency / 100) * circumference;
@@ -41,14 +43,20 @@ export function SleepQualityRing({ quality, efficiency, debt, size = 'md' }: Sle
   const debtStatus = getDebtStatus(debt);
 
   return (
-    <Card className="glass-card-holographic border-navy-600/30 overflow-hidden">
-      <CardContent className="p-6">
-        <div className="flex flex-col items-center space-y-4">
-          <div className={`relative ${sizeClasses[size]} flex items-center justify-center`}>
+    <Card className="glass-card-holographic border-navy-600/30 overflow-visible">
+      <CardContent className="p-8">
+        <div className="flex flex-col items-center space-y-6">
+          <div className={`relative ${sizeClasses[size]} flex items-center justify-center`} style={{ padding: '20px' }}>
             {/* Background glow effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 via-purple-500/10 to-blue-500/20 rounded-full blur-xl" />
+            <div className="absolute inset-4 bg-gradient-to-br from-indigo-500/20 via-purple-500/10 to-blue-500/20 rounded-full blur-xl" />
             
-            <svg className="absolute inset-0 transform -rotate-90" width="100%" height="100%" viewBox="0 0 200 200">
+            <svg 
+              className="absolute inset-0 transform -rotate-90" 
+              width="100%" 
+              height="100%" 
+              viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
+              style={{ overflow: 'visible' }}
+            >
               <defs>
                 {/* Quality gradient */}
                 <linearGradient id={`qualityGradient-${size}`} x1="0%" y1="0%" x2="100%" y2="100%">
@@ -63,24 +71,19 @@ export function SleepQualityRing({ quality, efficiency, debt, size = 'md' }: Sle
                 </linearGradient>
                 
                 {/* Glow filter */}
-                <filter id={`glow-${size}`}>
+                <filter id={`glow-${size}`} x="-50%" y="-50%" width="200%" height="200%">
                   <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
                   <feMerge>
                     <feMergeNode in="coloredBlur"/>
                     <feMergeNode in="SourceGraphic"/>
                   </feMerge>
                 </filter>
-                
-                {/* Shadow filter */}
-                <filter id={`shadow-${size}`}>
-                  <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="rgba(0,0,0,0.3)"/>
-                </filter>
               </defs>
               
               {/* Background track */}
               <circle
-                cx="100"
-                cy="100"
+                cx={center}
+                cy={center}
                 r={radius}
                 stroke="rgba(30, 41, 59, 0.3)"
                 strokeWidth={strokeWidth}
@@ -90,8 +93,8 @@ export function SleepQualityRing({ quality, efficiency, debt, size = 'md' }: Sle
               
               {/* Efficiency ring (inner) */}
               <motion.circle
-                cx="100"
-                cy="100"
+                cx={center}
+                cy={center}
                 r={radius - strokeWidth - 4}
                 stroke={`url(#efficiencyGradient-${size})`}
                 strokeWidth={strokeWidth - 4}
@@ -110,8 +113,8 @@ export function SleepQualityRing({ quality, efficiency, debt, size = 'md' }: Sle
               
               {/* Quality ring (outer) */}
               <motion.circle
-                cx="100"
-                cy="100"
+                cx={center}
+                cy={center}
                 r={radius}
                 stroke={`url(#qualityGradient-${size})`}
                 strokeWidth={strokeWidth}
@@ -183,7 +186,7 @@ export function SleepQualityRing({ quality, efficiency, debt, size = 'md' }: Sle
               }}
             >
               <div className={`text-xl font-semibold ${debtStatus.color} mb-1`}>
-                {Math.round(debt / 60)}h {debt % 60}m
+                {Math.floor(debt / 60)}h {debt % 60}m
               </div>
               <div className="text-xs text-gray-400">Débito</div>
             </motion.div>
