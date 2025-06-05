@@ -74,9 +74,9 @@ export function ThermometerWidget({
   const colorMap = colorMaps[color];
   
   const sizeClasses = {
-    sm: 'w-full max-w-[280px] h-[260px]',
-    md: 'w-full max-w-[320px] h-[280px]',
-    lg: 'w-full max-w-[360px] h-[300px]'
+    sm: 'w-full max-w-xs',
+    md: 'w-full max-w-sm',
+    lg: 'w-full max-w-md'
   };
 
   const handleSubmit = () => {
@@ -93,10 +93,10 @@ export function ThermometerWidget({
       transition={{ duration: 0.3 }}
       className={sizeClasses[size]}
     >
-      <Card className={`h-full glass-card bg-gradient-to-br ${colorMap.bg} border ${colorMap.border} backdrop-blur-xl`}>
-        <CardContent className="p-4 h-full flex flex-col">
+      <Card className={`glass-card bg-gradient-to-br ${colorMap.bg} border ${colorMap.border} backdrop-blur-xl`}>
+        <CardContent className="p-4">
           {/* Header */}
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 flex-1 min-w-0">
               {Icon && <Icon className={`w-4 h-4 ${colorMap.accent} flex-shrink-0`} />}
               <h3 className="text-white font-semibold text-sm truncate">{title}</h3>
@@ -114,31 +114,29 @@ export function ThermometerWidget({
           </div>
 
           {/* Thermometer Visual */}
-          <div className="flex-1 flex items-center justify-center mb-4">
-            <div className="flex items-end gap-1 h-20">
-              {Array.from({ length: maxValue }, (_, i) => {
-                const level = i + 1;
-                const isActive = selectedValue ? level <= selectedValue : false;
-                const intensity = level / maxValue;
-                const barHeight = 16 + (intensity * 48); // 16px min to 64px max
-                
-                return (
-                  <motion.button
-                    key={level}
-                    onClick={() => setSelectedValue(level)}
-                    className={`w-3 rounded-sm transition-all duration-200 touch-target ${
-                      isActive 
-                        ? `bg-gradient-to-t ${colorMap.thermometer} ${colorMap.glow}` 
-                        : 'bg-white/20 hover:bg-white/30'
-                    }`}
-                    style={{ height: `${barHeight}px` }}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    aria-label={`Nível ${level}`}
-                  />
-                );
-              })}
-            </div>
+          <div className="flex items-end justify-center gap-1 mb-4 h-16">
+            {Array.from({ length: maxValue }, (_, i) => {
+              const level = i + 1;
+              const isActive = selectedValue ? level <= selectedValue : false;
+              const intensity = level / maxValue;
+              const barHeight = 20 + (intensity * 40); // 20px to 60px height
+              
+              return (
+                <motion.button
+                  key={level}
+                  onClick={() => setSelectedValue(level)}
+                  className={`w-4 rounded-sm transition-all duration-200 ${
+                    isActive 
+                      ? `bg-gradient-to-t ${colorMap.thermometer} ${colorMap.glow}` 
+                      : 'bg-white/20 hover:bg-white/30'
+                  }`}
+                  style={{ height: `${barHeight}px` }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  aria-label={`Nível ${level}`}
+                />
+              );
+            })}
           </div>
 
           {/* Value Display */}
@@ -152,7 +150,7 @@ export function ThermometerWidget({
           </div>
 
           {/* Actions */}
-          <div className="flex gap-2 mt-auto">
+          <div className="flex gap-2">
             {onDismiss && (
               <Button
                 variant="ghost"
