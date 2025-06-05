@@ -62,16 +62,20 @@ export type Database = {
           duration: number
           elevation_gain: number | null
           equipment: Json | null
+          gps_data: Json | null
           id: string
           max_heart_rate: number | null
           name: string | null
           notes: string | null
           pace: number | null
+          performance_zones: Json | null
           points_earned: number | null
           route_data: Json | null
+          route_summary: Json | null
           type: Database["public"]["Enums"]["activity_type"]
           updated_at: string | null
           user_id: string | null
+          weather_conditions: Json | null
           weather_data: Json | null
         }
         Insert: {
@@ -84,16 +88,20 @@ export type Database = {
           duration: number
           elevation_gain?: number | null
           equipment?: Json | null
+          gps_data?: Json | null
           id?: string
           max_heart_rate?: number | null
           name?: string | null
           notes?: string | null
           pace?: number | null
+          performance_zones?: Json | null
           points_earned?: number | null
           route_data?: Json | null
+          route_summary?: Json | null
           type: Database["public"]["Enums"]["activity_type"]
           updated_at?: string | null
           user_id?: string | null
+          weather_conditions?: Json | null
           weather_data?: Json | null
         }
         Update: {
@@ -106,16 +114,20 @@ export type Database = {
           duration?: number
           elevation_gain?: number | null
           equipment?: Json | null
+          gps_data?: Json | null
           id?: string
           max_heart_rate?: number | null
           name?: string | null
           notes?: string | null
           pace?: number | null
+          performance_zones?: Json | null
           points_earned?: number | null
           route_data?: Json | null
+          route_summary?: Json | null
           type?: Database["public"]["Enums"]["activity_type"]
           updated_at?: string | null
           user_id?: string | null
+          weather_conditions?: Json | null
           weather_data?: Json | null
         }
         Relationships: [
@@ -124,6 +136,179 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_gps_points: {
+        Row: {
+          accuracy: number | null
+          activity_id: string
+          altitude: number | null
+          created_at: string
+          heading: number | null
+          id: string
+          latitude: number
+          longitude: number
+          speed: number | null
+          timestamp: string
+        }
+        Insert: {
+          accuracy?: number | null
+          activity_id: string
+          altitude?: number | null
+          created_at?: string
+          heading?: number | null
+          id?: string
+          latitude: number
+          longitude: number
+          speed?: number | null
+          timestamp: string
+        }
+        Update: {
+          accuracy?: number | null
+          activity_id?: string
+          altitude?: number | null
+          created_at?: string
+          heading?: number | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          speed?: number | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_gps_points_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_metrics: {
+        Row: {
+          activity_id: string
+          cadence: number | null
+          calories_total: number | null
+          created_at: string
+          distance_total: number | null
+          elevation_total: number | null
+          heart_rate: number | null
+          id: string
+          pace: number | null
+          power: number | null
+          speed: number | null
+          temperature: number | null
+          timestamp: string
+        }
+        Insert: {
+          activity_id: string
+          cadence?: number | null
+          calories_total?: number | null
+          created_at?: string
+          distance_total?: number | null
+          elevation_total?: number | null
+          heart_rate?: number | null
+          id?: string
+          pace?: number | null
+          power?: number | null
+          speed?: number | null
+          temperature?: number | null
+          timestamp: string
+        }
+        Update: {
+          activity_id?: string
+          cadence?: number | null
+          calories_total?: number | null
+          created_at?: string
+          distance_total?: number | null
+          elevation_total?: number | null
+          heart_rate?: number | null
+          id?: string
+          pace?: number | null
+          power?: number | null
+          speed?: number | null
+          temperature?: number | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_metrics_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_segments: {
+        Row: {
+          activity_id: string
+          avg_pace: number | null
+          avg_speed: number | null
+          created_at: string
+          distance: number | null
+          duration: number | null
+          elevation_gain: number | null
+          elevation_loss: number | null
+          end_point_id: string | null
+          id: string
+          max_speed: number | null
+          segment_type: string
+          start_point_id: string | null
+        }
+        Insert: {
+          activity_id: string
+          avg_pace?: number | null
+          avg_speed?: number | null
+          created_at?: string
+          distance?: number | null
+          duration?: number | null
+          elevation_gain?: number | null
+          elevation_loss?: number | null
+          end_point_id?: string | null
+          id?: string
+          max_speed?: number | null
+          segment_type: string
+          start_point_id?: string | null
+        }
+        Update: {
+          activity_id?: string
+          avg_pace?: number | null
+          avg_speed?: number | null
+          created_at?: string
+          distance?: number | null
+          duration?: number | null
+          elevation_gain?: number | null
+          elevation_loss?: number | null
+          end_point_id?: string | null
+          id?: string
+          max_speed?: number | null
+          segment_type?: string
+          start_point_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_segments_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_segments_end_point_id_fkey"
+            columns: ["end_point_id"]
+            isOneToOne: false
+            referencedRelation: "activity_gps_points"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_segments_start_point_id_fkey"
+            columns: ["start_point_id"]
+            isOneToOne: false
+            referencedRelation: "activity_gps_points"
             referencedColumns: ["id"]
           },
         ]
