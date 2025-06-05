@@ -44,6 +44,12 @@ export function AdvancedTrendChart({ timeRange }: AdvancedTrendChartProps) {
                 stroke="#9CA3AF"
                 fontSize={12}
               />
+              <YAxis 
+                yAxisId="right"
+                orientation="right"
+                stroke="#9CA3AF"
+                fontSize={12}
+              />
               <Tooltip 
                 contentStyle={{
                   backgroundColor: '#1F2937',
