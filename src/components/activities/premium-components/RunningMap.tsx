@@ -5,7 +5,7 @@ import { MapPin, Zap, TrendingUp, Mountain, Settings, Navigation, AlertCircle, R
 import { PremiumCard } from '@/components/ui/premium-card';
 import { GPSState, GPSPosition } from '@/hooks/useGPS';
 import { ActivityData } from '@/hooks/useActivityTracker';
-import { googleMapsService } from '@/services/GoogleMapsService';
+import { tomTomMapsService } from '@/services/TomTomMapsService';
 
 interface RunningMapProps {
   gpsState: GPSState;
@@ -23,39 +23,35 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
   const [retryCount, setRetryCount] = useState(0);
   const routePointsRef = useRef<any[]>([]);
 
-  // Usar a nova chave API fornecida
-  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
+  // Usar a chave API do TomTom do ambiente
+  const TOMTOM_API_KEY = import.meta.env.VITE_TOMTOM_API_KEY as string;
 
-  const initializeGoogleMaps = async () => {
+  const initializeTomTomMaps = async () => {
     if (!mapContainer.current) return;
 
-    if (!GOOGLE_MAPS_API_KEY) {
-      console.error('Chave da API do Google Maps não configurada.');
-      setError('Chave da API do Google Maps não configurada. Verifique o arquivo .env.');
+    if (!TOMTOM_API_KEY) {
+      console.error('Chave da API do TomTom não configurada.');
+      setError('Chave da API do TomTom não configurada. Verifique o arquivo .env.');
       setLoading(false);
       return;
     }
-    // For debugging: Log that the key is being used (do not log the key itself in production)
-    console.log('Usando chave da API do Google Maps do ambiente.');
+    
+    console.log('Usando chave da API do TomTom do ambiente.');
 
     try {
       setLoading(true);
       setError(null);
       
-      console.log('Iniciando carregamento do Google Maps...');
-      await googleMapsService.loadGoogleMaps(GOOGLE_MAPS_API_KEY);
+      console.log('Iniciando carregamento do TomTom Maps...');
+      await tomTomMapsService.loadTomTomMaps(TOMTOM_API_KEY);
       
-      console.log('Inicializando mapa...');
-      const map = await googleMapsService.initializeMap(mapContainer.current, {
-        zoom: 16,
+      console.log('Inicializando mapa TomTom...');
+      const map = await tomTomMapsService.initializeMap(mapContainer.current, {
+        apiKey: TOMTOM_API_KEY,
         center: gpsState.position ? 
-          { lat: gpsState.position.latitude, lng: gpsState.position.longitude } :
-          { lat: -23.550520, lng: -46.633308 }, // São Paulo default
-        mapTypeId: (window as any).google?.maps?.MapTypeId?.ROADMAP || 'roadmap',
-        gestureHandling: 'greedy',
-        zoomControl: true,
-        streetViewControl: false,
-        fullscreenControl: false
+          [gpsState.position.longitude, gpsState.position.latitude] :
+          [-46.633308, -23.550520], // São Paulo default [lng, lat]
+        zoom: 16
       });
 
       setMapInstance(map);
@@ -63,9 +59,9 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
       setLoading(false);
       setRetryCount(0);
       
-      console.log('Google Maps inicializado com sucesso');
+      console.log('TomTom Maps inicializado com sucesso');
     } catch (error: any) {
-      console.error('Erro ao inicializar Google Maps:', error);
+      console.error('Erro ao inicializar TomTom Maps:', error);
       setError(`Erro ao carregar mapa: ${error.message || 'Erro desconhecido'}`);
       setLoading(false);
     }
@@ -73,31 +69,32 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
 
   // Inicializar mapa automaticamente
   useEffect(() => {
-    initializeGoogleMaps();
+    initializeTomTomMaps();
   }, []);
 
   // Atualizar rota em tempo real
   useEffect(() => {
-    if (!mapLoaded || !route.length || !(window as any).google) return;
+    if (!mapLoaded || !route.length) return;
 
     try {
-      const googlePoints = route.map(pos => 
-        new (window as any).google.maps.LatLng(pos.latitude, pos.longitude)
-      );
+      const tomTomPoints = route.map(pos => ({
+        lng: pos.longitude,
+        lat: pos.latitude
+      }));
 
-      routePointsRef.current = googlePoints;
+      routePointsRef.current = tomTomPoints;
 
-      if (googlePoints.length > 0) {
+      if (tomTomPoints.length > 0) {
         // Desenhar rota atualizada
-        googleMapsService.drawRoute(googlePoints);
+        tomTomMapsService.drawRoute(tomTomPoints);
         
         // Adicionar ponto atual se ativo
-        if (isActive && googlePoints.length > 0) {
-          googleMapsService.addRoutePoint(googlePoints[googlePoints.length - 1]);
+        if (isActive && tomTomPoints.length > 0) {
+          tomTomMapsService.addRoutePoint(tomTomPoints[tomTomPoints.length - 1]);
         }
       }
     } catch (error) {
-      console.error('Erro ao atualizar rota:', error);
+      console.error('Erro ao atualizar rota TomTom:', error);
     }
   }, [route, isActive, mapLoaded]);
 
@@ -105,13 +102,17 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
   useEffect(() => {
     if (mapInstance && gpsState.position && isActive) {
       try {
-        const currentPos = new (window as any).google.maps.LatLng(
-          gpsState.position.latitude,
-          gpsState.position.longitude
-        );
-        mapInstance.panTo(currentPos);
+        const currentPos = {
+          lng: gpsState.position.longitude,
+          lat: gpsState.position.latitude
+        };
+        
+        mapInstance.flyTo({
+          center: [currentPos.lng, currentPos.lat],
+          zoom: 16
+        });
       } catch (error) {
-        console.error('Erro ao centralizar mapa:', error);
+        console.error('Erro ao centralizar mapa TomTom:', error);
       }
     }
   }, [gpsState.position, isActive, mapInstance]);
@@ -121,7 +122,7 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
       setError(null);
       setMapLoaded(false);
       setRetryCount(prev => prev + 1);
-      initializeGoogleMaps();
+      initializeTomTomMaps();
     } else {
       setError('Muitas tentativas falharam. Verifique sua conexão.');
     }
@@ -139,7 +140,7 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
           <div className="w-full h-full bg-navy-800 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin w-8 h-8 border-4 border-accent-orange border-t-transparent rounded-full mx-auto mb-3"></div>
-              <p className="text-white">Carregando Google Maps...</p>
+              <p className="text-white">Carregando TomTom Maps...</p>
               {retryCount > 0 && (
                 <p className="text-navy-400 text-sm">Tentativa {retryCount + 1}/4</p>
               )}
@@ -186,6 +187,11 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
               <div className="text-xs text-navy-400">Velocidade</div>
               <div className="text-lg font-bold text-white">{(data.currentSpeed * 3.6).toFixed(1)} km/h</div>
             </div>
+
+            <div className="glass-card px-3 py-2 rounded-lg">
+              <div className="text-xs text-navy-400">TomTom</div>
+              <div className="text-xs font-medium text-accent-orange">Premium GPS</div>
+            </div>
           </div>
         )}
 
@@ -205,8 +211,19 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
         {/* Controles do mapa */}
         {mapLoaded && (
           <div className="absolute bottom-4 right-4 flex flex-col gap-2">
-            <button className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+            <button 
+              onClick={() => tomTomMapsService.setMapType('roadmap')}
+              className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+              title="Mapa Normal"
+            >
               <Navigation className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={() => tomTomMapsService.setMapType('satellite')}
+              className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+              title="Satélite"
+            >
+              <Mountain className="w-5 h-5" />
             </button>
             <button className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors">
               <Settings className="w-5 h-5" />
@@ -243,6 +260,24 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
           </div>
         </PremiumCard>
       </div>
+
+      {/* Informações sobre TomTom */}
+      <PremiumCard glass className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-accent-orange/20 rounded-lg border border-accent-orange/30">
+              <TrendingUp className="w-5 h-5 text-accent-orange" />
+            </div>
+            <div>
+              <div className="text-sm font-medium text-white">TomTom Maps Premium</div>
+              <div className="text-xs text-navy-400">Tracking otimizado para atividades físicas</div>
+            </div>
+          </div>
+          <div className="text-xs text-accent-orange font-medium">
+            {route.length > 0 ? 'Ativo' : 'Aguardando'}
+          </div>
+        </div>
+      </PremiumCard>
     </motion.div>
   );
 }
