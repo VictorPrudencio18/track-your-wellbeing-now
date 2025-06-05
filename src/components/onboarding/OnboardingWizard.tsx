@@ -69,8 +69,7 @@ export function OnboardingWizard() {
                   onNext={handleNext}
                   onPrevious={handlePrevious}
                   canGoBack={currentStep > 1}
-                  saveResponse={saveResponse}
-                  responses={data.responses}
+                  {...(currentStep > 1 && { saveResponse, responses: data.responses })}
                 />
               )}
             </motion.div>

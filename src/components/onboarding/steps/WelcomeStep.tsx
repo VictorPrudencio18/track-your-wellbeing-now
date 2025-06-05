@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Shield, Lock, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -48,12 +48,21 @@ export function useOnboarding() {
       if (error) throw error;
 
       if (progress) {
+        // Corrigir tipos para evitar erros de TypeScript
+        const completedSteps = Array.isArray(progress.completed_steps) 
+          ? progress.completed_steps as number[]
+          : [];
+        
+        const responses = typeof progress.data_snapshot === 'object' && progress.data_snapshot !== null
+          ? progress.data_snapshot as Record<string, any>
+          : {};
+
         setData({
           currentStep: progress.current_step || 1,
           totalSteps: progress.total_steps || 8,
-          completedSteps: progress.completed_steps || [],
+          completedSteps,
           isCompleted: progress.is_completed || false,
-          responses: progress.data_snapshot || {}
+          responses
         });
       }
     } catch (error) {
