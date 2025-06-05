@@ -2,10 +2,30 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { Tables, TablesInsert } from '@/integrations/supabase/types';
 
-type WeeklyGoal = Tables<'weekly_goals'>;
-type WeeklyGoalInsert = TablesInsert<'weekly_goals'>;
+export interface WeeklyGoal {
+  id: string;
+  user_id: string;
+  goal_type: string;
+  title: string;
+  description?: string;
+  target_value: number;
+  current_value: number;
+  unit: string;
+  week_start_date: string;
+  week_end_date: string;
+  priority: number;
+  difficulty_level: number;
+  is_completed: boolean;
+  completion_percentage: number;
+  auto_generated: boolean;
+  parent_goal_id?: string;
+  milestone_rewards: any[];
+  tracking_data: any;
+  created_at: string;
+  updated_at: string;
+  completed_at?: string;
+}
 
 export function useWeeklyGoals() {
   const { user } = useAuth();
@@ -29,12 +49,12 @@ export function useWeeklyGoals() {
   });
 
   const createGoal = useMutation({
-    mutationFn: async (goalData: Omit<WeeklyGoalInsert, 'user_id' | 'id'>) => {
+    mutationFn: async (goalData: Partial<WeeklyGoal>) => {
       if (!user?.id) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
         .from('weekly_goals')
-        .insert({ ...goalData, user_id: user.id })
+        .insert([{ ...goalData, user_id: user.id }])
         .select()
         .single();
       
@@ -47,7 +67,7 @@ export function useWeeklyGoals() {
   });
 
   const updateGoal = useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<WeeklyGoalInsert> & { id: string }) => {
+    mutationFn: async ({ id, ...updates }: Partial<WeeklyGoal> & { id: string }) => {
       const { data, error } = await supabase
         .from('weekly_goals')
         .update(updates)
@@ -86,5 +106,3 @@ export function useWeeklyGoals() {
     deleteGoal,
   };
 }
-
-export type { WeeklyGoal };
