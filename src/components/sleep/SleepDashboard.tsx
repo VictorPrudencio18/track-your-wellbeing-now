@@ -26,12 +26,14 @@ import { SleepCycleVisualization } from '@/components/ui/sleep-cycle-visualizati
 import { SleepMetricsCard } from '@/components/ui/sleep-metrics-card';
 import { SleepTrendChart } from '@/components/ui/sleep-trend-chart';
 import { HolographicScoreRing } from '@/components/ui/holographic-score-ring';
+import { SleepQualityRing } from '@/components/sleep/advanced/SleepQualityRing';
+import { SleepTimer } from '@/components/sleep/advanced/SleepTimer';
 
 export function SleepDashboard() {
   const { data: sleepRecords, isLoading: recordsLoading } = useSleepRecords();
   const { data: sleepGoals } = useSleepGoals();
 
-  // Mock data for demo
+  // Mock data for demo with real database integration structure
   const mockSleepPhases = [
     { phase: 'Light', duration: 120, quality: 8, color: '#60a5fa' },
     { phase: 'Deep', duration: 90, quality: 9, color: '#1e40af' },
@@ -51,17 +53,17 @@ export function SleepDashboard() {
     { date: '07/12', score: 69, duration: 6.9, quality: 6.9, efficiency: 83 },
   ];
 
-  // Calcular métricas
+  // Calcular métricas baseadas em dados reais quando disponíveis
   const recentRecord = sleepRecords?.[0];
   const activeGoal = sleepGoals?.find(goal => goal.is_active);
   const last7Records = sleepRecords?.slice(0, 7) || [];
   
   const averageScore = last7Records.length > 0 
-    ? last7Records.reduce((sum, record) => sum + (record.calculated_scores?.overall_score || 0), 0) / last7Records.length
+    ? last7Records.reduce((sum, record) => sum + (record.calculated_scores?.overall_score || 73), 0) / last7Records.length
     : 73;
 
   const averageDuration = last7Records.length > 0
-    ? last7Records.reduce((sum, record) => sum + (record.sleep_duration || 0), 0) / last7Records.length
+    ? last7Records.reduce((sum, record) => sum + (record.sleep_duration || 450), 0) / last7Records.length
     : 450;
 
   const consistencyStreak = 5; // Mock data
@@ -106,26 +108,31 @@ export function SleepDashboard() {
                 <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl">
                   <Moon className="w-8 h-8 text-white" />
                 </div>
-                Sleep Score Holográfico
+                VIVA Sleep Dashboard
               </CardTitle>
               <p className="text-xl text-indigo-300">
-                Análise Avançada da Qualidade do Seu Sono
+                Análise Avançada e Controle Inteligente do Seu Sono
               </p>
             </motion.div>
           </CardHeader>
           
-          <CardContent className="relative z-10 flex justify-center pb-8">
-            <HolographicScoreRing
-              score={averageScore}
-              trend={5.2}
-              level="good"
-              breakdown={{
-                physical: 78,
-                mental: 71,
-                sleep: 85,
-                energy: 74
-              }}
-            />
+          <CardContent className="relative z-10 pb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Score Ring */}
+              <div className="flex justify-center">
+                <SleepQualityRing
+                  quality={averageScore}
+                  efficiency={87}
+                  debt={45}
+                  size="lg"
+                />
+              </div>
+              
+              {/* Sleep Timer */}
+              <div className="flex items-center">
+                <SleepTimer sessionType="night_sleep" />
+              </div>
+            </div>
           </CardContent>
         </Card>
       </motion.div>

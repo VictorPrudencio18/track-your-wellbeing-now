@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -27,15 +28,15 @@ export function SleepAnalytics() {
   const { data: sleepRecords, isLoading } = useSleepRecords();
   const [activeChart, setActiveChart] = useState<'score' | 'duration' | 'quality'>('score');
 
-  // Mock data for demo
+  // Use real data if available, otherwise use mock data for demo
   const mockAnalyticsData = [
-    { date: '01/12', score: 72, duration: 7.5, quality: 7.2 },
-    { date: '02/12', score: 68, duration: 6.8, quality: 6.8 },
-    { date: '03/12', score: 75, duration: 8.1, quality: 7.8 },
-    { date: '04/12', score: 71, duration: 7.2, quality: 7.1 },
-    { date: '05/12', score: 78, duration: 8.3, quality: 8.2 },
-    { date: '06/12', score: 74, duration: 7.8, quality: 7.6 },
-    { date: '07/12', score: 69, duration: 6.9, quality: 6.9 },
+    { date: '01/12', score: 72, duration: 7.5, quality: 7.2, efficiency: 85 },
+    { date: '02/12', score: 68, duration: 6.8, quality: 6.8, efficiency: 82 },
+    { date: '03/12', score: 75, duration: 8.1, quality: 7.8, efficiency: 88 },
+    { date: '04/12', score: 71, duration: 7.2, quality: 7.1, efficiency: 86 },
+    { date: '05/12', score: 78, duration: 8.3, quality: 8.2, efficiency: 91 },
+    { date: '06/12', score: 74, duration: 7.8, quality: 7.6, efficiency: 87 },
+    { date: '07/12', score: 69, duration: 6.9, quality: 6.9, efficiency: 83 },
   ];
 
   const averageScore = mockAnalyticsData.reduce((sum, d) => sum + d.score, 0) / mockAnalyticsData.length;
@@ -162,27 +163,11 @@ export function SleepAnalytics() {
           
           <CardContent className="relative z-10">
             <div className="h-80">
-              {activeChart === 'score' && (
-                <SleepTrendChart
-                  data={mockAnalyticsData}
-                  title="Tendência de Score"
-                  subtitle="Evolução do seu score de sono"
-                />
-              )}
-              {activeChart === 'duration' && (
-                <SleepTrendChart
-                  data={mockAnalyticsData}
-                  title="Tendência de Duração"
-                  subtitle="Evolução do tempo de sono"
-                />
-              )}
-              {activeChart === 'quality' && (
-                <SleepTrendChart
-                  data={mockAnalyticsData}
-                  title="Tendência de Qualidade"
-                  subtitle="Evolução da qualidade do sono"
-                />
-              )}
+              <SleepTrendChart
+                data={mockAnalyticsData}
+                title={`Tendência de ${activeChart === 'score' ? 'Score' : activeChart === 'duration' ? 'Duração' : 'Qualidade'}`}
+                subtitle={`Evolução ${activeChart === 'score' ? 'do seu score de sono' : activeChart === 'duration' ? 'do tempo de sono' : 'da qualidade do sono'}`}
+              />
             </div>
           </CardContent>
         </Card>

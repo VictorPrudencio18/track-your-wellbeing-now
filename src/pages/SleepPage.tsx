@@ -70,17 +70,17 @@ export default function SleepPage() {
         </div>
       </motion.div>
 
-      {/* Navigation Tabs - Melhorado para melhor legibilidade */}
+      {/* Navigation Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 lg:w-fit lg:grid-cols-5 bg-navy-800/80 backdrop-blur-xl border border-navy-600/50 rounded-2xl p-2 shadow-2xl">
+        <TabsList className="flex w-full flex-wrap md:flex-nowrap bg-navy-800/80 backdrop-blur-xl border border-navy-600/50 rounded-2xl p-1.5 shadow-2xl">
           <TabsTrigger 
             value="dashboard" 
             className="
-              relative px-6 py-3 rounded-xl font-medium transition-all duration-300
+              flex-1 relative px-6 py-3 rounded-xl font-medium transition-all duration-300
               text-gray-300 hover:text-white
-              data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent-orange data-[state=active]:to-amber-500
-              data-[state=active]:text-navy-900 data-[state=active]:font-bold
-              data-[state=active]:shadow-lg data-[state=active]:shadow-accent-orange/25
+              data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600
+              data-[state=active]:text-white data-[state=active]:font-bold
+              data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-500/25
               hover:bg-navy-700/50
             "
           >
@@ -89,11 +89,11 @@ export default function SleepPage() {
           <TabsTrigger 
             value="tracker"
             className="
-              relative px-6 py-3 rounded-xl font-medium transition-all duration-300
+              flex-1 relative px-6 py-3 rounded-xl font-medium transition-all duration-300
               text-gray-300 hover:text-white
-              data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent-orange data-[state=active]:to-amber-500
-              data-[state=active]:text-navy-900 data-[state=active]:font-bold
-              data-[state=active]:shadow-lg data-[state=active]:shadow-accent-orange/25
+              data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600
+              data-[state=active]:text-white data-[state=active]:font-bold
+              data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-500/25
               hover:bg-navy-700/50
             "
           >
@@ -102,11 +102,11 @@ export default function SleepPage() {
           <TabsTrigger 
             value="analytics"
             className="
-              relative px-6 py-3 rounded-xl font-medium transition-all duration-300
+              flex-1 relative px-6 py-3 rounded-xl font-medium transition-all duration-300
               text-gray-300 hover:text-white
-              data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent-orange data-[state=active]:to-amber-500
-              data-[state=active]:text-navy-900 data-[state=active]:font-bold
-              data-[state=active]:shadow-lg data-[state=active]:shadow-accent-orange/25
+              data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600
+              data-[state=active]:text-white data-[state=active]:font-bold
+              data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-500/25
               hover:bg-navy-700/50
             "
           >
@@ -115,11 +115,11 @@ export default function SleepPage() {
           <TabsTrigger 
             value="goals"
             className="
-              relative px-6 py-3 rounded-xl font-medium transition-all duration-300
+              flex-1 relative px-6 py-3 rounded-xl font-medium transition-all duration-300
               text-gray-300 hover:text-white
-              data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent-orange data-[state=active]:to-amber-500
-              data-[state=active]:text-navy-900 data-[state=active]:font-bold
-              data-[state=active]:shadow-lg data-[state=active]:shadow-accent-orange/25
+              data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600
+              data-[state=active]:text-white data-[state=active]:font-bold
+              data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-500/25
               hover:bg-navy-700/50
             "
           >
@@ -128,11 +128,11 @@ export default function SleepPage() {
           <TabsTrigger 
             value="insights"
             className="
-              relative px-6 py-3 rounded-xl font-medium transition-all duration-300
+              flex-1 relative px-6 py-3 rounded-xl font-medium transition-all duration-300
               text-gray-300 hover:text-white
-              data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent-orange data-[state=active]:to-amber-500
-              data-[state=active]:text-navy-900 data-[state=active]:font-bold
-              data-[state=active]:shadow-lg data-[state=active]:shadow-accent-orange/25
+              data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600
+              data-[state=active]:text-white data-[state=active]:font-bold
+              data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-500/25
               hover:bg-navy-700/50
             "
           >
@@ -141,7 +141,7 @@ export default function SleepPage() {
         </TabsList>
 
         {/* Tab Contents */}
-        <div className="mt-6">
+        <div className="mt-6 pb-12">
           <TabsContent value="dashboard" className="space-y-6">
             <SleepDashboard />
           </TabsContent>

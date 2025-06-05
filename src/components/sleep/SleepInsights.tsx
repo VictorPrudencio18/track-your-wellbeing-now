@@ -3,384 +3,421 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   Brain, 
-  Lightbulb, 
-  AlertTriangle, 
-  TrendingUp,
-  Clock,
-  Moon,
-  Zap,
+  TrendingUp, 
+  TrendingDown,
+  AlertCircle,
+  CheckCircle,
+  Lightbulb,
   Target,
-  Activity,
-  Heart
+  Calendar,
+  Clock,
+  Heart,
+  Moon,
+  Sun,
+  Zap,
+  Activity
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { useSleepRecords, useSleepGoals } from '@/hooks/useSleep';
+import { useSleepInsights, useSleepRecommendations, useSleepCorrelations } from '@/hooks/useSleepAdvanced';
 
 export function SleepInsights() {
-  const { data: sleepRecords } = useSleepRecords();
-  const { data: sleepGoals } = useSleepGoals();
+  const { data: insights, isLoading: insightsLoading } = useSleepInsights();
+  const { data: recommendations, isLoading: recommendationsLoading } = useSleepRecommendations();
+  const { data: correlations, isLoading: correlationsLoading } = useSleepCorrelations();
 
-  const recentRecords = sleepRecords?.slice(0, 14) || [];
-  const activeGoal = sleepGoals?.find(goal => goal.is_active);
-
-  // Gerar insights baseados nos dados
-  const generateInsights = () => {
-    const insights = [];
-
-    if (recentRecords.length === 0) {
-      return [{
-        id: 'no-data',
-        type: 'info',
-        title: 'Comece a Registrar Seu Sono',
-        description: 'Para obter insights personalizados, registre pelo menos 3 noites de sono.',
-        icon: Moon,
-        severity: 'info',
-        action: 'Registrar sono hoje'
-      }];
+  // Mock data for demo purposes
+  const mockInsights = [
+    {
+      id: '1',
+      insight_type: 'improvement',
+      title: 'Melhoria na Consistência',
+      description: 'Sua regularidade de horários melhorou 34% nas últimas duas semanas.',
+      severity: 'positive',
+      confidence: 92
+    },
+    {
+      id: '2',
+      insight_type: 'pattern',
+      title: 'Padrão de Fim de Semana',
+      description: 'Você tende a dormir 2h mais tarde nos fins de semana, afetando a segunda-feira.',
+      severity: 'warning',
+      confidence: 88
+    },
+    {
+      id: '3',
+      insight_type: 'correlation',
+      title: 'Exercício e Sono Profundo',
+      description: 'Exercícios pela manhã aumentam seu sono profundo em 23%.',
+      severity: 'positive',
+      confidence: 95
     }
+  ];
 
-    // Análise de duração
-    const avgDuration = recentRecords.reduce((sum, r) => sum + (r.sleep_duration || 0), 0) / recentRecords.length / 60;
-    if (avgDuration < 7) {
-      insights.push({
-        id: 'short-sleep',
-        type: 'warning',
-        title: 'Duração de Sono Abaixo do Ideal',
-        description: `Sua média de ${avgDuration.toFixed(1)}h está abaixo das 7-9h recomendadas. Considere ajustar sua rotina.`,
-        icon: Clock,
-        severity: 'warning',
-        action: 'Definir horário de dormir mais cedo'
-      });
-    } else if (avgDuration >= 7 && avgDuration <= 9) {
-      insights.push({
-        id: 'good-duration',
-        type: 'success',
-        title: 'Duração de Sono Ideal',
-        description: `Excelente! Sua média de ${avgDuration.toFixed(1)}h está na faixa ideal de 7-9 horas.`,
-        icon: Zap,
-        severity: 'success',
-        action: 'Manter consistência'
-      });
+  const mockRecommendations = [
+    {
+      id: '1',
+      recommendation_type: 'bedtime',
+      title: 'Ajuste de Horário',
+      description: 'Tente ir para a cama 30 minutos mais cedo para melhorar a duração do sono.',
+      priority: 5,
+      expected_improvement: 15
+    },
+    {
+      id: '2',
+      recommendation_type: 'environment',
+      title: 'Temperatura do Quarto',
+      description: 'Mantenha a temperatura entre 18-20°C para otimizar a qualidade do sono.',
+      priority: 4,
+      expected_improvement: 12
+    },
+    {
+      id: '3',
+      recommendation_type: 'lifestyle',
+      title: 'Cafeína',
+      description: 'Evite cafeína após 14h para reduzir a latência do sono.',
+      priority: 3,
+      expected_improvement: 20
     }
+  ];
 
-    // Análise de qualidade
-    const avgQuality = recentRecords.reduce((sum, r) => sum + (r.subjective_quality || 0), 0) / recentRecords.length;
-    if (avgQuality < 6) {
-      insights.push({
-        id: 'poor-quality',
-        type: 'warning',
-        title: 'Qualidade de Sono Necessita Atenção',
-        description: `Sua qualidade média (${avgQuality.toFixed(1)}/10) pode ser melhorada. Verifique fatores ambientais.`,
-        icon: AlertTriangle,
-        severity: 'warning',
-        action: 'Otimizar ambiente de sono'
-      });
+  const mockCorrelations = [
+    {
+      id: '1',
+      factor_name: 'Exercício Matinal',
+      factor_type: 'activity',
+      correlation_coefficient: 0.78,
+      impact_level: 'high',
+      confidence_score: 0.95
+    },
+    {
+      id: '2',
+      factor_name: 'Cafeína Tarde',
+      factor_type: 'dietary',
+      correlation_coefficient: -0.65,
+      impact_level: 'medium',
+      confidence_score: 0.88
+    },
+    {
+      id: '3',
+      factor_name: 'Estresse Trabalho',
+      factor_type: 'mood',
+      correlation_coefficient: -0.72,
+      impact_level: 'high',
+      confidence_score: 0.91
     }
-
-    // Análise de latência
-    const avgLatency = recentRecords.reduce((sum, r) => sum + (r.sleep_latency || 0), 0) / recentRecords.length;
-    if (avgLatency > 30) {
-      insights.push({
-        id: 'high-latency',
-        type: 'critical',
-        title: 'Possível Indicador de Insônia',
-        description: `Tempo médio para adormecer: ${avgLatency.toFixed(0)} minutos. Acima de 30min pode indicar insônia.`,
-        icon: Brain,
-        severity: 'critical',
-        action: 'Consultar especialista'
-      });
-    }
-
-    // Análise de consistência
-    const bedtimes = recentRecords
-      .filter(r => r.bedtime)
-      .map(r => new Date(r.bedtime!).getHours() * 60 + new Date(r.bedtime!).getMinutes());
-    
-    if (bedtimes.length >= 3) {
-      const variance = bedtimes.reduce((sum, time) => {
-        const avg = bedtimes.reduce((s, t) => s + t, 0) / bedtimes.length;
-        return sum + Math.pow(time - avg, 2);
-      }, 0) / bedtimes.length;
-      
-      const stdDev = Math.sqrt(variance);
-      
-      if (stdDev > 60) { // Mais de 1 hora de variação
-        insights.push({
-          id: 'inconsistent-schedule',
-          type: 'warning',
-          title: 'Horários Inconsistentes',
-          description: 'Seus horários de dormir variam muito. Tente manter uma rotina mais regular.',
-          icon: Clock,
-          severity: 'warning',
-          action: 'Estabelecer rotina fixa'
-        });
-      } else if (stdDev < 30) {
-        insights.push({
-          id: 'consistent-schedule',
-          type: 'success',
-          title: 'Excelente Consistência',
-          description: 'Você mantém horários muito regulares! Continue assim.',
-          icon: Target,
-          severity: 'success',
-          action: 'Manter rotina atual'
-        });
-      }
-    }
-
-    // Análise de tendência
-    if (recentRecords.length >= 7) {
-      const recent7 = recentRecords.slice(0, 7);
-      const previous7 = recentRecords.slice(7, 14);
-      
-      if (previous7.length >= 7) {
-        const recentAvgScore = recent7.reduce((sum, r) => sum + (r.calculated_scores?.overall_score || 0), 0) / 7;
-        const previousAvgScore = previous7.reduce((sum, r) => sum + (r.calculated_scores?.overall_score || 0), 0) / 7;
-        
-        const improvement = recentAvgScore - previousAvgScore;
-        
-        if (improvement > 5) {
-          insights.push({
-            id: 'improving-trend',
-            type: 'success',
-            title: 'Tendência de Melhoria',
-            description: `Seu sono melhorou ${improvement.toFixed(1)} pontos na última semana!`,
-            icon: TrendingUp,
-            severity: 'success',
-            action: 'Continue as práticas atuais'
-          });
-        } else if (improvement < -5) {
-          insights.push({
-            id: 'declining-trend',
-            type: 'warning',
-            title: 'Tendência de Declínio',
-            description: `Seu sono piorou ${Math.abs(improvement).toFixed(1)} pontos. Identifique possíveis causas.`,
-            icon: AlertTriangle,
-            severity: 'warning',
-            action: 'Revisar rotina recente'
-          });
-        }
-      }
-    }
-
-    // Análise de fatores correlacionados
-    const recordsWithCaffeine = recentRecords.filter(r => r.lifestyle_factors?.caffeine_intake);
-    if (recordsWithCaffeine.length >= 3) {
-      const caffeineAvgScore = recordsWithCaffeine.reduce((sum, r) => sum + (r.calculated_scores?.overall_score || 0), 0) / recordsWithCaffeine.length;
-      const noCaffeineRecords = recentRecords.filter(r => !r.lifestyle_factors?.caffeine_intake);
-      
-      if (noCaffeineRecords.length >= 3) {
-        const noCaffeineAvgScore = noCaffeineRecords.reduce((sum, r) => sum + (r.calculated_scores?.overall_score || 0), 0) / noCaffeineRecords.length;
-        
-        if (caffeineAvgScore < noCaffeineAvgScore - 10) {
-          insights.push({
-            id: 'caffeine-impact',
-            type: 'info',
-            title: 'Impacto da Cafeína Detectado',
-            description: 'Seu sono é significativamente melhor nos dias sem cafeína tarde.',
-            icon: Lightbulb,
-            severity: 'info',
-            action: 'Evitar cafeína após 14h'
-          });
-        }
-      }
-    }
-
-    return insights.slice(0, 6); // Limitar a 6 insights principais
-  };
-
-  const insights = generateInsights();
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'critical': return 'border-red-500/30 bg-red-500/10';
-      case 'warning': return 'border-yellow-500/30 bg-yellow-500/10';
-      case 'success': return 'border-green-500/30 bg-green-500/10';
-      default: return 'border-blue-500/30 bg-blue-500/10';
-    }
-  };
+  ];
 
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
-      case 'critical': return 'text-red-400';
-      case 'warning': return 'text-yellow-400';
-      case 'success': return 'text-green-400';
-      default: return 'text-blue-400';
+      case 'positive': return <CheckCircle className="w-4 h-4 text-green-400" />;
+      case 'warning': return <AlertCircle className="w-4 h-4 text-yellow-400" />;
+      case 'negative': return <TrendingDown className="w-4 h-4 text-red-400" />;
+      default: return <Lightbulb className="w-4 h-4 text-blue-400" />;
     }
   };
 
-  const getOverallHealthScore = () => {
-    if (recentRecords.length === 0) return 0;
-    
-    const avgScore = recentRecords.reduce((sum, r) => sum + (r.calculated_scores?.overall_score || 0), 0) / recentRecords.length;
-    return Math.round(avgScore);
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'positive': return 'border-green-400/20 bg-green-500/10';
+      case 'warning': return 'border-yellow-400/20 bg-yellow-500/10';
+      case 'negative': return 'border-red-400/20 bg-red-500/10';
+      default: return 'border-blue-400/20 bg-blue-500/10';
+    }
   };
 
-  const healthScore = getOverallHealthScore();
+  const getRecommendationIcon = (type: string) => {
+    switch (type) {
+      case 'bedtime': return <Clock className="w-4 h-4 text-blue-400" />;
+      case 'environment': return <Moon className="w-4 h-4 text-purple-400" />;
+      case 'lifestyle': return <Heart className="w-4 h-4 text-red-400" />;
+      case 'activity': return <Activity className="w-4 h-4 text-green-400" />;
+      case 'nutrition': return <Zap className="w-4 h-4 text-orange-400" />;
+      default: return <Target className="w-4 h-4 text-gray-400" />;
+    }
+  };
 
-  return (
-    <div className="space-y-6">
-      {/* Header com Score Geral */}
-      <Card className="glass-card border-navy-700/30">
-        <CardContent className="p-6">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl">
-                <Brain className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-white">
-                  Insights Inteligentes de Sono
-                </h2>
-                <p className="text-gray-300">
-                  Análise baseada em {recentRecords.length} registros recentes
-                </p>
-              </div>
-            </div>
-            
-            <div className="text-center">
-              <div className="relative w-24 h-24">
-                <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
-                  <path
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none"
-                    stroke="#374151"
-                    strokeWidth="2"
-                  />
-                  <path
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none"
-                    stroke="#8B5CF6"
-                    strokeWidth="2"
-                    strokeDasharray={`${healthScore}, 100`}
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-purple-400">{healthScore}</span>
-                </div>
-              </div>
-              <p className="text-sm text-gray-400 mt-2">Score de Saúde do Sono</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+  const getCorrelationIcon = (type: string) => {
+    switch (type) {
+      case 'activity': return <Activity className="w-4 h-4 text-green-400" />;
+      case 'dietary': return <Zap className="w-4 h-4 text-orange-400" />;
+      case 'mood': return <Heart className="w-4 h-4 text-red-400" />;
+      case 'environmental': return <Moon className="w-4 h-4 text-purple-400" />;
+      case 'lifestyle': return <Sun className="w-4 h-4 text-yellow-400" />;
+      default: return <Brain className="w-4 h-4 text-gray-400" />;
+    }
+  };
 
-      {/* Grid de Insights */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {insights.map((insight, index) => {
-          const IconComponent = insight.icon;
-          return (
-            <motion.div
-              key={insight.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card className={`glass-card ${getSeverityColor(insight.severity)}`}>
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className={`p-2 rounded-lg ${insight.severity === 'critical' ? 'bg-red-500/20' : insight.severity === 'warning' ? 'bg-yellow-500/20' : insight.severity === 'success' ? 'bg-green-500/20' : 'bg-blue-500/20'}`}>
-                      <IconComponent className={`w-5 h-5 ${getSeverityIcon(insight.severity)}`} />
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-white">{insight.title}</h3>
-                        <Badge variant="outline" className={getSeverityIcon(insight.severity)}>
-                          {insight.severity === 'critical' ? 'Crítico' : 
-                           insight.severity === 'warning' ? 'Atenção' :
-                           insight.severity === 'success' ? 'Ótimo' : 'Info'}
-                        </Badge>
-                      </div>
-                      <p className="text-gray-300 text-sm">{insight.description}</p>
-                      <div className="pt-2">
-                        <Badge variant="secondary" className="text-xs">
-                          💡 {insight.action}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          );
-        })}
-      </div>
+  const getImpactColor = (level: string) => {
+    switch (level) {
+      case 'high': return 'text-red-400';
+      case 'medium': return 'text-yellow-400';
+      case 'low': return 'text-green-400';
+      default: return 'text-gray-400';
+    }
+  };
 
-      {/* Análise Detalhada */}
-      {recentRecords.length >= 7 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-        >
-          <Card className="glass-card border-navy-700/30">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Activity className="w-5 h-5 text-accent-orange" />
-                Análise Detalhada dos Padrões
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Consistência */}
-                <div className="space-y-3">
-                  <h4 className="font-medium text-gray-300 flex items-center gap-2">
-                    <Target className="w-4 h-4" />
-                    Consistência de Horários
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Score</span>
-                      <span className="text-white">85%</span>
-                    </div>
-                    <Progress value={85} className="h-2 bg-navy-800/50" />
-                    <p className="text-xs text-gray-400">
-                      Variação média: ±25 minutos
-                    </p>
-                  </div>
-                </div>
-
-                {/* Eficiência */}
-                <div className="space-y-3">
-                  <h4 className="font-medium text-gray-300 flex items-center gap-2">
-                    <Zap className="w-4 h-4" />
-                    Eficiência do Sono
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Score</span>
-                      <span className="text-white">78%</span>
-                    </div>
-                    <Progress value={78} className="h-2 bg-navy-800/50" />
-                    <p className="text-xs text-gray-400">
-                      Tempo na cama vs. dormindo
-                    </p>
-                  </div>
-                </div>
-
-                {/* Recuperação */}
-                <div className="space-y-3">
-                  <h4 className="font-medium text-gray-300 flex items-center gap-2">
-                    <Heart className="w-4 h-4" />
-                    Índice de Recuperação
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Score</span>
-                      <span className="text-white">92%</span>
-                    </div>
-                    <Progress value={92} className="h-2 bg-navy-800/50" />
-                    <p className="text-xs text-gray-400">
-                      Baseado em qualidade + duração
-                    </p>
-                  </div>
-                </div>
-              </div>
+  if (insightsLoading || recommendationsLoading || correlationsLoading) {
+    return (
+      <div className="space-y-6">
+        {[...Array(3)].map((_, i) => (
+          <Card key={i} className="glass-card animate-pulse">
+            <CardContent className="p-6">
+              <div className="h-32 bg-navy-700/50 rounded"></div>
             </CardContent>
           </Card>
-        </motion.div>
-      )}
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="text-center"
+      >
+        <div className="inline-flex items-center gap-3 mb-4">
+          <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl">
+            <Brain className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-4xl font-bold text-white">Insights Inteligentes</h2>
+        </div>
+        <p className="text-xl text-gray-300">
+          Análises avançadas e recomendações personalizadas para otimizar seu sono
+        </p>
+      </motion.div>
+
+      {/* AI Insights */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+      >
+        <Card className="glass-card-holographic border-navy-600/30">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl">
+                <Brain className="w-5 h-5 text-white" />
+              </div>
+              Insights da IA
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {mockInsights.map((insight, index) => (
+                <motion.div
+                  key={insight.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
+                  className={`p-4 rounded-xl border ${getSeverityColor(insight.severity)}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-navy-800/50 rounded-lg">
+                      {getSeverityIcon(insight.severity)}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium text-white">{insight.title}</h4>
+                        <Badge variant="outline" className="border-navy-400/50 text-navy-200 text-xs">
+                          {insight.confidence}% confiança
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-300">{insight.description}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Recommendations */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+      >
+        <Card className="glass-card-holographic border-navy-600/30">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl">
+                <Target className="w-5 h-5 text-white" />
+              </div>
+              Recomendações Personalizadas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {mockRecommendations.map((recommendation, index) => (
+                <motion.div
+                  key={recommendation.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
+                >
+                  <Card className="glass-card border-navy-600/30 h-full">
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          {getRecommendationIcon(recommendation.recommendation_type)}
+                          <h4 className="font-medium text-white text-sm">
+                            {recommendation.title}
+                          </h4>
+                        </div>
+                        
+                        <p className="text-xs text-gray-300">
+                          {recommendation.description}
+                        </p>
+                        
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-400">Impacto esperado</span>
+                            <span className="text-green-400">+{recommendation.expected_improvement}%</span>
+                          </div>
+                          <Progress 
+                            value={recommendation.expected_improvement} 
+                            className="h-1" 
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs border-navy-400/50 text-navy-200"
+                          >
+                            Prioridade {recommendation.priority}/5
+                          </Badge>
+                          <Button size="sm" variant="outline" className="text-xs">
+                            Aplicar
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Correlations */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
+      >
+        <Card className="glass-card-holographic border-navy-600/30">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl">
+                <TrendingUp className="w-5 h-5 text-white" />
+              </div>
+              Correlações Descobertas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {mockCorrelations.map((correlation, index) => (
+                <motion.div
+                  key={correlation.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
+                  className="p-4 bg-navy-800/30 rounded-xl border border-navy-600/20"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-navy-700/50 rounded-lg">
+                        {getCorrelationIcon(correlation.factor_type)}
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-white">{correlation.factor_name}</h4>
+                        <p className="text-xs text-gray-400 capitalize">
+                          {correlation.factor_type}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-white">
+                          {Math.abs(correlation.correlation_coefficient * 100).toFixed(0)}%
+                        </span>
+                        {correlation.correlation_coefficient > 0 ? 
+                          <TrendingUp className="w-4 h-4 text-green-400" /> : 
+                          <TrendingDown className="w-4 h-4 text-red-400" />
+                        }
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs ${getImpactColor(correlation.impact_level)}`}>
+                          {correlation.impact_level}
+                        </span>
+                        <Badge variant="outline" className="text-xs border-navy-400/50 text-navy-200">
+                          {Math.round(correlation.confidence_score * 100)}%
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Weekly Summary */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.7 }}
+      >
+        <Card className="glass-card-holographic border-navy-600/30">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <div className="p-2 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl">
+                <Calendar className="w-5 h-5 text-white" />
+              </div>
+              Resumo Semanal
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-navy-800/30 rounded-xl border border-navy-600/20">
+                <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
+                <div className="text-lg font-bold text-white">5/7</div>
+                <div className="text-sm text-gray-400">Noites com meta atingida</div>
+              </div>
+              
+              <div className="text-center p-4 bg-navy-800/30 rounded-xl border border-navy-600/20">
+                <TrendingUp className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+                <div className="text-lg font-bold text-white">+12%</div>
+                <div className="text-sm text-gray-400">Melhoria geral</div>
+              </div>
+              
+              <div className="text-center p-4 bg-navy-800/30 rounded-xl border border-navy-600/20">
+                <Clock className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+                <div className="text-lg font-bold text-white">7.2h</div>
+                <div className="text-sm text-gray-400">Duração média</div>
+              </div>
+              
+              <div className="text-center p-4 bg-navy-800/30 rounded-xl border border-navy-600/20">
+                <Star className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+                <div className="text-lg font-bold text-white">8.1/10</div>
+                <div className="text-sm text-gray-400">Qualidade média</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }

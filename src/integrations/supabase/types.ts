@@ -992,6 +992,48 @@ export type Database = {
         }
         Relationships: []
       }
+      sleep_correlations: {
+        Row: {
+          confidence_score: number | null
+          correlation_coefficient: number | null
+          created_at: string | null
+          factor_name: string
+          factor_type: string
+          id: string
+          impact_level: string | null
+          insights: Json | null
+          last_calculated: string | null
+          sample_size: number | null
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          correlation_coefficient?: number | null
+          created_at?: string | null
+          factor_name: string
+          factor_type: string
+          id?: string
+          impact_level?: string | null
+          insights?: Json | null
+          last_calculated?: string | null
+          sample_size?: number | null
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          correlation_coefficient?: number | null
+          created_at?: string | null
+          factor_name?: string
+          factor_type?: string
+          id?: string
+          impact_level?: string | null
+          insights?: Json | null
+          last_calculated?: string | null
+          sample_size?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       sleep_goals: {
         Row: {
           consistency_goal: number | null
@@ -1073,19 +1115,150 @@ export type Database = {
         }
         Relationships: []
       }
+      sleep_journal: {
+        Row: {
+          alcohol_consumption: boolean | null
+          bedtime_routine_followed: boolean | null
+          caffeine_intake_time: string | null
+          created_at: string | null
+          dreams_description: string | null
+          dreams_quality: number | null
+          exercise_timing: string | null
+          factors_affecting_sleep: string[] | null
+          gratitude_notes: string | null
+          id: string
+          mood_after_sleep: number | null
+          mood_before_sleep: number | null
+          pre_sleep_activities: string[] | null
+          screen_time_before_bed: number | null
+          sleep_date: string
+          sleep_environment_rating: number | null
+          stress_events: string[] | null
+          supplements_taken: string[] | null
+          tomorrow_priorities: string[] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          alcohol_consumption?: boolean | null
+          bedtime_routine_followed?: boolean | null
+          caffeine_intake_time?: string | null
+          created_at?: string | null
+          dreams_description?: string | null
+          dreams_quality?: number | null
+          exercise_timing?: string | null
+          factors_affecting_sleep?: string[] | null
+          gratitude_notes?: string | null
+          id?: string
+          mood_after_sleep?: number | null
+          mood_before_sleep?: number | null
+          pre_sleep_activities?: string[] | null
+          screen_time_before_bed?: number | null
+          sleep_date: string
+          sleep_environment_rating?: number | null
+          stress_events?: string[] | null
+          supplements_taken?: string[] | null
+          tomorrow_priorities?: string[] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          alcohol_consumption?: boolean | null
+          bedtime_routine_followed?: boolean | null
+          caffeine_intake_time?: string | null
+          created_at?: string | null
+          dreams_description?: string | null
+          dreams_quality?: number | null
+          exercise_timing?: string | null
+          factors_affecting_sleep?: string[] | null
+          gratitude_notes?: string | null
+          id?: string
+          mood_after_sleep?: number | null
+          mood_before_sleep?: number | null
+          pre_sleep_activities?: string[] | null
+          screen_time_before_bed?: number | null
+          sleep_date?: string
+          sleep_environment_rating?: number | null
+          stress_events?: string[] | null
+          supplements_taken?: string[] | null
+          tomorrow_priorities?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sleep_recommendations: {
+        Row: {
+          based_on_data: Json | null
+          confidence_score: number | null
+          created_at: string | null
+          description: string
+          expected_improvement: number | null
+          expires_at: string | null
+          id: string
+          priority: number | null
+          recommendation_type: string
+          status: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          based_on_data?: Json | null
+          confidence_score?: number | null
+          created_at?: string | null
+          description: string
+          expected_improvement?: number | null
+          expires_at?: string | null
+          id?: string
+          priority?: number | null
+          recommendation_type: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          based_on_data?: Json | null
+          confidence_score?: number | null
+          created_at?: string | null
+          description?: string
+          expected_improvement?: number | null
+          expires_at?: string | null
+          id?: string
+          priority?: number | null
+          recommendation_type?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       sleep_records: {
         Row: {
+          awake_duration: number | null
           bedtime: string | null
           calculated_scores: Json | null
+          comfort_level: number | null
           created_at: string
+          deep_sleep_duration: number | null
           environmental_factors: Json | null
           id: string
           insomnia_indicators: Json | null
           lifestyle_factors: Json | null
+          light_level: number | null
+          light_sleep_duration: number | null
+          noise_level: number | null
           notes: string | null
+          rem_sleep_duration: number | null
+          room_temperature: number | null
           sleep_date: string
+          sleep_debt: number | null
           sleep_duration: number | null
+          sleep_efficiency: number | null
           sleep_latency: number | null
+          sleep_score: number | null
           subjective_quality: number | null
           updated_at: string
           user_id: string
@@ -1093,17 +1266,28 @@ export type Database = {
           wake_time: string | null
         }
         Insert: {
+          awake_duration?: number | null
           bedtime?: string | null
           calculated_scores?: Json | null
+          comfort_level?: number | null
           created_at?: string
+          deep_sleep_duration?: number | null
           environmental_factors?: Json | null
           id?: string
           insomnia_indicators?: Json | null
           lifestyle_factors?: Json | null
+          light_level?: number | null
+          light_sleep_duration?: number | null
+          noise_level?: number | null
           notes?: string | null
+          rem_sleep_duration?: number | null
+          room_temperature?: number | null
           sleep_date: string
+          sleep_debt?: number | null
           sleep_duration?: number | null
+          sleep_efficiency?: number | null
           sleep_latency?: number | null
+          sleep_score?: number | null
           subjective_quality?: number | null
           updated_at?: string
           user_id: string
@@ -1111,22 +1295,123 @@ export type Database = {
           wake_time?: string | null
         }
         Update: {
+          awake_duration?: number | null
           bedtime?: string | null
           calculated_scores?: Json | null
+          comfort_level?: number | null
           created_at?: string
+          deep_sleep_duration?: number | null
           environmental_factors?: Json | null
           id?: string
           insomnia_indicators?: Json | null
           lifestyle_factors?: Json | null
+          light_level?: number | null
+          light_sleep_duration?: number | null
+          noise_level?: number | null
           notes?: string | null
+          rem_sleep_duration?: number | null
+          room_temperature?: number | null
           sleep_date?: string
+          sleep_debt?: number | null
           sleep_duration?: number | null
+          sleep_efficiency?: number | null
           sleep_latency?: number | null
+          sleep_score?: number | null
           subjective_quality?: number | null
           updated_at?: string
           user_id?: string
           wake_count?: number | null
           wake_time?: string | null
+        }
+        Relationships: []
+      }
+      sleep_sessions: {
+        Row: {
+          actual_duration: number | null
+          audio_analysis: Json | null
+          created_at: string | null
+          heart_rate_data: Json | null
+          id: string
+          movement_data: Json | null
+          session_end: string | null
+          session_start: string | null
+          session_status: string | null
+          session_type: string | null
+          sleep_phases: Json | null
+          target_duration: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          actual_duration?: number | null
+          audio_analysis?: Json | null
+          created_at?: string | null
+          heart_rate_data?: Json | null
+          id?: string
+          movement_data?: Json | null
+          session_end?: string | null
+          session_start?: string | null
+          session_status?: string | null
+          session_type?: string | null
+          sleep_phases?: Json | null
+          target_duration?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          actual_duration?: number | null
+          audio_analysis?: Json | null
+          created_at?: string | null
+          heart_rate_data?: Json | null
+          id?: string
+          movement_data?: Json | null
+          session_end?: string | null
+          session_start?: string | null
+          session_status?: string | null
+          session_type?: string | null
+          sleep_phases?: Json | null
+          target_duration?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      smart_alarms: {
+        Row: {
+          alarm_sound: string | null
+          alarm_time: string
+          created_at: string | null
+          days_of_week: number[] | null
+          id: string
+          is_active: boolean | null
+          smart_window_minutes: number | null
+          updated_at: string | null
+          user_id: string
+          vibration_enabled: boolean | null
+        }
+        Insert: {
+          alarm_sound?: string | null
+          alarm_time: string
+          created_at?: string | null
+          days_of_week?: number[] | null
+          id?: string
+          is_active?: boolean | null
+          smart_window_minutes?: number | null
+          updated_at?: string | null
+          user_id: string
+          vibration_enabled?: boolean | null
+        }
+        Update: {
+          alarm_sound?: string | null
+          alarm_time?: string
+          created_at?: string | null
+          days_of_week?: number[] | null
+          id?: string
+          is_active?: boolean | null
+          smart_window_minutes?: number | null
+          updated_at?: string | null
+          user_id?: string
+          vibration_enabled?: boolean | null
         }
         Relationships: []
       }
@@ -1565,6 +1850,10 @@ export type Database = {
       }
       calculate_category_score: {
         Args: { p_user_id: string; p_category: string; p_date?: string }
+        Returns: number
+      }
+      calculate_sleep_efficiency: {
+        Args: { p_sleep_duration: number; p_time_in_bed: number }
         Returns: number
       }
       calculate_sleep_score: {

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -24,6 +25,7 @@ import { Slider } from '@/components/ui/slider';
 import { useCreateSleepRecord } from '@/hooks/useSleep';
 import { SleepMetricsCard } from '@/components/ui/sleep-metrics-card';
 import { toast } from 'sonner';
+import { SmartAlarmManager } from '@/components/sleep/advanced/SmartAlarmManager';
 
 export function SleepTracker() {
   const createSleepRecord = useCreateSleepRecord();
@@ -48,7 +50,12 @@ export function SleepTracker() {
       screen_time_before: 1,
       stress_level: 4
     },
-    notes: ''
+    notes: '',
+    // Novos campos para o registro avançado
+    rem_sleep_duration: 75,
+    deep_sleep_duration: 90,
+    light_sleep_duration: 120,
+    awake_duration: 15
   });
 
   const handleSave = async () => {
@@ -64,6 +71,11 @@ export function SleepTracker() {
       await createSleepRecord.mutateAsync({
         ...sleepData,
         sleep_duration: Math.round(sleepDuration * 60),
+        // Novos campos avançados
+        room_temperature: sleepData.environmental_factors.room_temperature,
+        noise_level: sleepData.environmental_factors.noise_level,
+        light_level: sleepData.environmental_factors.light_level,
+        comfort_level: sleepData.environmental_factors.comfort_level
       });
       
       toast.success('Registro de sono salvo com sucesso!');
@@ -143,7 +155,7 @@ export function SleepTracker() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Dados Básicos do Sono */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -250,6 +262,89 @@ export function SleepTracker() {
                     }))}
                     className="bg-navy-800/50 border-navy-600/30 text-white"
                   />
+                </div>
+              </div>
+
+              {/* Fases do Sono */}
+              <div className="space-y-3">
+                <Label className="text-white/80 block">
+                  Fases do Sono (minutos)
+                </Label>
+                
+                <div>
+                  <div className="flex justify-between text-xs text-white/80 mb-1">
+                    <span>Sono Leve (Light)</span>
+                    <span>{sleepData.light_sleep_duration}min</span>
+                  </div>
+                  <Slider
+                    value={[sleepData.light_sleep_duration]}
+                    onValueChange={(value) => setSleepData(prev => ({ 
+                      ...prev, 
+                      light_sleep_duration: value[0] 
+                    }))}
+                    max={300}
+                    min={0}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-xs text-white/80 mb-1">
+                    <span>Sono Profundo (Deep)</span>
+                    <span>{sleepData.deep_sleep_duration}min</span>
+                  </div>
+                  <Slider
+                    value={[sleepData.deep_sleep_duration]}
+                    onValueChange={(value) => setSleepData(prev => ({ 
+                      ...prev, 
+                      deep_sleep_duration: value[0] 
+                    }))}
+                    max={200}
+                    min={0}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-xs text-white/80 mb-1">
+                    <span>Sono REM</span>
+                    <span>{sleepData.rem_sleep_duration}min</span>
+                  </div>
+                  <Slider
+                    value={[sleepData.rem_sleep_duration]}
+                    onValueChange={(value) => setSleepData(prev => ({ 
+                      ...prev, 
+                      rem_sleep_duration: value[0] 
+                    }))}
+                    max={200}
+                    min={0}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-xs text-white/80 mb-1">
+                    <span>Acordado durante o sono</span>
+                    <span>{sleepData.awake_duration}min</span>
+                  </div>
+                  <Slider
+                    value={[sleepData.awake_duration]}
+                    onValueChange={(value) => setSleepData(prev => ({ 
+                      ...prev, 
+                      awake_duration: value[0] 
+                    }))}
+                    max={120}
+                    min={0}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
+                
+                <div className="text-right text-xs text-gray-400 mt-2">
+                  Total: {sleepData.light_sleep_duration + sleepData.deep_sleep_duration + sleepData.rem_sleep_duration + sleepData.awake_duration} minutos
                 </div>
               </div>
 
@@ -427,6 +522,24 @@ export function SleepTracker() {
           <Save className="w-5 h-5 mr-3" />
           {createSleepRecord.isPending ? 'Salvando...' : 'Salvar Registro de Sono'}
         </Button>
+      </motion.div>
+
+      {/* Smart Alarm Manager */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.7 }}
+      >
+        <Card className="glass-card-holographic border-navy-600/30 mt-12">
+          <CardHeader>
+            <CardTitle className="text-white">
+              Alarmes Inteligentes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SmartAlarmManager />
+          </CardContent>
+        </Card>
       </motion.div>
     </div>
   );
