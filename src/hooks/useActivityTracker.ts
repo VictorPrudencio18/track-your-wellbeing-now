@@ -246,6 +246,8 @@ export function useActivityTracker(activityType: 'running' | 'cycling' | 'walkin
 
     // Salvar atividade final
     try {
+      const positionHistory = gps.getPositionHistory();
+      
       await createActivity.mutateAsync({
         type: activityType,
         name: `${activityType === 'running' ? 'Corrida' : activityType === 'cycling' ? 'Ciclismo' : 'Caminhada'} GPS`,
@@ -258,15 +260,25 @@ export function useActivityTracker(activityType: 'running' | 'cycling' | 'walkin
         pace: state.data.avgPace,
         completed_at: new Date().toISOString(),
         gps_data: {
-          totalPoints: gps.getPositionHistory().length,
+          totalPoints: positionHistory.length,
           avgAccuracy: gps.accuracy,
           maxSpeed: state.data.maxSpeed,
           avgSpeed: state.data.avgSpeed
         },
         route_summary: {
-          startLocation: gps.getPositionHistory()[0],
-          endLocation: gps.getPositionHistory()[gps.getPositionHistory().length - 1],
-          waypoints: gps.getPositionHistory().length
+          startLocation: positionHistory.length > 0 ? {
+            latitude: positionHistory[0].latitude,
+            longitude: positionHistory[0].longitude,
+            altitude: positionHistory[0].altitude,
+            timestamp: positionHistory[0].timestamp
+          } : null,
+          endLocation: positionHistory.length > 0 ? {
+            latitude: positionHistory[positionHistory.length - 1].latitude,
+            longitude: positionHistory[positionHistory.length - 1].longitude,
+            altitude: positionHistory[positionHistory.length - 1].altitude,
+            timestamp: positionHistory[positionHistory.length - 1].timestamp
+          } : null,
+          waypoints: positionHistory.length
         }
       });
       
