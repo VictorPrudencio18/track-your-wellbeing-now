@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +17,7 @@ import {
   Scale,
   Bluetooth,
   Settings,
-  Sync,
+  RefreshCw,
   Battery
 } from 'lucide-react';
 
@@ -168,7 +167,7 @@ export function DeviceCenter() {
                   <p className="text-xs text-navy-500">automática</p>
                 </div>
                 <div className="p-3 bg-purple-500/10 rounded-xl">
-                  <Sync className="w-6 h-6 text-purple-400" />
+                  <RefreshCw className="w-6 h-6 text-purple-400" />
                 </div>
               </div>
             </CardContent>
@@ -188,7 +187,7 @@ export function DeviceCenter() {
             Dispositivos
           </TabsTrigger>
           <TabsTrigger value="sync" className="data-[state=active]:bg-accent-orange">
-            <Sync className="w-4 h-4 mr-2" />
+            <RefreshCw className="w-4 h-4 mr-2" />
             Sincronização
           </TabsTrigger>
           <TabsTrigger value="settings" className="data-[state=active]:bg-accent-orange">
@@ -246,7 +245,7 @@ export function DeviceCenter() {
             <Card className="glass-card border-navy-600/30 bg-navy-800/50">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
-                  <Sync className="w-5 h-5 text-blue-400" />
+                  <RefreshCw className="w-5 h-5 text-blue-400" />
                   Status de Sincronização
                 </CardTitle>
               </CardHeader>
@@ -434,7 +433,7 @@ export function DeviceCenter() {
                           variant="outline" 
                           className="flex-1 border-navy-600/30 text-navy-300 hover:bg-navy-700/50"
                         >
-                          <Sync className="w-4 h-4 mr-2" />
+                          <RefreshCw className="w-4 h-4 mr-2" />
                           Sincronizar
                         </Button>
                       </div>
@@ -473,7 +472,7 @@ export function DeviceCenter() {
           <div className="text-center py-12">
             <div className="glass-card rounded-xl p-8 max-w-md mx-auto">
               <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Sync className="w-8 h-8 text-purple-400" />
+                <RefreshCw className="w-8 h-8 text-purple-400" />
               </div>
               <h3 className="text-xl font-bold text-white mb-2">Sincronização Avançada</h3>
               <p className="text-navy-400">
