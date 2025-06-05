@@ -3,101 +3,30 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, 
-  MessageSquare, 
-  User, 
-  Brain,
-  Activity,
-  Heart,
-  TrendingUp,
-  Settings,
-  Mic,
-  Send,
-  RotateCcw,
-  Zap,
-  Clock,
-  Target,
   AlertCircle,
   Search,
   Filter,
-  Bookmark,
-  Share2,
   Download,
-  Upload,
-  Camera,
-  Paperclip,
-  Smile,
-  ThumbsUp,
-  ThumbsDown,
-  Star,
-  Flag,
-  Volume2,
-  VolumeX,
-  Play,
-  Pause,
-  Maximize2,
-  Minimize2,
-  MoreHorizontal,
-  ChevronDown,
-  ChevronUp,
-  ChevronLeft,
-  ChevronRight,
-  Bot,
-  Users,
-  FileText,
+  Share2,
   PieChart,
-  Calendar,
-  Award,
-  Lightbulb,
-  Shield,
-  Eye,
-  EyeOff,
-  Moon,
-  Sun,
-  Globe,
-  Wifi,
-  WifiOff,
-  Bluetooth,
-  Headphones,
-  Keyboard,
-  Mouse,
-  Smartphone,
-  Tablet,
-  Monitor,
-  Database,
-  Server,
-  Cloud,
-  Lock,
-  Unlock,
-  Key,
-  UserCheck,
-  UserPlus,
-  UserMinus,
-  Bell,
-  BellOff,
-  Mail,
-  Phone,
-  Video,
-  HelpCircle,
-  Info,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  Loader
+  Brain,
+  Zap,
+  Target,
+  Lightbulb
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { useActivities } from '@/hooks/useSupabaseActivities';
 import { useUserScores } from '@/hooks/useSupabaseScores';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+// Import the new components
+import { ChatMessage } from '@/components/chat/ChatMessage';
+import { ChatInput } from '@/components/chat/ChatInput';
+import { ChatSidebar } from '@/components/chat/ChatSidebar';
+import { ChatHeader } from '@/components/chat/ChatHeader';
 
 interface ChatMessage {
   id: string;
@@ -140,24 +69,19 @@ export default function VivaChatPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [chatMode, setChatMode] = useState<'casual' | 'coaching' | 'analysis' | 'emergency' | 'technical'>('casual');
   const [isRecording, setIsRecording] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [sidebarTab, setSidebarTab] = useState('stats');
   const [searchQuery, setSearchQuery] = useState('');
   const [messageFilter, setMessageFilter] = useState('all');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [autoScroll, setAutoScroll] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
   const [aiPersonality, setAiPersonality] = useState('friendly');
   const [responseSpeed, setResponseSpeed] = useState([1]);
   const [showSidebar, setShowSidebar] = useState(true);
-  const [aiVoiceSpeed, setAiVoiceSpeed] = useState([1]);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [privacyMode, setPrivacyMode] = useState(false);
   
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Estatísticas do usuário
   const totalActivities = activities?.length || 0;
@@ -334,7 +258,7 @@ ${totalActivities < 10 ?
 
 **Meta da Semana:** ${totalPoints < 200 ? 'Acumular 150 pontos' : 'Superar sua média atual em 20%'}
 
-**Dica Especial:** Baseado em ${totalActividades} atividades, seu corpo responde melhor a ${totalActivities % 3 === 0 ? 'treinos intervalados' : totalActivities % 2 === 0 ? 'exercícios de resistência' : 'atividades aeróbicas'}.
+**Dica Especial:** Baseado em ${totalActivities} atividades, seu corpo responde melhor a ${totalActivities % 3 === 0 ? 'treinos intervalados' : totalActivities % 2 === 0 ? 'exercícios de resistência' : 'atividades aeróbicas'}.
 
 Que tipo de atividade desperta mais seu interesse agora?`;
       }
@@ -467,11 +391,15 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
   };
 
   const handleFileUpload = () => {
-    fileInputRef.current?.click();
+    // File upload logic here
   };
 
   const handleTemplateUse = (template: ChatTemplate) => {
     setInputValue(template.content);
+  };
+
+  const handleClearChat = () => {
+    setMessages([]);
   };
 
   const filteredMessages = messages.filter(msg => {
@@ -582,101 +510,17 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
       className={`h-screen max-h-screen overflow-hidden p-4 ${isFullscreen ? 'fixed inset-0 z-50 bg-navy-900' : ''}`}
     >
       {/* Header Avançado */}
-      <Card className="glass-card mb-4 border-navy-700/30">
-        <CardHeader className="pb-4">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="w-12 h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-accent-orange via-accent-orange-light to-yellow-400 rounded-2xl flex items-center justify-center shadow-xl">
-                  <Sparkles className="w-6 h-6 lg:w-8 lg:h-8 text-navy-900 animate-pulse" />
-                </div>
-                <div className="absolute -top-1 -right-1 w-4 h-4 lg:w-5 lg:h-5 bg-green-400 rounded-full border-2 border-navy-900 animate-pulse flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 lg:w-2 lg:h-2 bg-navy-900 rounded-full"></div>
-                </div>
-              </div>
-              <div>
-                <h1 className="text-xl lg:text-3xl font-bold bg-gradient-to-r from-white via-accent-orange to-yellow-400 bg-clip-text text-transparent">
-                  IA VIVA - Sistema Avançado
-                </h1>
-                <p className="text-gray-300 text-xs lg:text-sm flex items-center gap-2 flex-wrap">
-                  <Bot className="w-3 h-3 lg:w-4 lg:h-4" />
-                  <span>Assistente com IA Completa</span>
-                  <span className="hidden sm:inline">• Análise em Tempo Real</span>
-                  <span className="hidden md:inline">• {totalActivities} Atividades Processadas</span>
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 w-full lg:w-auto">
-              {/* Status Indicators */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant="outline" className="bg-green-500/10 border-green-500/30 text-green-400 text-xs">
-                  <Wifi className="w-3 h-3 mr-1" />
-                  Online
-                </Badge>
-                <Badge variant="outline" className="bg-blue-500/10 border-blue-500/30 text-blue-400 text-xs">
-                  <Brain className="w-3 h-3 mr-1" />
-                  IA Ativa
-                </Badge>
-                {voiceEnabled && (
-                  <Badge variant="outline" className="bg-purple-500/10 border-purple-500/30 text-purple-400 text-xs">
-                    <Mic className="w-3 h-3 mr-1" />
-                    Voz
-                  </Badge>
-                )}
-              </div>
-
-              {/* Mode Selector */}
-              <div className="flex gap-1 flex-wrap">
-                {['casual', 'coaching', 'analysis', 'emergency', 'technical'].map((mode) => (
-                  <Button
-                    key={mode}
-                    variant={chatMode === mode ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setChatMode(mode as any)}
-                    className={`text-xs lg:text-sm ${chatMode === mode ? "bg-accent-orange text-navy-900" : "text-gray-300 hover:text-white"} ${mode === 'emergency' ? 'hover:bg-red-500/20 hover:text-red-400' : ''}`}
-                  >
-                    {mode === 'casual' && <MessageSquare className="w-3 h-3 lg:w-4 lg:h-4 mr-1" />}
-                    {mode === 'coaching' && <Heart className="w-3 h-3 lg:w-4 lg:h-4 mr-1" />}
-                    {mode === 'analysis' && <Brain className="w-3 h-3 lg:w-4 lg:h-4 mr-1" />}
-                    {mode === 'emergency' && <AlertCircle className="w-3 h-3 lg:w-4 lg:h-4 mr-1" />}
-                    {mode === 'technical' && <Settings className="w-3 h-3 lg:w-4 lg:h-4 mr-1" />}
-                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                  </Button>
-                ))}
-              </div>
-
-              {/* Header Controls */}
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => setVoiceEnabled(!voiceEnabled)}
-                  className={`text-xs lg:text-sm ${voiceEnabled ? "text-green-400" : "text-gray-400"}`}
-                >
-                  {voiceEnabled ? <Volume2 className="w-3 h-3 lg:w-4 lg:h-4" /> : <VolumeX className="w-3 h-3 lg:w-4 lg:h-4" />}
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => setShowSidebar(!showSidebar)}
-                  className="text-gray-300 hover:text-white hidden lg:flex"
-                >
-                  {showSidebar ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => setIsFullscreen(!isFullscreen)}
-                  className="text-gray-300 hover:text-white"
-                >
-                  {isFullscreen ? <Minimize2 className="w-3 h-3 lg:w-4 lg:h-4" /> : <Maximize2 className="w-3 h-3 lg:w-4 lg:h-4" />}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
+      <ChatHeader
+        totalActivities={totalActivities}
+        chatMode={chatMode}
+        setChatMode={setChatMode}
+        voiceEnabled={voiceEnabled}
+        setVoiceEnabled={setVoiceEnabled}
+        showSidebar={showSidebar}
+        setShowSidebar={setShowSidebar}
+        isFullscreen={isFullscreen}
+        setIsFullscreen={setIsFullscreen}
+      />
 
       <div className={`grid gap-4 h-[calc(100vh-200px)] ${showSidebar && !isFullscreen ? 'grid-cols-1 xl:grid-cols-4' : 'grid-cols-1'}`}>
         {/* Área de Chat Principal */}
@@ -731,103 +575,13 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
               <div className="flex-1 overflow-y-auto p-4 lg:p-6">
                 <div className="space-y-4 lg:space-y-6">
                   {searchedMessages.map((message, index) => (
-                    <motion.div
+                    <ChatMessage
                       key={message.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
-                      className={`flex gap-3 lg:gap-4 ${message.type === 'user' ? 'justify-end' : ''}`}
-                    >
-                      {message.type === 'ai' && (
-                        <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-accent-orange to-yellow-400 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                          <Sparkles className="w-5 h-5 lg:w-6 lg:h-6 text-navy-900" />
-                        </div>
-                      )}
-                      
-                      <div className={`max-w-[85%] lg:max-w-[80%] ${message.type === 'user' ? 'order-2' : ''}`}>
-                        {/* Message Content */}
-                        <div className={`p-3 lg:p-4 rounded-2xl relative ${
-                          message.type === 'user' 
-                            ? 'bg-accent-orange text-navy-900' 
-                            : `bg-navy-800/50 text-white border border-navy-700/30 ${
-                                message.priority === 'urgent' ? 'border-red-500/50 bg-red-500/10' :
-                                message.priority === 'high' ? 'border-yellow-500/50 bg-yellow-500/10' : ''
-                              }`
-                        }`}>
-                          {message.priority === 'urgent' && (
-                            <div className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
-                          )}
-                          
-                          <div className="whitespace-pre-wrap text-sm lg:text-base">{message.content}</div>
-                          
-                          {message.attachments && message.attachments.length > 0 && (
-                            <div className="mt-3 flex gap-2 flex-wrap">
-                              {message.attachments.map((attachment, i) => (
-                                <div key={i} className="bg-navy-700/30 p-2 rounded-lg flex items-center gap-2">
-                                  <Paperclip className="w-3 h-3 lg:w-4 lg:h-4" />
-                                  <span className="text-xs lg:text-sm">Anexo {i + 1}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Message Actions */}
-                        <div className={`flex items-center gap-2 mt-2 ${message.type === 'user' ? 'justify-end' : ''}`}>
-                          <div className="flex items-center gap-1 text-xs text-gray-400">
-                            <Clock className="w-3 h-3" />
-                            {new Date(message.timestamp).toLocaleTimeString()}
-                            {message.category && (
-                              <Badge variant="outline" className="ml-2 text-xs text-gray-300 border-gray-600">
-                                {message.category}
-                              </Badge>
-                            )}
-                            {message.isPrivate && (
-                              <Eye className="w-3 h-3 ml-1 text-yellow-400" />
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center gap-1">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-6 w-6 p-0 text-gray-400 hover:text-white"
-                              onClick={() => handleReaction(message.id, '👍')}
-                            >
-                              <ThumbsUp className="w-3 h-3" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-6 w-6 p-0 text-gray-400 hover:text-white"
-                              onClick={() => handleBookmark(message.id)}
-                            >
-                              <Bookmark className={`w-3 h-3 ${message.isBookmarked ? 'text-yellow-400' : ''}`} />
-                            </Button>
-                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-white">
-                              <Share2 className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        {/* Reactions */}
-                        {message.reactions && message.reactions.length > 0 && (
-                          <div className="flex gap-1 mt-2 flex-wrap">
-                            {message.reactions.map((reaction, i) => (
-                              <span key={i} className="text-sm bg-navy-700/30 px-2 py-1 rounded-full text-gray-300">
-                                {reaction}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      
-                      {message.type === 'user' && (
-                        <div className="w-10 h-10 lg:w-12 lg:h-12 bg-navy-700 rounded-full flex items-center justify-center flex-shrink-0 order-1 shadow-lg">
-                          <User className="w-5 h-5 lg:w-6 lg:h-6 text-gray-300" />
-                        </div>
-                      )}
-                    </motion.div>
+                      message={message}
+                      index={index}
+                      onReaction={handleReaction}
+                      onBookmark={handleBookmark}
+                    />
                   ))}
                   
                   {isTyping && (
@@ -860,288 +614,49 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                 </div>
               </div>
 
-              {/* Input Avançado */}
-              <div className="border-t border-navy-700/20 p-4 lg:p-6">
-                <div className="space-y-4">
-                  {/* Configurações Rápidas */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm gap-4">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-300">Privacidade:</span>
-                        <Switch 
-                          checked={privacyMode} 
-                          onCheckedChange={setPrivacyMode}
-                          className="scale-75"
-                        />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Target className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-300">Auto-scroll:</span>
-                        <Switch 
-                          checked={autoScroll} 
-                          onCheckedChange={setAutoScroll}
-                          className="scale-75"
-                        />
-                      </div>
-                    </div>
-                    <div className="text-gray-300">
-                      Modo: <span className="text-accent-orange font-medium">{chatMode}</span>
-                    </div>
-                  </div>
-
-                  {/* Input Principal */}
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="flex-1 relative">
-                      <Textarea
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        placeholder={`Digite sua mensagem para a VIVA... (Modo: ${chatMode})`}
-                        className="flex-1 bg-navy-800/50 border-navy-700/30 text-white resize-none min-h-[60px] pr-24 placeholder:text-gray-400"
-                        rows={2}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendMessage();
-                          }
-                        }}
-                      />
-                      
-                      {/* Input Controls */}
-                      <div className="absolute right-2 bottom-2 flex gap-1">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-gray-400 hover:text-white"
-                          onClick={handleFileUpload}
-                        >
-                          <Paperclip className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-gray-400 hover:text-white"
-                          onClick={() => setIsRecording(!isRecording)}
-                        >
-                          <Mic className={`w-4 h-4 ${isRecording ? 'text-red-400' : ''}`} />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-gray-400 hover:text-white"
-                        >
-                          <Smile className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-row sm:flex-col gap-2">
-                      <Button
-                        onClick={handleSendMessage}
-                        disabled={!inputValue.trim() || isTyping}
-                        className="bg-accent-orange hover:bg-accent-orange/90 text-navy-900 h-[60px] px-6 w-full sm:w-auto"
-                      >
-                        <Send className="w-5 h-5" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Input Component */}
+              <ChatInput
+                inputValue={inputValue}
+                setInputValue={setInputValue}
+                onSendMessage={handleSendMessage}
+                isTyping={isTyping}
+                chatMode={chatMode}
+                privacyMode={privacyMode}
+                setPrivacyMode={setPrivacyMode}
+                autoScroll={autoScroll}
+                setAutoScroll={setAutoScroll}
+                isRecording={isRecording}
+                setIsRecording={setIsRecording}
+                onFileUpload={handleFileUpload}
+              />
             </CardContent>
           </Card>
         </div>
 
-        {/* Painel Lateral Avançado */}
+        {/* Sidebar Component */}
         {showSidebar && !isFullscreen && (
-          <div className="space-y-4 lg:space-y-6">
-            <Card className="glass-card border-navy-700/30">
-              <Tabs value={sidebarTab} onValueChange={setSidebarTab}>
-                <TabsList className="grid w-full grid-cols-4 bg-navy-800/50">
-                  <TabsTrigger value="stats" className="text-xs">
-                    <TrendingUp className="w-4 h-4" />
-                  </TabsTrigger>
-                  <TabsTrigger value="actions" className="text-xs">
-                    <Zap className="w-4 h-4" />
-                  </TabsTrigger>
-                  <TabsTrigger value="templates" className="text-xs">
-                    <FileText className="w-4 h-4" />
-                  </TabsTrigger>
-                  <TabsTrigger value="settings" className="text-xs">
-                    <Settings className="w-4 h-4" />
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="stats" className="p-4 lg:p-6 space-y-4">
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-accent-orange" />
-                    Analytics IA
-                  </h3>
-                  
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="text-center bg-navy-800/30 p-3 rounded-lg">
-                      <div className="text-2xl font-bold text-accent-orange">{totalActivities}</div>
-                      <div className="text-gray-400">Atividades</div>
-                    </div>
-                    <div className="text-center bg-navy-800/30 p-3 rounded-lg">
-                      <div className="text-2xl font-bold text-accent-orange">{currentStreak}</div>
-                      <div className="text-gray-400">Sequência</div>
-                    </div>
-                    <div className="text-center bg-navy-800/30 p-3 rounded-lg">
-                      <div className="text-2xl font-bold text-accent-orange">{totalPoints}</div>
-                      <div className="text-gray-400">Pontos</div>
-                    </div>
-                    <div className="text-center bg-navy-800/30 p-3 rounded-lg">
-                      <div className="text-2xl font-bold text-accent-orange">{currentLevel}</div>
-                      <div className="text-gray-400">Nível</div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Progresso Semanal</span>
-                      <span className="text-white">{Math.min(100, (currentStreak / 7) * 100).toFixed(0)}%</span>
-                    </div>
-                    <div className="w-full bg-navy-800/50 rounded-full h-2">
-                      <div 
-                        className="bg-gradient-to-r from-accent-orange to-yellow-400 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${Math.min(100, (currentStreak / 7) * 100)}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="actions" className="p-4 lg:p-6 space-y-3">
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-accent-orange" />
-                    Ações Rápidas
-                  </h3>
-                  
-                  {quickActions.map((action) => (
-                    <Button
-                      key={action.id}
-                      variant="ghost"
-                      className="w-full justify-start text-left h-auto p-3 hover:bg-accent-orange/10 group text-gray-300 hover:text-white"
-                      onClick={action.action}
-                    >
-                      <action.icon className="w-5 h-5 mr-3 text-accent-orange flex-shrink-0 group-hover:scale-110 transition-transform" />
-                      <div>
-                        <div className="font-medium text-white text-sm">{action.title}</div>
-                        <div className="text-gray-400 text-xs">{action.description}</div>
-                      </div>
-                    </Button>
-                  ))}
-                </TabsContent>
-
-                <TabsContent value="templates" className="p-4 lg:p-6 space-y-3">
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-accent-orange" />
-                    Templates
-                  </h3>
-                  
-                  {chatTemplates.map((template) => (
-                    <Button
-                      key={template.id}
-                      variant="ghost"
-                      className="w-full justify-start text-left h-auto p-3 hover:bg-accent-orange/10 text-gray-300 hover:text-white"
-                      onClick={() => handleTemplateUse(template)}
-                    >
-                      <div>
-                        <div className="font-medium text-white text-sm">{template.title}</div>
-                        <div className="text-gray-400 text-xs line-clamp-2">{template.content}</div>
-                        <div className="flex gap-1 mt-1 flex-wrap">
-                          {template.tags.map((tag) => (
-                            <Badge key={tag} variant="outline" className="text-xs text-gray-300 border-gray-600">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </Button>
-                  ))}
-                </TabsContent>
-
-                <TabsContent value="settings" className="p-4 lg:p-6 space-y-4">
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <Settings className="w-5 h-5 text-accent-orange" />
-                    Configurações IA
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-300">Notificações</span>
-                        <Switch 
-                          checked={notificationsEnabled} 
-                          onCheckedChange={setNotificationsEnabled}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-300">Modo Voz</span>
-                        <Switch 
-                          checked={voiceEnabled} 
-                          onCheckedChange={setVoiceEnabled}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm text-gray-300">Velocidade da IA</label>
-                      <Slider
-                        value={responseSpeed}
-                        onValueChange={setResponseSpeed}
-                        max={3}
-                        min={0.5}
-                        step={0.5}
-                        className="w-full"
-                      />
-                      <div className="text-xs text-gray-500">
-                        {responseSpeed[0]}x velocidade
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm text-gray-300">Personalidade da IA</label>
-                      <Select value={aiPersonality} onValueChange={setAiPersonality}>
-                        <SelectTrigger className="bg-navy-800/50 border-navy-600/30 text-gray-300">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="friendly">Amigável</SelectItem>
-                          <SelectItem value="professional">Profissional</SelectItem>
-                          <SelectItem value="motivational">Motivacional</SelectItem>
-                          <SelectItem value="analytical">Analítica</SelectItem>
-                          <SelectItem value="casual">Casual</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <Separator className="bg-navy-700/30" />
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start border-navy-700/30 text-gray-300 hover:text-white"
-                      onClick={() => setMessages([])}
-                    >
-                      <RotateCcw className="w-4 h-4 mr-2" />
-                      Limpar Chat
-                    </Button>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </Card>
-          </div>
+          <ChatSidebar
+            sidebarTab={sidebarTab}
+            setSidebarTab={setSidebarTab}
+            totalActivities={totalActivities}
+            currentStreak={currentStreak}
+            totalPoints={totalPoints}
+            currentLevel={currentLevel}
+            quickActions={quickActions}
+            chatTemplates={chatTemplates}
+            notificationsEnabled={notificationsEnabled}
+            setNotificationsEnabled={setNotificationsEnabled}
+            voiceEnabled={voiceEnabled}
+            setVoiceEnabled={setVoiceEnabled}
+            responseSpeed={responseSpeed}
+            setResponseSpeed={setResponseSpeed}
+            aiPersonality={aiPersonality}
+            setAiPersonality={setAiPersonality}
+            onTemplateUse={handleTemplateUse}
+            onClearChat={handleClearChat}
+          />
         )}
       </div>
-
-      {/* Hidden File Input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        multiple
-        className="hidden"
-        accept="image/*,audio/*,.pdf,.doc,.docx,.txt"
-      />
     </motion.div>
   );
 }
