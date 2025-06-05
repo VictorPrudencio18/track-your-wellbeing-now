@@ -1,168 +1,141 @@
-
-import { motion } from "framer-motion";
-import { Activity, Target, Zap, TrendingUp, Calendar, Award, Heart, Clock } from "lucide-react";
-import { SupabaseStatsCards } from "@/components/dashboard/SupabaseStatsCards";
-import { ModernActivityChart } from "@/components/dashboard/ModernActivityChart";
-import { WeeklyGoalsCard } from "@/components/dashboard/WeeklyGoalsCard";
-import { SupabaseRecentActivitiesCard } from "@/components/dashboard/SupabaseRecentActivitiesCard";
-import { AchievementsCard } from "@/components/dashboard/AchievementsCard";
-import { ContentCarousel } from "@/components/dashboard/ContentCarousel";
-import { VivaAIChat } from "@/components/dashboard/VivaAIChat";
-import { SupabaseActivityTracker } from "@/components/activities/SupabaseActivityTracker";
-import { DailyHistoryCarousel } from "@/components/health/DailyHistoryCarousel";
-import { useAuth } from "@/hooks/useAuth";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CalendarHeatmap } from '@/components/dashboard/CalendarHeatmap';
+import { WeeklyGoalsCard } from '@/components/dashboard/WeeklyGoalsCard';
+import { ActivityList } from '@/components/activity/ActivityList';
+import { HealthDashboard } from '@/components/health/HealthDashboard';
+import { AdvancedDataTable } from '@/components/reports/AdvancedDataTable';
+import { AdvancedMetricsComparison } from '@/components/reports/AdvancedMetricsComparison';
+import { SocialFeed } from '@/components/social/SocialFeed';
+import { UserProfileCard } from '@/components/social/UserProfileCard';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  ListChecks,
+  HeartPulse,
+  Activity,
+  BarChartBig,
+  Users,
+} from 'lucide-react';
+import { WeeklyGoalsSystem } from '@/components/goals/WeeklyGoalsSystem';
 
 export default function Dashboard() {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="space-y-6 sm:space-y-8"
-      >
-        <div className="glass-card-premium rounded-2xl sm:rounded-3xl p-6 sm:p-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-navy-700 rounded w-1/2 mb-4"></div>
-            <div className="h-4 bg-navy-700 rounded w-1/3"></div>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="glass-card rounded-xl p-6">
-              <div className="animate-pulse">
-                <div className="h-4 bg-navy-700 rounded w-3/4 mb-2"></div>
-                <div className="h-8 bg-navy-700 rounded w-1/2"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-    );
-  }
+  const [activeTab, setActiveTab] = useState('overview');
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   if (!user) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="space-y-6 sm:space-y-8"
-      >
-        <div className="glass-card-premium rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 border border-accent-orange/20">
-          <div className="text-center">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold gradient-text-premium mb-4">
-              Dashboard
-            </h1>
-            <Alert className="glass-card border-accent-orange/20 max-w-md mx-auto">
-              <AlertCircle className="h-4 w-4 text-accent-orange" />
-              <AlertDescription className="text-white">
-                Faça login para acessar seu dashboard e acompanhar suas atividades.
-              </AlertDescription>
-            </Alert>
-          </div>
-        </div>
-      </motion.div>
-    );
+    navigate('/login');
+    return null;
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-      className="space-y-6 sm:space-y-8"
-    >
-      {/* Hero Header - Responsivo */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="relative overflow-hidden"
-      >
-        <div className="glass-card-premium rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 border border-accent-orange/20">
-          <div className="relative z-10">
-            <motion.h1 
-              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold gradient-text-premium mb-2 sm:mb-3"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
+    <div className="min-h-screen bg-navy-900 text-white">
+      {/* Header */}
+      <header className="glass-card flex items-center justify-between p-6 border-b border-navy-600/30">
+        <div className="flex items-center gap-4">
+          <LayoutDashboard className="w-6 h-6 text-accent-orange" />
+          <h1 className="text-2xl font-bold">Painel</h1>
+        </div>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-navy-300">{user.email}</span>
+          <Button variant="outline" size="sm" onClick={() => signOut()}>
+            Sair
+          </Button>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+          <TabsList className="glass-card bg-navy-800/50 border-navy-600/30">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-accent-orange">
               Dashboard
-            </motion.h1>
-            <motion.p 
-              className="text-base sm:text-lg lg:text-xl text-white/80 max-w-2xl"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              Acompanhe seu progresso real e conquiste seus objetivos
-            </motion.p>
-            
-            {/* Floating elements for visual interest */}
-            <div className="absolute -top-4 -right-4 w-20 h-20 sm:w-32 sm:h-32 bg-accent-orange/10 rounded-full blur-xl animate-gentle-float" />
-            <div className="absolute -bottom-8 -left-8 w-24 h-24 sm:w-40 sm:h-40 bg-accent-orange/5 rounded-full blur-2xl animate-gentle-float" style={{ animationDelay: '1s' }} />
-          </div>
-        </div>
-      </motion.div>
+            </TabsTrigger>
+            <TabsTrigger value="activities" className="data-[state=active]:bg-accent-orange">
+              Atividades
+            </TabsTrigger>
+            <TabsTrigger value="goals" className="data-[state=active]:bg-accent-orange">
+              Metas Semanais
+            </TabsTrigger>
+            <TabsTrigger value="health" className="data-[state=active]:bg-accent-orange">
+              Saúde
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-accent-orange">
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="social" className="data-[state=active]:bg-accent-orange">
+              Social
+            </TabsTrigger>
+          </TabsList>
 
-      {/* Daily History Carousel - Movido para o topo */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.3 }}
-      >
-        <DailyHistoryCarousel />
-      </motion.div>
+          <TabsContent value="overview" className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="col-span-2">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                >
+                  <CalendarHeatmap />
+                </motion.div>
+              </div>
+              <WeeklyGoalsCard />
+            </div>
 
-      {/* Estatísticas Reais do Supabase */}
-      <SupabaseStatsCards />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <AdvancedMetricsComparison />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+              >
+                <AdvancedDataTable />
+              </motion.div>
+            </div>
+          </TabsContent>
 
-      {/* Registrar Nova Atividade */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-      >
-        <SupabaseActivityTracker />
-      </motion.div>
+          <TabsContent value="activities" className="space-y-8">
+            <ActivityList />
+          </TabsContent>
 
-      {/* Charts and Activities Section - Layout responsivo */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-        {/* Main Chart - takes 2 columns on large screens */}
-        <div className="lg:col-span-2">
-          <ModernActivityChart />
-        </div>
-        
-        {/* Weekly Goals - takes 1 column */}
-        <div>
-          <WeeklyGoalsCard />
-        </div>
+          <TabsContent value="goals" className="space-y-8">
+            <WeeklyGoalsSystem />
+          </TabsContent>
+
+          <TabsContent value="health" className="space-y-8">
+            <HealthDashboard />
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-8">
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle>Analytics</CardTitle>
+              </CardHeader>
+              <CardContent>Em breve!</CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="social" className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <SocialFeed />
+              </div>
+              <UserProfileCard />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
-
-      {/* Content Carousel Section */}
-      <ContentCarousel />
-
-      {/* Content and AI Chat Section - Stack em mobile */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
-        {/* Recent Activities */}
-        <div className="order-2 xl:order-1">
-          <SupabaseRecentActivitiesCard />
-        </div>
-        
-        {/* AI Chat */}
-        <div className="order-1 xl:order-2">
-          <VivaAIChat />
-        </div>
-      </div>
-
-      {/* Achievements Section */}
-      <div className="grid grid-cols-1 gap-6 sm:gap-8">
-        <AchievementsCard />
-      </div>
-    </motion.div>
+    </div>
   );
 }

@@ -1,51 +1,26 @@
 
 import { motion } from "framer-motion";
-import { Target, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { Target, CheckCircle, Clock, AlertCircle, Plus } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useGoals } from "@/hooks/useSupabaseGoals";
-import { useActivities } from "@/hooks/useSupabaseActivities";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { useWeeklyGoals } from "@/hooks/useWeeklyGoals";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 export function WeeklyGoalsCard() {
   const { user, loading: authLoading } = useAuth();
-  const { data: goals, isLoading: goalsLoading, error: goalsError } = useGoals();
-  const { data: activities } = useActivities();
+  const { goals, isLoading: goalsLoading } = useWeeklyGoals();
+  const navigate = useNavigate();
 
-  const calculateGoalProgress = (goal: any) => {
-    if (!activities) return 0;
-    
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    
-    const recentActivities = activities.filter(activity => 
-      new Date(activity.completed_at) >= oneWeekAgo
-    );
-    
-    switch (goal.goal_type) {
-      case 'distance':
-        const totalDistance = recentActivities.reduce((sum, activity) => 
-          sum + (activity.distance || 0), 0
-        );
-        return Math.min(100, (totalDistance / (goal.target_value || 1)) * 100);
-        
-      case 'duration':
-        const totalDuration = recentActivities.reduce((sum, activity) => 
-          sum + (activity.duration / 60), 0
-        ); // Convert seconds to minutes
-        return Math.min(100, (totalDuration / (goal.target_value || 1)) * 100);
-        
-      case 'frequency':
-        const activityCount = recentActivities.length;
-        return Math.min(100, (activityCount / (goal.target_value || 1)) * 100);
-        
-      default:
-        return Math.min(100, ((goal.current_value || 0) / (goal.target_value || 1)) * 100);
-    }
-  };
+  const currentWeekGoals = goals.filter(goal => {
+    const now = new Date();
+    const weekStart = new Date(goal.week_start_date);
+    const weekEnd = new Date(goal.week_end_date);
+    return now >= weekStart && now <= weekEnd;
+  }).slice(0, 5);
 
-  const getGoalDisplayName = (goal: any) => {
-    return goal.title || goal.description || 'Meta';
-  };
+  const completedGoals = currentWeekGoals.filter(goal => goal.is_completed);
 
   if (authLoading || goalsLoading) {
     return (
@@ -94,36 +69,6 @@ export function WeeklyGoalsCard() {
     );
   }
 
-  if (goalsError) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 1.0 }}
-        className="glass-card rounded-3xl p-8 hover-lift border border-navy-600/20 h-full"
-      >
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-accent-orange/10 rounded-xl border border-accent-orange/20">
-            <Target className="w-5 h-5 text-accent-orange" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-white">Metas Semanais</h3>
-            <p className="text-navy-400 text-sm">Erro ao carregar metas</p>
-          </div>
-        </div>
-        <Alert className="glass-card border-red-500/20">
-          <AlertCircle className="h-4 w-4 text-red-400" />
-          <AlertDescription className="text-white">
-            Erro ao carregar metas. Tente atualizar a página.
-          </AlertDescription>
-        </Alert>
-      </motion.div>
-    );
-  }
-
-  const weeklyGoals = goals?.slice(0, 5) || [];
-  const completedGoals = weeklyGoals.filter(goal => calculateGoalProgress(goal) >= 100);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -132,27 +77,37 @@ export function WeeklyGoalsCard() {
       className="glass-card rounded-3xl p-8 hover-lift border border-navy-600/20 h-full"
     >
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-accent-orange/10 rounded-xl border border-accent-orange/20">
-          <Target className="w-5 h-5 text-accent-orange" />
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-accent-orange/10 rounded-xl border border-accent-orange/20">
+            <Target className="w-5 h-5 text-accent-orange" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-white">Metas Semanais</h3>
+            <p className="text-navy-400 text-sm">
+              {currentWeekGoals.length > 0 
+                ? `${completedGoals.length} de ${currentWeekGoals.length} concluídas`
+                : 'Nenhuma meta definida'
+              }
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-xl font-bold text-white">Metas Semanais</h3>
-          <p className="text-navy-400 text-sm">
-            {weeklyGoals.length > 0 
-              ? `${completedGoals.length} de ${weeklyGoals.length} concluídas`
-              : 'Nenhuma meta definida'
-            }
-          </p>
-        </div>
+        
+        <Button
+          onClick={() => navigate('/dashboard')}
+          size="sm"
+          className="bg-accent-orange hover:bg-accent-orange/90"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Gerenciar
+        </Button>
       </div>
 
       {/* Goals List */}
       <div className="space-y-4">
-        {weeklyGoals.length > 0 ? (
-          weeklyGoals.map((goal, index) => {
-            const progress = calculateGoalProgress(goal);
-            const completed = progress >= 100;
+        {currentWeekGoals.length > 0 ? (
+          currentWeekGoals.map((goal, index) => {
+            const completed = goal.is_completed;
             
             return (
               <motion.div
@@ -173,38 +128,43 @@ export function WeeklyGoalsCard() {
                     ) : (
                       <Clock className="w-5 h-5 text-navy-400" />
                     )}
-                    <span className={`font-medium ${completed ? 'text-white' : 'text-navy-300'}`}>
-                      {getGoalDisplayName(goal)}
-                    </span>
+                    <div className="flex-1">
+                      <span className={`font-medium ${completed ? 'text-white' : 'text-navy-300'}`}>
+                        {goal.title}
+                      </span>
+                      <div className="text-xs text-navy-400 mt-1">
+                        {goal.current_value.toFixed(goal.goal_type === 'distance' ? 1 : 0)}/{goal.target_value.toFixed(goal.goal_type === 'distance' ? 1 : 0)} {goal.unit}
+                      </div>
+                    </div>
                   </div>
                   <span className={`text-sm font-bold ${completed ? 'text-accent-orange' : 'text-navy-400'}`}>
-                    {Math.round(progress)}%
+                    {Math.round(goal.completion_percentage)}%
                   </span>
                 </div>
                 
                 {/* Progress Bar */}
-                <div className="w-full bg-navy-700/50 rounded-full h-2 overflow-hidden">
-                  <motion.div
-                    className={`h-full rounded-full ${
-                      completed ? 'bg-accent-orange' : 'bg-navy-500'
-                    }`}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progress}%` }}
-                    transition={{ duration: 1, delay: 1.4 + (index * 0.1) }}
-                  />
-                </div>
+                <Progress 
+                  value={goal.completion_percentage} 
+                  className="h-2 bg-navy-700/50"
+                />
               </motion.div>
             );
           })
         ) : (
           <div className="text-center py-8">
             <Target className="w-12 h-12 text-navy-500 mx-auto mb-4" />
-            <p className="text-navy-400 text-sm">
-              Nenhuma meta definida ainda.
+            <p className="text-navy-400 text-sm mb-3">
+              Nenhuma meta definida para esta semana.
             </p>
-            <p className="text-navy-500 text-xs mt-2">
-              Defina suas metas para acompanhar seu progresso!
-            </p>
+            <Button
+              onClick={() => navigate('/dashboard')}
+              size="sm"
+              variant="outline"
+              className="glass-card border-navy-600"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Criar Meta
+            </Button>
           </div>
         )}
       </div>
