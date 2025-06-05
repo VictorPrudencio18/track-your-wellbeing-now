@@ -2,8 +2,11 @@
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDailyCheckins } from '@/hooks/useDailyCheckins';
+import { useHealthMetrics } from '@/hooks/useHealthMetrics';
+import { useBackupData, useSyncStatus } from '@/hooks/useDataSync';
 import { WellnessInsights } from './WellnessInsights';
 import { DailyHistoryCarousel } from './DailyHistoryCarousel';
+import { Button } from '@/components/ui/button';
 import { 
   Droplets, 
   Moon, 
@@ -12,11 +15,17 @@ import {
   Briefcase, 
   Sun,
   Heart,
-  Target
+  Target,
+  Database,
+  RefreshCw
 } from 'lucide-react';
 
 export function HealthDashboard() {
   const { todayCheckin, isLoading } = useDailyCheckins();
+  const { data: heartRateMetrics } = useHealthMetrics('heart_rate_avg', 7);
+  const { data: weightMetrics } = useHealthMetrics('weight', 30);
+  const { data: syncStatus } = useSyncStatus();
+  const backupData = useBackupData();
 
   const metrics = [
     {
@@ -53,6 +62,12 @@ export function HealthDashboard() {
     }
   ];
 
+  // Calcular médias das métricas da semana
+  const avgHeartRate = heartRateMetrics?.length ? 
+    Math.round(heartRateMetrics.reduce((sum, m) => sum + m.value, 0) / heartRateMetrics.length) : 0;
+  
+  const currentWeight = weightMetrics?.length ? weightMetrics[0].value : 0;
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -70,10 +85,38 @@ export function HealthDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-white mb-2">Dashboard de Saúde</h2>
-        <p className="text-navy-400">Acompanhe seus indicadores de bem-estar diários</p>
+      {/* Header com Status de Sync */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-white mb-2">Dashboard de Saúde</h2>
+          <p className="text-navy-400">Acompanhe seus indicadores de bem-estar diários</p>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            <div className="text-sm text-navy-400">Último backup</div>
+            <div className="text-xs text-navy-300">
+              {syncStatus?.last_sync ? 
+                new Date(syncStatus.last_sync).toLocaleDateString() : 
+                'Nunca'
+              }
+            </div>
+          </div>
+          <Button
+            onClick={() => backupData.mutate()}
+            disabled={backupData.isPending}
+            variant="outline"
+            size="sm"
+            className="glass-card border-navy-600"
+          >
+            {backupData.isPending ? (
+              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Database className="w-4 h-4 mr-2" />
+            )}
+            Backup
+          </Button>
+        </div>
       </div>
 
       {/* Today's Metrics */}
@@ -108,6 +151,61 @@ export function HealthDashboard() {
           </motion.div>
         ))}
       </div>
+
+      {/* Métricas Avançadas da Semana */}
+      {(avgHeartRate > 0 || currentWeight > 0) && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <Card className="glass-card border-navy-600/30 bg-navy-800/50">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Heart className="w-5 h-5 text-accent-orange" />
+                Métricas da Semana
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {avgHeartRate > 0 && (
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-red-400 mb-1">
+                      {avgHeartRate}
+                    </div>
+                    <div className="text-sm text-navy-400">FC Média (7 dias)</div>
+                    <div className="text-xs text-navy-500">
+                      {heartRateMetrics?.length} medições
+                    </div>
+                  </div>
+                )}
+                
+                {currentWeight > 0 && (
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-blue-400 mb-1">
+                      {currentWeight.toFixed(1)}
+                    </div>
+                    <div className="text-sm text-navy-400">Peso Atual (kg)</div>
+                    <div className="text-xs text-navy-500">
+                      Última medição
+                    </div>
+                  </div>
+                )}
+                
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-400 mb-1">
+                    {syncStatus?.pending_uploads || 0}
+                  </div>
+                  <div className="text-sm text-navy-400">Dados Pendentes</div>
+                  <div className="text-xs text-navy-500">
+                    Para sincronizar
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Wellness Score & Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -148,6 +246,13 @@ export function HealthDashboard() {
                   <span className="text-navy-300 text-sm">Score de Bem-estar</span>
                   <span className="text-accent-orange font-semibold">
                     {todayCheckin?.wellness_score?.toFixed(1) || '0.0'}/100
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-navy-300 text-sm">Dados Salvos</span>
+                  <span className="text-green-400 text-sm">
+                    ✓ Persistidos no BD
                   </span>
                 </div>
               </div>

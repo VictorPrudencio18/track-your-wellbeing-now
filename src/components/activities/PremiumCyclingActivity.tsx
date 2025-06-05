@@ -1,207 +1,267 @@
 
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { ArrowLeft, Play, Pause, Square, Settings } from "lucide-react";
-import { PremiumCard } from "@/components/ui/premium-card";
-import { AnimatedButton } from "@/components/ui/animated-button";
-import { useActivityTracker } from "@/hooks/useActivityTracker";
-import { CyclingMap } from "./premium-components/CyclingMap";
-import { CyclingMetrics } from "./premium-components/CyclingMetrics";
-import { CyclingControls } from "./premium-components/CyclingControls";
-import { CyclingSettings } from "./premium-components/CyclingSettings";
-import { useToast } from "@/hooks/use-toast";
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft, Settings, BarChart3, Map, Gauge } from 'lucide-react';
+import { useEnhancedActivityTracker } from '@/hooks/useEnhancedActivityTracker';
+import { useUserSettings } from '@/hooks/useUserSettings';
+import { CyclingMetrics } from './premium-components/CyclingMetrics';
+import { CyclingMap } from './premium-components/CyclingMap';
+import { CyclingControls } from './premium-components/CyclingControls';
+import { CyclingSettings } from './premium-components/CyclingSettings';
+import { PremiumCard } from '@/components/ui/premium-card';
+import { Button } from '@/components/ui/button';
 
 interface PremiumCyclingActivityProps {
   onComplete: (data: any) => void;
   onCancel: () => void;
 }
 
+type ViewMode = 'dashboard' | 'map' | 'metrics' | 'settings';
+
 export function PremiumCyclingActivity({ onComplete, onCancel }: PremiumCyclingActivityProps) {
-  const { toast } = useToast();
-  const [showSettings, setShowSettings] = useState(false);
-  const [autoLap, setAutoLap] = useState(1); // km
-  const [screenMode, setScreenMode] = useState<'metrics' | 'map' | 'split'>('split');
+  const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
+  const { data: userSettings } = useUserSettings();
   
-  const tracker = useActivityTracker('cycling');
+  const {
+    isActive,
+    isPaused,
+    data,
+    gpsState,
+    startActivity,
+    pauseActivity,
+    resumeActivity,
+    stopActivity,
+    isGPSReady
+  } = useEnhancedActivityTracker('cycling');
 
-  useEffect(() => {
-    if (!tracker.gpsState.isTracking) {
-      toast({
-        title: "Aguardando GPS...",
-        description: "Obtendo localização para início do treino",
-      });
-    }
-  }, [tracker.gpsState.isTracking]);
-
-  const handleStart = async () => {
-    if (!tracker.isGPSReady) {
-      toast({
-        title: "GPS não está pronto",
-        description: "Aguarde a precisão do GPS melhorar antes de iniciar",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    await tracker.startActivity();
-    toast({
-      title: "Ciclismo GPS Iniciado! 🚴‍♂️",
-      description: "Rastreamento em tempo real ativado",
-    });
+  const handleComplete = async () => {
+    await stopActivity();
+    onComplete(data);
   };
 
-  const handlePause = () => {
-    if (tracker.isActive && !tracker.isPaused) {
-      tracker.pauseActivity();
-      toast({
-        title: "Atividade pausada",
-        description: "Toque em retomar quando estiver pronto",
-      });
-    } else {
-      tracker.resumeActivity();
-      toast({
-        title: "Atividade retomada",
-        description: "Continuando rastreamento GPS",
-      });
+  const handleCancel = () => {
+    if (isActive) {
+      stopActivity();
     }
+    onCancel();
   };
 
-  const handleStop = async () => {
-    await tracker.stopActivity();
-    
-    const activityData = {
-      type: 'cycling',
-      name: 'Ciclismo GPS',
-      duration: tracker.data.duration,
-      distance: tracker.data.distance,
-      calories: tracker.data.calories,
-      avgHeartRate: tracker.data.heartRate,
-      maxHeartRate: tracker.data.maxHeartRate,
-      elevationGain: tracker.data.elevationGain,
-      avgSpeed: tracker.data.avgSpeed,
-      maxSpeed: tracker.data.maxSpeed,
-      avgPace: tracker.data.avgPace,
-      gpsPoints: tracker.gpsState.getPositionHistory().length,
-      date: new Date()
-    };
-
-    onComplete(activityData);
-    
-    toast({
-      title: "Ciclismo finalizado! 🎉",
-      description: `${(tracker.data.distance).toFixed(2)}km em ${Math.floor(tracker.data.duration / 60)}min`,
-    });
-  };
-
-  const formatTime = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
     
-    if (hrs > 0) {
-      return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const navigationItems = [
+    { id: 'dashboard', icon: Gauge, label: 'Dashboard' },
+    { id: 'map', icon: Map, label: 'Mapa' },
+    { id: 'metrics', icon: BarChart3, label: 'Métricas' },
+    { id: 'settings', icon: Settings, label: 'Configurações' },
+  ];
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6 max-w-6xl mx-auto"
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <AnimatedButton 
-            variant="outline"
-            onClick={onCancel}
-            className="glass-card border-navy-600"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar
-          </AnimatedButton>
-          
-          <div>
-            <h1 className="text-3xl font-bold text-white">🚴‍♂️ Ciclismo GPS</h1>
-            <p className="text-navy-400">
-              {tracker.gpsState.isTracking 
-                ? `GPS ativo - Precisão: ${tracker.gpsState.accuracy.toFixed(0)}m` 
-                : 'Aguardando GPS...'}
-            </p>
-          </div>
-        </div>
-
-        <AnimatedButton
-          variant="outline"
-          onClick={() => setShowSettings(true)}
-          className="glass-card border-navy-600"
-        >
-          <Settings className="w-4 h-4" />
-        </AnimatedButton>
-      </div>
-
-      {/* Timer Principal */}
-      <PremiumCard glass className="p-8 text-center">
+    <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-900 p-4 md:p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <motion.div
-          key={tracker.data.duration}
-          initial={{ scale: 0.9, opacity: 0.8 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="text-8xl font-mono font-bold text-accent-orange mb-4"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between mb-6"
         >
-          {formatTime(tracker.data.duration)}
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              className="text-white hover:bg-navy-700"
+            >
+              <ChevronLeft className="w-4 h-4 mr-2" />
+              Voltar
+            </Button>
+            
+            <div>
+              <h1 className="text-2xl font-bold text-white">Ciclismo GPS Premium</h1>
+              <p className="text-navy-400">
+                {isActive ? (
+                  <>
+                    {formatDuration(data.duration)} • {data.distance.toFixed(2)} km
+                    {isPaused && <span className="text-yellow-400 ml-2">• Pausado</span>}
+                  </>
+                ) : (
+                  'Prepare-se para pedalar'
+                )}
+              </p>
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <div className="flex items-center gap-2">
+            {navigationItems.map((item) => (
+              <Button
+                key={item.id}
+                variant={currentView === item.id ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setCurrentView(item.id as ViewMode)}
+                className={currentView === item.id ? 
+                  "bg-accent-orange text-navy-900" : 
+                  "text-white hover:bg-navy-700"
+                }
+              >
+                <item.icon className="w-4 h-4 mr-2" />
+                {item.label}
+              </Button>
+            ))}
+          </div>
         </motion.div>
-        
-        <div className="text-xl text-navy-400">
-          {tracker.isActive 
-            ? (tracker.isPaused ? 'Pausado' : 'Pedalando...') 
-            : 'Pronto para iniciar'}
-        </div>
-      </PremiumCard>
 
-      {/* Layout Principal */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Métricas */}
-        <div className="space-y-6">
-          <CyclingMetrics 
-            data={tracker.data}
-            gpsState={tracker.gpsState}
-            isActive={tracker.isActive}
-          />
-        </div>
+        {/* Main Content */}
+        <AnimatePresence mode="wait">
+          {currentView === 'dashboard' && (
+            <motion.div
+              key="dashboard"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              {/* Controls */}
+              <CyclingControls
+                isActive={isActive}
+                isPaused={isPaused}
+                isGPSReady={isGPSReady}
+                duration={data.duration}
+                onStart={startActivity}
+                onPause={isPaused ? resumeActivity : pauseActivity}
+                onStop={handleComplete}
+                onCancel={handleCancel}
+              />
 
-        {/* Mapa */}
-        <div className="space-y-6">
-          <CyclingMap
-            gpsState={tracker.gpsState}
-            data={tracker.data}
-            isActive={tracker.isActive}
-            route={tracker.gpsState.getPositionHistory()}
-          />
-        </div>
+              {/* Dashboard Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Metrics */}
+                <div>
+                  <CyclingMetrics 
+                    data={data} 
+                    gpsState={gpsState} 
+                    isActive={isActive}
+                  />
+                </div>
+
+                {/* Map Preview */}
+                <div className="h-96 lg:h-auto">
+                  <CyclingMap
+                    gpsData={data.gpsPoints}
+                    currentPosition={gpsState.position}
+                    isTracking={isActive && !isPaused}
+                    route={data.gpsPoints}
+                    settings={userSettings?.activity_settings}
+                  />
+                </div>
+              </div>
+
+              {/* Live Stats Bar */}
+              {isActive && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                >
+                  <PremiumCard glass className="p-4">
+                    <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
+                      <div>
+                        <div className="text-2xl font-bold text-blue-400">
+                          {(data.currentSpeed * 3.6).toFixed(1)}
+                        </div>
+                        <div className="text-xs text-navy-400">km/h</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-green-400">
+                          {data.distance.toFixed(2)}
+                        </div>
+                        <div className="text-xs text-navy-400">km</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-yellow-400">
+                          {Math.round(data.elevationGain)}
+                        </div>
+                        <div className="text-xs text-navy-400">m</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-red-400">
+                          {data.calories}
+                        </div>
+                        <div className="text-xs text-navy-400">kcal</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-pink-400">
+                          {data.heartRate}
+                        </div>
+                        <div className="text-xs text-navy-400">bpm</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-purple-400">
+                          {data.cadence || 0}
+                        </div>
+                        <div className="text-xs text-navy-400">rpm</div>
+                      </div>
+                    </div>
+                  </PremiumCard>
+                </motion.div>
+              )}
+            </motion.div>
+          )}
+
+          {currentView === 'map' && (
+            <motion.div
+              key="map"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="h-[calc(100vh-200px)]"
+            >
+              <CyclingMap
+                gpsData={data.gpsPoints}
+                currentPosition={gpsState.position}
+                isTracking={isActive && !isPaused}
+                route={data.gpsPoints}
+                settings={userSettings?.activity_settings}
+                fullscreen={true}
+              />
+            </motion.div>
+          )}
+
+          {currentView === 'metrics' && (
+            <motion.div
+              key="metrics"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <CyclingMetrics 
+                data={data} 
+                gpsState={gpsState} 
+                isActive={isActive}
+                detailed={true}
+              />
+            </motion.div>
+          )}
+
+          {currentView === 'settings' && (
+            <motion.div
+              key="settings"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <CyclingSettings />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-
-      {/* Controles */}
-      <CyclingControls
-        isActive={tracker.isActive}
-        isPaused={tracker.isPaused}
-        isGPSReady={tracker.isGPSReady}
-        duration={tracker.data.duration}
-        onStart={handleStart}
-        onPause={handlePause}
-        onStop={handleStop}
-        onCancel={onCancel}
-      />
-
-      {/* Modal de Configurações */}
-      <CyclingSettings
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
-        autoLap={autoLap}
-        onAutoLapChange={setAutoLap}
-        screenMode={screenMode}
-        onScreenModeChange={setScreenMode}
-      />
-    </motion.div>
+    </div>
   );
 }

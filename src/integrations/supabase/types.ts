@@ -582,9 +582,12 @@ export type Database = {
         Row: {
           additional_data: Json | null
           created_at: string | null
+          device_info: Json | null
           id: string
           metric_type: string
           recorded_at: string | null
+          source: string | null
+          sync_status: string | null
           unit: string | null
           user_id: string | null
           value: number | null
@@ -592,9 +595,12 @@ export type Database = {
         Insert: {
           additional_data?: Json | null
           created_at?: string | null
+          device_info?: Json | null
           id?: string
           metric_type: string
           recorded_at?: string | null
+          source?: string | null
+          sync_status?: string | null
           unit?: string | null
           user_id?: string | null
           value?: number | null
@@ -602,9 +608,12 @@ export type Database = {
         Update: {
           additional_data?: Json | null
           created_at?: string | null
+          device_info?: Json | null
           id?: string
           metric_type?: string
           recorded_at?: string | null
+          source?: string | null
+          sync_status?: string | null
           unit?: string | null
           user_id?: string | null
           value?: number | null
@@ -619,18 +628,51 @@ export type Database = {
           },
         ]
       }
+      offline_cache: {
+        Row: {
+          cache_data: Json
+          cache_key: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cache_data: Json
+          cache_key: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cache_data?: Json
+          cache_key?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           bio: string | null
           birth_date: string | null
           created_at: string | null
+          data_version: number | null
           full_name: string | null
           gender: string | null
           height: number | null
           id: string
           is_premium: boolean | null
+          last_backup_at: string | null
           notification_settings: Json | null
+          preferences: Json | null
           privacy_settings: Json | null
           timezone: string | null
           updated_at: string | null
@@ -641,12 +683,15 @@ export type Database = {
           bio?: string | null
           birth_date?: string | null
           created_at?: string | null
+          data_version?: number | null
           full_name?: string | null
           gender?: string | null
           height?: number | null
           id: string
           is_premium?: boolean | null
+          last_backup_at?: string | null
           notification_settings?: Json | null
+          preferences?: Json | null
           privacy_settings?: Json | null
           timezone?: string | null
           updated_at?: string | null
@@ -657,12 +702,15 @@ export type Database = {
           bio?: string | null
           birth_date?: string | null
           created_at?: string | null
+          data_version?: number | null
           full_name?: string | null
           gender?: string | null
           height?: number | null
           id?: string
           is_premium?: boolean | null
+          last_backup_at?: string | null
           notification_settings?: Json | null
+          preferences?: Json | null
           privacy_settings?: Json | null
           timezone?: string | null
           updated_at?: string | null
@@ -805,6 +853,42 @@ export type Database = {
           },
         ]
       }
+      user_activity_log: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          details: Json | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          details?: Json | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          details?: Json | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_challenges: {
         Row: {
           challenge_id: string | null
@@ -933,6 +1017,15 @@ export type Database = {
           hydration_glasses: number
         }
         Returns: number
+      }
+      log_user_action: {
+        Args: {
+          action_type_param: string
+          entity_type_param: string
+          entity_id_param?: string
+          details_param?: Json
+        }
+        Returns: undefined
       }
     }
     Enums: {
