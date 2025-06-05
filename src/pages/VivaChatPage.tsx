@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -504,7 +503,7 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
   }
 
   return (
-    <div className="h-screen flex flex-col bg-navy-900 relative overflow-hidden">
+    <div className="min-h-screen h-screen flex flex-col bg-navy-900 relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-accent-orange/5 rounded-full blur-3xl" />
@@ -527,10 +526,10 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
       </div>
 
       {/* Conteúdo Principal */}
-      <div className="flex-1 flex overflow-hidden relative z-10">
+      <div className="flex-1 flex overflow-hidden relative z-10 min-h-0">
         {/* Área de Chat Principal */}
-        <div className={`flex-1 flex flex-col transition-all duration-300 ${showSidebar ? 'lg:mr-80' : ''}`}>
-          <Card className="flex-1 glass-card border-navy-700/30 m-2 lg:m-4 flex flex-col overflow-hidden">
+        <div className={`flex-1 flex flex-col transition-all duration-300 min-h-0 ${showSidebar ? 'lg:mr-80' : ''}`}>
+          <Card className="flex-1 glass-card border-navy-700/30 m-2 lg:m-4 flex flex-col overflow-hidden min-h-0">
             {/* Controles do Chat */}
             <div className="flex-shrink-0 border-b border-navy-700/20 p-3 lg:p-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -577,8 +576,8 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
 
             {/* Área de Mensagens com Scroll */}
             <CardContent className="flex-1 flex flex-col p-0 min-h-0 overflow-hidden">
-              <ScrollArea className="flex-1">
-                <div className="space-y-4 p-4 lg:p-6">
+              <ScrollArea className="flex-1 min-h-0">
+                <div className="space-y-4 p-4 lg:p-6 min-h-full">
                   {searchedMessages.map((message, index) => (
                     <ChatMessage
                       key={message.id}
@@ -662,7 +661,7 @@ Baseado em seus ${totalActivities} atividades, vejo que você tem comprometiment
                 totalPoints={totalPoints}
                 currentLevel={currentLevel}
                 quickActions={quickActions}
-                chatTemplates={[]} // Simplificado para este exemplo
+                chatTemplates={[]}
                 notificationsEnabled={notificationsEnabled}
                 setNotificationsEnabled={setNotificationsEnabled}
                 voiceEnabled={voiceEnabled}
