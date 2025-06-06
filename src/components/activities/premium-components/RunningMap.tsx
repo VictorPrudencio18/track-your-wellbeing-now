@@ -94,16 +94,15 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
     }
   };
 
-  // Inicializar mapa quando componente montar e GPS estiver pronto
+  // Inicializar mapa quando componente montar
   useEffect(() => {
-    if (gpsState.position && !initAttempted.current) {
-      console.log('GPS pronto, inicializando mapa...');
+    if (!initAttempted.current) {
       const timer = setTimeout(() => {
         initializeTomTomMaps();
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [gpsState.position]);
+  }, []);
 
   // Atualizar rota em tempo real
   useEffect(() => {
