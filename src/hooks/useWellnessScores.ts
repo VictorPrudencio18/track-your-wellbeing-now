@@ -66,7 +66,7 @@ export function useWellnessScores() {
 
 function calculateMoodScore(todayCheckin: any, last7Days: any[]) {
   const moodRatings = last7Days
-    .filter(day => day.mood_rating)
+    .filter(day => day.mood_rating !== null && day.mood_rating !== undefined)
     .map(day => day.mood_rating);
   
   if (todayCheckin?.mood_rating) {
@@ -230,7 +230,7 @@ function calculateEnergyScore(moodScore: number, sleepScore: number, todayChecki
   
   // 20% baseado nos níveis de energia e stress reportados
   const energyLevels = last7Days
-    .filter(day => day.energy_level)
+    .filter(day => day.energy_level !== null && day.energy_level !== undefined)
     .map(day => day.energy_level);
     
   if (todayCheckin?.energy_level) {
@@ -238,7 +238,7 @@ function calculateEnergyScore(moodScore: number, sleepScore: number, todayChecki
   }
   
   const stressLevels = last7Days
-    .filter(day => day.stress_level)
+    .filter(day => day.stress_level !== null && day.stress_level !== undefined)
     .map(day => day.stress_level);
     
   if (todayCheckin?.stress_level) {
