@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { motion } from 'framer-motion';
 import { useCreateActivity } from '@/hooks/useSupabaseActivities';
+import { useGPS } from '@/hooks/useGPS';
+import { RunningMap } from '../premium-components/RunningMap';
 
 interface ModernWalkingActivityProps {
   onComplete: (data: any) => void;
@@ -30,6 +32,7 @@ const terrainTypes = [
 
 export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingActivityProps) {
   const createActivity = useCreateActivity();
+  const gps = useGPS();
   
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -59,17 +62,17 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
         const baseSteps = 90 + (Math.random() * 20); // 90-110 steps per minute
         setSteps(prev => prev + (baseSteps / 60));
         
-        // Distância baseada no passo
-        const stepLength = 0.0007; // ~70cm por passo em km
-        setDistance(steps * stepLength);
-        
-        // Velocidade atual
-        const currentSpeed = (distance / (duration / 3600)) || 0;
-        setSpeed(currentSpeed);
-        setMaxSpeed(prev => Math.max(prev, currentSpeed));
-        
+        // Distância via GPS
+        const gpsDistance = gps.calculateTotalDistance();
+        setDistance(gpsDistance);
+
+        // Velocidade atual (km/h para exibição, m/s para mapa)
+        const speedMs = gps.calculateCurrentSpeed();
+        setSpeed(speedMs * 3.6);
+        setMaxSpeed(prev => Math.max(prev, speedMs * 3.6));
+
         // Pace (min/km)
-        setPace(currentSpeed > 0 ? 60 / currentSpeed : 0);
+        setPace(speedMs > 0 ? (1000 / speedMs) / 60 : 0);
         
         // Frequência cardíaca baseada na intensidade
         const targetHR = 60 + (selectedGoal.intensity * 20) + (terrainMultiplier * 10);
@@ -101,9 +104,10 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, isPaused, duration, steps, distance, heartRate, selectedGoal, selectedTerrain]);
+  }, [isActive, isPaused, duration, steps, distance, heartRate, selectedGoal, selectedTerrain, gps]);
 
   const handleStart = () => {
+    gps.startTracking();
     setIsActive(true);
     setIsPaused(false);
   };
@@ -113,6 +117,7 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
   };
 
   const handleStop = async () => {
+    gps.stopTracking();
     const sessionData = {
       type: 'walking' as const,
       name: `Caminhada ${selectedGoal.name}`,
@@ -130,7 +135,8 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
         terrain: selectedTerrain.name,
         heart_rate_zone: heartRateZone,
         goal_achieved: steps >= selectedGoal.steps,
-        terrain_modifier: selectedTerrain.modifier
+        terrain_modifier: selectedTerrain.modifier,
+        route: gps.getPositionHistory()
       }
     };
     
@@ -338,9 +344,9 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
                 </div>
               </PremiumCard>
 
-              <PremiumCard className="p-6 bg-slate-900/50 border-slate-700">
-                <h4 className="text-lg font-semibold text-white mb-4">Zona Cardíaca</h4>
-                <div className="space-y-3">
+            <PremiumCard className="p-6 bg-slate-900/50 border-slate-700">
+              <h4 className="text-lg font-semibold text-white mb-4">Zona Cardíaca</h4>
+              <div className="space-y-3">
                   <div className="text-center">
                     <div className="text-3xl font-bold text-red-400">{Math.round(heartRate)}</div>
                     <div className="text-sm text-slate-400">bpm atual</div>
@@ -365,9 +371,33 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
                       <span className="text-white">{Math.round(elevation)}m</span>
                     </div>
                   )}
-                </div>
-              </PremiumCard>
+              </div>
+            </PremiumCard>
             </div>
+
+            {/* Mapa da Caminhada */}
+            <RunningMap
+              gpsState={gps}
+              data={{
+                type: 'walking',
+                duration,
+                distance,
+                avgSpeed: speed,
+                maxSpeed,
+                currentSpeed: gps.calculateCurrentSpeed(),
+                pace: pace,
+                avgPace: pace,
+                calories: Math.round(calories),
+                elevationGain: elevation,
+                heartRate: Math.round(heartRate),
+                maxHeartRate: Math.round(heartRate),
+                gpsPoints: gps.getPositionHistory(),
+                metrics: [],
+                segments: []
+              } as any}
+              isActive={isActive && !isPaused}
+              route={gps.getPositionHistory()}
+            />
           </>
         )}
       </div>
