@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 export interface GPSPosition {
@@ -33,12 +34,11 @@ export function useGPS() {
 
   const watchIdRef = useRef<number | null>(null);
   const positionHistoryRef = useRef<GPSPosition[]>([]);
-  const initializationAttempted = useRef(false);
-  const hasInitialPosition = useRef(false);
 
   const isValidPosition = useCallback((position: GeolocationPosition): boolean => {
     const { coords } = position;
     
+    // Verificações básicas de validade
     if (!coords || 
         isNaN(coords.latitude) || 
         isNaN(coords.longitude) ||
@@ -46,21 +46,15 @@ export function useGPS() {
       return false;
     }
     
+    // Verificar se as coordenadas estão dentro dos limites válidos
     if (coords.latitude < -90 || coords.latitude > 90 ||
         coords.longitude < -180 || coords.longitude > 180) {
       return false;
     }
     
-    // Se ainda não temos posição inicial, aceitar qualquer precisão válida
-    if (!hasInitialPosition.current) {
-      console.log(`Primeira posição GPS: precisão=${coords.accuracy}m - aceitando para inicialização`);
-      return true;
-    }
-    
-    // Após ter posição inicial, ser mais seletivo com a precisão
-    if (coords.accuracy > 100) {
-      console.warn(`GPS precisão baixa durante tracking: ${coords.accuracy}m - rejeitando posição`);
-      return false;
+    // Aceitar posições com precisão razoável (até 200m)
+    if (coords.accuracy && coords.accuracy > 200) {
+      console.warn(`GPS precisão baixa: ${coords.accuracy}m - mas aceitando posição`);
     }
     
     return true;
@@ -72,37 +66,54 @@ export function useGPS() {
       return;
     }
 
+    if (state.isTracking) {
+      console.log('GPS já está em rastreamento');
+      return;
+    }
+
     console.log('Iniciando rastreamento GPS...');
-    setState(prev => ({ ...prev, error: null }));
+    setState(prev => ({ ...prev, error: null, isTracking: true }));
 
     try {
-      // Primeiro, obter posição inicial com configurações muito permissivas
+      // Primeiro, obter posição inicial com configurações permissivas
       const initialPosition = await new Promise<GeolocationPosition>((resolve, reject) => {
         const timeoutId = setTimeout(() => {
-          reject(new Error('Timeout ao obter posição inicial'));
-        }, 30000); // Aumentar timeout para 30s
+          reject(new Error('Timeout ao obter posição inicial - verifique se o GPS está ativado'));
+        }, 15000);
 
         navigator.geolocation.getCurrentPosition(
           (position) => {
             clearTimeout(timeoutId);
-            console.log(`Posição GPS recebida: lat=${position.coords.latitude}, lng=${position.coords.longitude}, precisão=${position.coords.accuracy}m`);
+            console.log(`Posição GPS inicial: lat=${position.coords.latitude}, lng=${position.coords.longitude}, precisão=${position.coords.accuracy?.toFixed(1)}m`);
             
             if (isValidPosition(position)) {
-              hasInitialPosition.current = true;
               resolve(position);
             } else {
-              reject(new Error('Posição GPS inválida'));
+              reject(new Error('Posição GPS inicial inválida'));
             }
           }, 
           (error) => {
             clearTimeout(timeoutId);
             console.error('Erro getCurrentPosition:', error);
-            reject(error);
+            
+            let errorMessage = 'Erro ao obter localização';
+            switch (error.code) {
+              case error.PERMISSION_DENIED:
+                errorMessage = 'Permissão de localização negada. Por favor, permita o acesso à localização.';
+                break;
+              case error.POSITION_UNAVAILABLE:
+                errorMessage = 'GPS indisponível. Verifique se o GPS está ativado.';
+                break;
+              case error.TIMEOUT:
+                errorMessage = 'Timeout do GPS. Tente novamente em uma área com melhor sinal.';
+                break;
+            }
+            reject(new Error(errorMessage));
           }, 
           {
-            enableHighAccuracy: false, // Começar com baixa precisão para obter posição mais rápido
-            timeout: 25000,
-            maximumAge: 600000 // Aceitar posições até 10 minutos antigas inicialmente
+            enableHighAccuracy: true,
+            timeout: 12000,
+            maximumAge: 30000 // Aceitar posições até 30 segundos antigas
           }
         );
       });
@@ -120,20 +131,16 @@ export function useGPS() {
       setState(prev => ({
         ...prev,
         position: gpsPosition,
-        isTracking: true,
-        error: null,
         accuracy: gpsPosition.accuracy || 0,
-        isHighAccuracy: (gpsPosition.accuracy || 100) < 20
+        isHighAccuracy: (gpsPosition.accuracy || 100) < 50
       }));
 
       positionHistoryRef.current = [gpsPosition];
-      console.log(`GPS inicializado com sucesso: lat=${gpsPosition.latitude}, lng=${gpsPosition.longitude}, precisão=${gpsPosition.accuracy?.toFixed(1)}m`);
+      console.log(`GPS inicializado: lat=${gpsPosition.latitude.toFixed(6)}, lng=${gpsPosition.longitude.toFixed(6)}, precisão=${gpsPosition.accuracy?.toFixed(1)}m`);
 
-      // Iniciar rastreamento contínuo com configurações progressivamente mais precisas
+      // Iniciar rastreamento contínuo
       watchIdRef.current = navigator.geolocation.watchPosition(
         (position) => {
-          console.log(`Nova posição GPS: precisão=${position.coords.accuracy}m`);
-          
           if (!isValidPosition(position)) {
             console.warn('Posição GPS inválida recebida - ignorando');
             return;
@@ -149,121 +156,87 @@ export function useGPS() {
             timestamp: Date.now()
           };
 
-          // Filtrar movimentos muito pequenos apenas se temos alta precisão
+          // Filtrar movimentos muito pequenos apenas se temos boa precisão
           const lastPosition = positionHistoryRef.current[positionHistoryRef.current.length - 1];
-          if (lastPosition && (newGpsPosition.accuracy || 100) < 50) {
+          if (lastPosition && (newGpsPosition.accuracy || 100) < 30) {
             const distance = calculateDistance(lastPosition, newGpsPosition);
-            if (distance < 0.003) { // 3 metros
-              console.log('Movimento muito pequeno - ignorando');
+            if (distance < 0.002) { // 2 metros
               return;
             }
           }
 
           positionHistoryRef.current.push(newGpsPosition);
           
-          // Manter apenas os últimos 1000 pontos
-          if (positionHistoryRef.current.length > 1000) {
-            positionHistoryRef.current = positionHistoryRef.current.slice(-1000);
+          // Manter histórico limitado
+          if (positionHistoryRef.current.length > 500) {
+            positionHistoryRef.current = positionHistoryRef.current.slice(-500);
           }
 
           setState(prev => ({
             ...prev,
             position: newGpsPosition,
             accuracy: newGpsPosition.accuracy || 0,
-            isHighAccuracy: (newGpsPosition.accuracy || 100) < 20
+            isHighAccuracy: (newGpsPosition.accuracy || 100) < 50
           }));
 
-          console.log(`GPS atualizado: precisão=${newGpsPosition.accuracy?.toFixed(1)}m, total de pontos=${positionHistoryRef.current.length}`);
+          console.log(`GPS atualizado: precisão=${newGpsPosition.accuracy?.toFixed(1)}m, pontos=${positionHistoryRef.current.length}`);
         },
         (error) => {
           console.error('GPS Error durante tracking:', error);
-          let errorMessage = 'Erro GPS durante rastreamento';
-          
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              errorMessage = 'Permissão de localização negada.';
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMessage = 'GPS temporariamente indisponível.';
-              break;
-            case error.TIMEOUT:
-              errorMessage = 'Timeout do GPS - continuando com última posição conhecida.';
-              break;
-          }
           
           // Não parar o tracking por timeouts ocasionais
           if (error.code !== error.TIMEOUT) {
-            setState(prev => ({ 
-              ...prev, 
-              error: errorMessage 
-            }));
+            let errorMessage = 'Erro GPS durante rastreamento';
+            
+            switch (error.code) {
+              case error.PERMISSION_DENIED:
+                errorMessage = 'Permissão de localização foi revogada.';
+                setState(prev => ({ ...prev, isTracking: false }));
+                break;
+              case error.POSITION_UNAVAILABLE:
+                errorMessage = 'GPS temporariamente indisponível - continuando...';
+                break;
+            }
+            
+            setState(prev => ({ ...prev, error: errorMessage }));
           }
         },
         {
-          enableHighAccuracy: true, // Alta precisão apenas no tracking contínuo
-          timeout: 15000,
-          maximumAge: 10000 // Aceitar posições até 10s antigas durante tracking
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 5000
         }
       );
 
     } catch (error: any) {
-      let errorMessage = 'Erro ao iniciar GPS';
-      
-      if (error.code === 1) {
-        errorMessage = 'Permissão de localização necessária. Por favor, permita o acesso à localização.';
-      } else if (error.code === 2) {
-        errorMessage = 'GPS indisponível no dispositivo. Verifique se o GPS está ativado.';
-      } else if (error.code === 3) {
-        errorMessage = 'Timeout do GPS - tente novamente em uma área com melhor sinal.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
       console.error('Erro ao iniciar GPS:', error);
       setState(prev => ({ 
         ...prev, 
-        error: errorMessage,
+        error: error.message || 'Erro desconhecido ao iniciar GPS',
         isTracking: false
       }));
-      hasInitialPosition.current = false;
     }
-  }, [isValidPosition]);
+  }, [isValidPosition, state.isTracking]);
 
   const stopTracking = useCallback(() => {
     if (watchIdRef.current !== null) {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
     }
-    setState(prev => ({ ...prev, isTracking: false }));
-    hasInitialPosition.current = false;
+    setState(prev => ({ 
+      ...prev, 
+      isTracking: false,
+      error: null
+    }));
+    console.log('GPS tracking parado');
   }, []);
-
-  // Auto-inicializar GPS quando o componente for montado
-  useEffect(() => {
-    if (!initializationAttempted.current) {
-      initializationAttempted.current = true;
-      console.log('Auto-inicializando GPS...');
-      // Aguardar um pouco antes de inicializar
-      const timer = setTimeout(() => {
-        startTracking();
-      }, 1000);
-      
-      return () => clearTimeout(timer);
-    }
-
-    return () => {
-      if (watchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
-      }
-    };
-  }, [startTracking]);
 
   const getPositionHistory = useCallback(() => {
     return [...positionHistoryRef.current];
   }, []);
 
   const calculateDistance = useCallback((pos1: GPSPosition, pos2: GPSPosition): number => {
-    const R = 6371;
+    const R = 6371; // Raio da Terra em km
     const dLat = (pos2.latitude - pos1.latitude) * Math.PI / 180;
     const dLon = (pos2.longitude - pos1.longitude) * Math.PI / 180;
     const a = 
@@ -289,7 +262,8 @@ export function useGPS() {
     const history = positionHistoryRef.current;
     if (history.length < 2) return 0;
 
-    const recent = history.slice(-5);
+    // Usar os últimos 3 pontos para calcular velocidade
+    const recent = history.slice(-3);
     if (recent.length < 2) return 0;
 
     let totalDistance = 0;
@@ -302,6 +276,15 @@ export function useGPS() {
     const speedMs = timeDiff > 0 ? (totalDistance * 1000) / timeDiff : 0;
     return Math.max(0, speedMs);
   }, [calculateDistance]);
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+    };
+  }, []);
 
   return {
     ...state,

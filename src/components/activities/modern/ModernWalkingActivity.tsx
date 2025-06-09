@@ -62,17 +62,25 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
         const baseSteps = 90 + (Math.random() * 20); // 90-110 steps per minute
         setSteps(prev => prev + (baseSteps / 60));
         
-        // Distância via GPS
-        const gpsDistance = gps.calculateTotalDistance();
-        setDistance(gpsDistance);
+        // Distância via GPS se disponível
+        if (gps.position) {
+          const gpsDistance = gps.calculateTotalDistance();
+          setDistance(gpsDistance);
 
-        // Velocidade atual (km/h para exibição, m/s para mapa)
-        const speedMs = gps.calculateCurrentSpeed();
-        setSpeed(speedMs * 3.6);
-        setMaxSpeed(prev => Math.max(prev, speedMs * 3.6));
+          // Velocidade atual (km/h para exibição, m/s para mapa)
+          const speedMs = gps.calculateCurrentSpeed();
+          setSpeed(speedMs * 3.6);
+          setMaxSpeed(prev => Math.max(prev, speedMs * 3.6));
 
-        // Pace (min/km)
-        setPace(speedMs > 0 ? (1000 / speedMs) / 60 : 0);
+          // Pace (min/km)
+          setPace(speedMs > 0 ? (1000 / speedMs) / 60 : 0);
+        } else {
+          // Fallback para simulação se GPS não disponível
+          const simulatedSpeed = 4.5; // 4.5 km/h velocidade média de caminhada
+          setDistance(prev => prev + (simulatedSpeed / 3600)); // incremento por segundo
+          setSpeed(simulatedSpeed);
+          setPace(60 / simulatedSpeed); // min/km
+        }
         
         // Frequência cardíaca baseada na intensidade
         const targetHR = 60 + (selectedGoal.intensity * 20) + (terrainMultiplier * 10);
@@ -106,10 +114,18 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
     };
   }, [isActive, isPaused, duration, steps, distance, heartRate, selectedGoal, selectedTerrain, gps]);
 
-  const handleStart = () => {
-    gps.startTracking();
-    setIsActive(true);
-    setIsPaused(false);
+  const handleStart = async () => {
+    try {
+      console.log('Iniciando atividade de caminhada...');
+      await gps.startTracking();
+      setIsActive(true);
+      setIsPaused(false);
+    } catch (error) {
+      console.error('Erro ao iniciar GPS:', error);
+      // Continuar mesmo sem GPS
+      setIsActive(true);
+      setIsPaused(false);
+    }
   };
 
   const handlePause = () => {
@@ -341,12 +357,18 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
                     <span className="text-slate-400">Terreno</span>
                     <span className="text-white">{selectedTerrain.icon} {selectedTerrain.name}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">GPS Status</span>
+                    <span className={`${gps.position ? 'text-green-400' : 'text-orange-400'}`}>
+                      {gps.position ? `Ativo (${gps.accuracy.toFixed(0)}m)` : 'Simulado'}
+                    </span>
+                  </div>
                 </div>
               </PremiumCard>
 
-            <PremiumCard className="p-6 bg-slate-900/50 border-slate-700">
-              <h4 className="text-lg font-semibold text-white mb-4">Zona Cardíaca</h4>
-              <div className="space-y-3">
+              <PremiumCard className="p-6 bg-slate-900/50 border-slate-700">
+                <h4 className="text-lg font-semibold text-white mb-4">Zona Cardíaca</h4>
+                <div className="space-y-3">
                   <div className="text-center">
                     <div className="text-3xl font-bold text-red-400">{Math.round(heartRate)}</div>
                     <div className="text-sm text-slate-400">bpm atual</div>
@@ -371,8 +393,8 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
                       <span className="text-white">{Math.round(elevation)}m</span>
                     </div>
                   )}
-              </div>
-            </PremiumCard>
+                </div>
+              </PremiumCard>
             </div>
 
             {/* Mapa da Caminhada */}
