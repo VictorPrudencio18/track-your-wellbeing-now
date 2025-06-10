@@ -41,14 +41,27 @@ export function PremiumGPSRunner({ onComplete, onCancel }: PremiumGPSRunnerProps
 
   const handleComplete = async () => {
     await stopActivity();
+    
+    // Safely extract heart rate values with proper type checking
+    const avgHeartRate = typeof data.heartRate === 'number' 
+      ? data.heartRate 
+      : typeof data.heartRate === 'object' && data.heartRate?.avg 
+        ? data.heartRate.avg 
+        : undefined;
+        
+    const maxHeartRate = data.maxHeartRate || 
+      (typeof data.heartRate === 'object' && data.heartRate?.max 
+        ? data.heartRate.max 
+        : undefined);
+
     onComplete({
       type: 'running',
       duration: data.duration,
       distance: data.distance,
       calories: data.calories,
       pace: data.avgPace,
-      avg_heart_rate: typeof data.heartRate === 'number' ? data.heartRate : data.heartRate?.avg || undefined,
-      max_heart_rate: data.maxHeartRate || (typeof data.heartRate === 'object' ? data.heartRate?.max : undefined) || undefined,
+      avg_heart_rate: avgHeartRate,
+      max_heart_rate: maxHeartRate,
       elevation_gain: data.elevationGain,
     });
   };

@@ -119,7 +119,8 @@ function analyzeBehavioralPatterns(
   let maxStressLevel = 0;
 
   Object.entries(stressPerDay).forEach(([day, levels]) => {
-    if (levels.length >= 3) {
+    // Verificar se levels é um array e tem elementos suficientes
+    if (Array.isArray(levels) && levels.length >= 3) {
       const avgStress = levels.reduce((sum, l) => sum + l, 0) / levels.length;
       if (avgStress > maxStressLevel) {
         maxStressLevel = avgStress;
@@ -129,9 +130,13 @@ function analyzeBehavioralPatterns(
   });
 
   if (maxStressDay !== -1 && maxStressLevel >= 7) {
+    // Verificar se o array existe antes de acessar length
+    const stressData = stressPerDay[maxStressDay];
+    const frequency = Array.isArray(stressData) ? stressData.length : 0;
+    
     patterns.push({
       pattern: `Pico de Stress nas ${dayNames[maxStressDay]}s`,
-      frequency: stressPerDay[maxStressDay].length,
+      frequency: frequency,
       impact: 'negative',
       description: `${dayNames[maxStressDay]} é consistentemente seu dia mais estressante`,
       suggestion: `Planeje atividades relaxantes para ${dayNames[maxStressDay]}s`,
