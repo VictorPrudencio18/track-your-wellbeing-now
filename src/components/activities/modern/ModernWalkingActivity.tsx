@@ -138,7 +138,7 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
       type: 'walking' as const,
       name: `Caminhada ${selectedGoal.name}`,
       duration,
-      distance: Number(distance.toFixed(2)),
+      distance: Number((distance * 1000).toFixed(0)), // Convert km to meters
       calories: Math.round(calories),
       avg_heart_rate: Math.round(avgHeartRate),
       max_heart_rate: Math.round(heartRate),

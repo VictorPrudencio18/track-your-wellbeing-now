@@ -43,18 +43,16 @@ export function PremiumGPSRunner({ onComplete, onCancel }: PremiumGPSRunnerProps
   const handleComplete = async () => {
     await stopActivity();
     onComplete({
-      type: 'running',
-      name: 'Corrida GPS Premium',
+      type: 'running', // This is fine
       duration: data.duration,
       distance: data.distance,
       calories: data.calories,
       pace: data.avgPace,
-      heartRate: { avg: data.heartRate, max: data.maxHeartRate },
-      elevationGain: data.elevationGain,
-      avgSpeed: data.avgSpeed,
-      maxSpeed: data.maxSpeed,
-      cadence: data.cadence,
-      date: new Date()
+      avg_heart_rate: data.heartRate?.avg || undefined, // Flatten and ensure it exists
+      max_heart_rate: data.maxHeartRate || data.heartRate?.max || undefined, // Flatten (use data.maxHeartRate if it's separate, or data.heartRate.max)
+      elevation_gain: data.elevationGain,
+      // avgSpeed, maxSpeed, cadence are not directly in `activities` table, can be omitted for now
+      // steps are not provided by useActivityTracker in this component's context
     });
   };
 

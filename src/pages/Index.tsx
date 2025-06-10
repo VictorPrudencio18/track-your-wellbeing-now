@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ActivitySelection } from "@/components/ActivitySelection";
 import { ActivityTimer } from "@/components/ActivityTimer";
 import { useToast } from "@/hooks/use-toast";
+import { useCreateActivity } from '@/hooks/useSupabaseActivities';
 import { PremiumCard } from "@/components/ui/premium-card";
 import { AnimatedButton } from "@/components/ui/animated-button";
 import { StaggerContainer } from "@/components/animations/stagger-container";
@@ -12,27 +13,54 @@ import { ArrowLeft, Activity, Zap, Target } from "lucide-react";
 const Index = () => {
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
   const { toast } = useToast();
+  const createActivity = useCreateActivity();
 
   const handleActivitySelect = (type: string) => {
     setSelectedActivity(type);
   };
 
-  const handleActivityComplete = (data: any) => {
-    const newActivity = {
-      id: Date.now().toString(),
-      type: data.type,
-      duration: `${Math.floor(data.duration / 60)}:${(data.duration % 60).toString().padStart(2, '0')}`,
-      distance: data.distance ? `${data.distance.toFixed(1)} km` : undefined,
-      date: "Agora",
-      calories: Math.floor(data.duration * 5)
-    };
+  const handleActivityComplete = async (data: any) => {
+    let distanceInMeters = data.distance; // Default assumption: distance is in meters
 
-    setSelectedActivity(null);
-    
-    toast({
-      title: "Atividade concluída! 🎉",
-      description: `${data.type} de ${newActivity.duration} registrada com sucesso.`,
-    });
+    // PremiumCyclingActivity sends distance in KM, convert to meters.
+    // Other activities like PremiumGPSRunner and SwimmingActivity send in meters.
+    if (data.type === 'cycling' && data.distance) {
+      distanceInMeters = data.distance * 1000;
+    } else if (data.type === 'swimming' && data.totalDistance) {
+      // SwimmingActivity uses 'totalDistance' field for distance in meters
+      distanceInMeters = data.totalDistance;
+    }
+
+
+    try {
+      const activityToSave = {
+        type: data.type, // Ensure this is Enums<'activity_type'> compatible
+        duration: data.duration, // Should be in seconds
+        distance: distanceInMeters || undefined,
+        calories: data.calories || undefined,
+        avg_heart_rate: data.avg_heart_rate || undefined,
+        max_heart_rate: data.max_heart_rate || undefined,
+        pace: data.pace || undefined,
+        elevation_gain: data.elevation_gain || undefined,
+        name: data.name || `${data.type.charAt(0).toUpperCase() + data.type.slice(1)} Activity`,
+        // notes, gps_data (for metadata) could also be added if available in `data`
+      };
+
+      await createActivity.mutateAsync(activityToSave);
+
+      setSelectedActivity(null);
+
+      toast({
+        title: "Atividade Registrada!",
+        description: `${data.type} de ${Math.floor(data.duration / 60)}m${(data.duration % 60)}s registrada com sucesso no Supabase.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao Registrar",
+        description: "Não foi possível salvar a atividade. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
