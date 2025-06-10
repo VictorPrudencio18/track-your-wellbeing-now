@@ -26,7 +26,7 @@ const getMoodIcon = (value: number) => {
 };
 
 export function DailyMoodThermometer() {
-  const { todayCheckin, upsertCheckin } = useDailyCheckins();
+  const { todayCheckin, upsertCheckin, isLoading } = useDailyCheckins();
   const [selectedMood, setSelectedMood] = useState<number | null>(
     todayCheckin?.mood_rating || null
   );
@@ -38,10 +38,11 @@ export function DailyMoodThermometer() {
   }
 
   const handleSubmit = async () => {
-    if (selectedMood === null || selectedMood < 1 || selectedMood > 10) {
+    // Validação mais rigorosa
+    if (!selectedMood || selectedMood < 1 || selectedMood > 10 || !Number.isInteger(selectedMood)) {
       toast({
         title: "Erro de validação",
-        description: "Por favor, selecione um valor entre 1 e 10.",
+        description: "Por favor, selecione um valor válido entre 1 e 10.",
         variant: "destructive",
       });
       return;
@@ -51,22 +52,40 @@ export function DailyMoodThermometer() {
     try {
       console.log('Submitting mood rating:', selectedMood);
       
-      await upsertCheckin.mutateAsync({
-        mood_rating: selectedMood
+      // Garantir que o valor está dentro dos limites aceitos pelo banco
+      const validMoodRating = Math.max(1, Math.min(10, Math.round(selectedMood)));
+      
+      const result = await upsertCheckin.mutateAsync({
+        mood_rating: validMoodRating
       });
+      
+      console.log('Mood saved successfully:', result);
       
       toast({
         title: "Humor registrado! 😊",
-        description: `Seu humor hoje foi registrado como ${moodLabels[selectedMood - 1]}.`,
+        description: `Seu humor hoje foi registrado como ${moodLabels[validMoodRating - 1]}.`,
       });
       
       // Reset the selection after successful save
       setSelectedMood(null);
     } catch (error) {
       console.error('Error saving mood:', error);
+      
+      // Melhor tratamento de erros
+      let errorMessage = "Não foi possível registrar seu humor. Tente novamente.";
+      
+      if (error && typeof error === 'object' && 'message' in error) {
+        const errorStr = (error as any).message;
+        if (errorStr.includes('constraint')) {
+          errorMessage = "Valor inválido para o humor. Selecione um valor entre 1 e 10.";
+        } else if (errorStr.includes('network') || errorStr.includes('fetch')) {
+          errorMessage = "Problema de conexão. Verifique sua internet e tente novamente.";
+        }
+      }
+      
       toast({
         title: "Erro ao salvar",
-        description: "Não foi possível registrar seu humor. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -75,6 +94,25 @@ export function DailyMoodThermometer() {
   };
 
   const MoodIcon = selectedMood ? getMoodIcon(selectedMood) : Smile;
+
+  if (isLoading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-6"
+      >
+        <Card className="glass-card bg-gradient-to-br from-blue-500/15 to-purple-500/15 border border-blue-500/20 backdrop-blur-xl">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center">
+              <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
+              <span className="ml-2 text-white">Carregando...</span>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -161,11 +199,11 @@ export function DailyMoodThermometer() {
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button
                 onClick={handleSubmit}
-                disabled={selectedMood === null || isSubmitting}
+                disabled={selectedMood === null || isSubmitting || upsertCheckin.isPending}
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 size="lg"
               >
-                {isSubmitting ? (
+                {isSubmitting || upsertCheckin.isPending ? (
                   <div className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Registrando...

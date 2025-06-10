@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -73,6 +72,8 @@ export function useDailyCheckins() {
       return data as DailyCheckin | null;
     },
     enabled: !!user,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    gcTime: 10 * 60 * 1000, // 10 minutos
   });
 
   // Buscar últimos 7 dias
@@ -171,20 +172,33 @@ export function useDailyCheckins() {
   const upsertCheckin = useMutation({
     mutationFn: async (updates: Partial<DailyCheckin>) => {
       if (!user) {
-        throw new Error('User not authenticated');
+        throw new Error('Usuário não autenticado');
       }
 
       const today = new Date().toISOString().split('T')[0];
       
       console.log('Upserting checkin with data:', updates);
       
+      // Validação específica para mood_rating
+      if (updates.mood_rating !== undefined && updates.mood_rating !== null) {
+        const moodRating = updates.mood_rating;
+        if (!Number.isInteger(moodRating) || moodRating < 1 || moodRating > 10) {
+          throw new Error('Valor de humor deve ser um número inteiro entre 1 e 10');
+        }
+      }
+      
       // Primeiro, verificar se já existe um check-in para hoje
-      const { data: existingCheckin } = await supabase
+      const { data: existingCheckin, error: fetchError } = await supabase
         .from('daily_health_checkins')
         .select('id')
         .eq('user_id', user.id)
         .eq('checkin_date', today)
         .maybeSingle();
+
+      if (fetchError) {
+        console.error('Error checking existing checkin:', fetchError);
+        throw new Error('Erro ao verificar check-in existente');
+      }
 
       let result;
       
@@ -203,7 +217,7 @@ export function useDailyCheckins() {
         
         if (error) {
           console.error('Error updating checkin:', error);
-          throw error;
+          throw new Error(`Erro ao atualizar check-in: ${error.message}`);
         }
         result = data;
       } else {
@@ -242,7 +256,7 @@ export function useDailyCheckins() {
         
         if (error) {
           console.error('Error creating checkin:', error);
-          throw error;
+          throw new Error(`Erro ao criar check-in: ${error.message}`);
         }
         result = data;
       }
@@ -250,19 +264,25 @@ export function useDailyCheckins() {
       console.log('Checkin operation successful:', result);
       return result;
     },
-    onSuccess: () => {
-      console.log('Invalidating checkin queries');
+    onSuccess: (data) => {
+      console.log('Invalidating checkin queries after successful save');
+      // Invalidar todas as queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['daily-checkin'] });
       queryClient.invalidateQueries({ queryKey: ['daily-checkins-7days'] });
       queryClient.invalidateQueries({ queryKey: ['daily-checkins-30days'] });
+      
+      // Atualizar o cache otimisticamente
+      queryClient.setQueryData(['daily-checkin', user?.id], data);
     },
     onError: (error) => {
-      console.error('Checkin error:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível salvar o check-in. Tente novamente.",
-        variant: "destructive",
-      });
+      console.error('Checkin mutation error:', error);
+      
+      // Não mostrar toast aqui, deixar para o componente tratar
+      // toast({
+      //   title: "Erro",
+      //   description: "Não foi possível salvar o check-in. Tente novamente.",
+      //   variant: "destructive",
+      // });
     }
   });
 
