@@ -52,16 +52,39 @@ export default function Dashboard() {
   const { todayCheckin, last7Days } = useDailyCheckins();
   const { data: activities } = useActivities();
 
-  // Mock data para demonstração visual
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const todayActivities = activities?.filter(act => {
+    if (!act.completed_at) return false;
+    const activityDate = new Date(act.completed_at);
+    return activityDate.toISOString().split('T')[0] === todayStr;
+  }) || [];
+
+  const calculatedWorkouts = todayActivities.length;
+  const calculatedCalories = todayActivities.reduce((sum, act) => sum + (act.calories || 0), 0);
+  // Assuming distance in activities is in KM as per previous subtask for PremiumCyclingActivity onComplete.
+  // If activities table stores in meters, this needs act.distance / 1000
+  // For now, let's assume it's already in KM from the source or will be handled by useActivities hook.
+  // UPDATE: The `activities` table stores distance in meters.
+  // The `useCreateActivity` hook takes distance in meters.
+  // `PremiumCyclingActivity` was modified to call `onComplete` with KM, but that `onComplete`
+  // was for `Index.tsx` which then calls `useCreateActivity` (which expects meters).
+  // So, `activities.distance` from Supabase should be in meters.
+  const totalDistanceTodayMeters = todayActivities.reduce((sum, act) => sum + (act.distance || 0), 0);
+  const calculatedSteps = Math.round(totalDistanceTodayMeters * 1.312); // Avg 1312 steps per KM for meters.
+
+  const hrActivities = todayActivities.filter(act => act.avg_heart_rate && act.avg_heart_rate > 0);
+  const calculatedHeartRate = hrActivities.length > 0 ? Math.round(hrActivities.reduce((sum, act) => sum + (act.avg_heart_rate || 0), 0) / hrActivities.length) : 0;
+
   const todayMetrics = {
-    mood: todayCheckin?.mood_rating || 7,
-    energy: todayCheckin?.energy_level || 6,
-    hydration: 7,
-    sleep: todayCheckin?.sleep_quality || 8,
-    steps: 8542,
-    calories: 2134,
-    heartRate: 78,
-    workouts: 1,
+    mood: todayCheckin?.mood_rating || 0,
+    energy: todayCheckin?.energy_level || 0,
+    hydration: todayCheckin?.hydration_glasses || 0,
+    sleep: todayCheckin?.sleep_quality || 0,
+    steps: calculatedSteps,
+    calories: calculatedCalories,
+    heartRate: calculatedHeartRate,
+    workouts: calculatedWorkouts,
   };
 
   const insights = correlationData?.insights || [
@@ -290,7 +313,7 @@ export default function Dashboard() {
                   title="Atividade"
                   value={`${todayMetrics.steps.toLocaleString()}`}
                   target="10.000"
-                  progress={(todayMetrics.steps / 10000) * 100}
+                  progress={Math.min(100, (todayMetrics.steps / 10000) * 100)}
                   trend={15}
                   icon={Activity}
                   color="green"
@@ -386,7 +409,7 @@ export default function Dashboard() {
                   title="Calorias"
                   value={todayMetrics.calories.toLocaleString()}
                   target="2.500"
-                  progress={(todayMetrics.calories / 2500) * 100}
+                  progress={Math.min(100, (todayMetrics.calories / 2500) * 100)}
                   icon={Zap}
                   color="orange"
                   size="sm"
@@ -394,8 +417,8 @@ export default function Dashboard() {
                 
                 <AdvancedMetricCard
                   title="Freq. Cardíaca"
-                  value={`${todayMetrics.heartRate} bpm`}
-                  progress={75}
+                  value={todayMetrics.heartRate > 0 ? `${todayMetrics.heartRate} bpm` : 'N/A'}
+                  progress={todayMetrics.heartRate > 0 ? Math.min(100, (todayMetrics.heartRate / 80) * 60) : 0}
                   icon={Heart}
                   color="red"
                   size="sm"
@@ -403,9 +426,9 @@ export default function Dashboard() {
                 
                 <AdvancedMetricCard
                   title="Treinos"
-                  value={todayMetrics.workouts}
+                  value={todayMetrics.workouts.toString()}
                   target="1"
-                  progress={100}
+                  progress={Math.min(100, (todayMetrics.workouts / 1) * 100)}
                   icon={Award}
                   color="green"
                   size="sm"

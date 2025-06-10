@@ -35,7 +35,18 @@ export function PremiumCyclingActivity({ onComplete, onCancel }: PremiumCyclingA
 
   const handleComplete = async () => {
     await stopActivity();
-    onComplete(data);
+    // Data from useEnhancedActivityTracker has distance in meters.
+    // The onComplete for Index.tsx expects distance in KM for some reason (based on task instructions).
+    onComplete({
+      type: 'cycling', // data.type should also be 'cycling' from the hook
+      duration: data.duration, // in seconds
+      distance: data.distance ? data.distance / 1000 : undefined, // Convert meters to KM
+      calories: data.calories,
+      avg_heart_rate: data.heartRate || undefined, // data.heartRate is current, using as avg
+      max_heart_rate: data.maxHeartRate || undefined,
+      elevation_gain: data.elevationGain || undefined,
+      pace: data.avgPace || undefined, // s/km
+    });
   };
 
   const handleCancel = () => {
@@ -88,7 +99,7 @@ export function PremiumCyclingActivity({ onComplete, onCancel }: PremiumCyclingA
               <p className="text-navy-400">
                 {isActive ? (
                   <>
-                    {formatDuration(data.duration)} • {data.distance.toFixed(2)} km
+                  {formatDuration(data.duration)} • {(data.distance / 1000).toFixed(2)} km
                     {isPaused && <span className="text-yellow-400 ml-2">• Pausado</span>}
                   </>
                 ) : (
@@ -178,7 +189,7 @@ export function PremiumCyclingActivity({ onComplete, onCancel }: PremiumCyclingA
                       </div>
                       <div>
                         <div className="text-2xl font-bold text-green-400">
-                          {data.distance.toFixed(2)}
+                          {(data.distance / 1000).toFixed(2)}
                         </div>
                         <div className="text-xs text-navy-400">km</div>
                       </div>
