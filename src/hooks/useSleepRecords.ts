@@ -82,11 +82,14 @@ export function useSleepRecords() {
     mutationFn: async (sleepData: Partial<SleepRecord>) => {
       if (!user) throw new Error('User not authenticated');
 
+      const today = new Date().toISOString().split('T')[0];
+
       const { data, error } = await supabase
         .from('sleep_records')
         .insert({
-          ...sleepData,
           user_id: user.id,
+          sleep_date: today,
+          ...sleepData,
         })
         .select()
         .single();

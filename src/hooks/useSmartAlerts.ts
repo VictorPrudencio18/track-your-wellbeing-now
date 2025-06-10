@@ -23,7 +23,7 @@ export function useSmartAlerts() {
 
   return useQuery({
     queryKey: ['smart-alerts', user?.id],
-    queryFn: () => generateSmartAlerts(todayCheckin, last7Days, activities),
+    queryFn: () => generateSmartAlerts(todayCheckin, last7Days, activities || []),
     enabled: !!user,
     refetchInterval: 10 * 60 * 1000, // Atualizar a cada 10 minutos
   });
@@ -68,9 +68,9 @@ function generateSmartAlerts(
   }
 
   // Alert de atividade física
-  const todayActivities = activities?.filter(a => 
+  const todayActivities = activities.filter(a => 
     new Date(a.completed_at).toDateString() === now.toDateString()
-  ) || [];
+  );
 
   if (todayActivities.length === 0 && now.getHours() >= 16) {
     alerts.push({
@@ -94,6 +94,7 @@ function generateSmartAlerts(
       priority: 'high',
       title: 'Humor Baixo Detectado',
       message: 'Percebemos que você não está se sentindo bem. Considere conversar com alguém ou praticar uma atividade relaxante',
+      expiresAt: new Date(now.getTime() + 12 * 60 * 60 * 1000), // 12 horas
       category: 'Mental'
     });
   }

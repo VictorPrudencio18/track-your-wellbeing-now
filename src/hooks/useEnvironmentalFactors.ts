@@ -18,7 +18,7 @@ export function useEnvironmentalFactors() {
 
   return useQuery({
     queryKey: ['environmental-factors', user?.id],
-    queryFn: () => analyzeEnvironmentalFactors(last30Days),
+    queryFn: () => analyzeEnvironmentalFactors(last30Days || []),
     enabled: !!user && last30Days && last30Days.length >= 14,
     staleTime: 6 * 60 * 60 * 1000, // 6 horas
   });
@@ -38,7 +38,7 @@ function analyzeEnvironmentalFactors(checkins: any[] = []): EnvironmentalFactor[
   const weekdayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
   
   Object.entries(moodByWeekday).forEach(([day, moods]) => {
-    if (moods.length >= 3) {
+    if (Array.isArray(moods) && moods.length >= 3) {
       const avgMood = moods.reduce((sum, m) => sum + m, 0) / moods.length;
       const dayName = weekdayNames[parseInt(day)];
       
@@ -76,7 +76,7 @@ function analyzeEnvironmentalFactors(checkins: any[] = []): EnvironmentalFactor[
   const seasonNames = ['Verão', 'Outono', 'Inverno', 'Primavera'];
   
   Object.entries(seasonalMood).forEach(([season, moods]) => {
-    if (moods.length >= 5) {
+    if (Array.isArray(moods) && moods.length >= 5) {
       const avgMood = moods.reduce((sum, m) => sum + m, 0) / moods.length;
       const seasonName = seasonNames[parseInt(season)];
       

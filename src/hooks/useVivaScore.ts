@@ -1,8 +1,9 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useDailyCheckins } from '@/hooks/useDailyCheckins';
 import { useActivities } from '@/hooks/useSupabaseActivities';
-import { useSleepRecords } from '@/hooks/useSleep';
+import { useSleepRecords } from '@/hooks/useSleepRecords';
 import { useHealthMetrics } from '@/hooks/useHealthMetrics';
 
 interface VivaScoreBreakdown {
@@ -31,7 +32,7 @@ export function useVivaScore() {
 
   return useQuery({
     queryKey: ['viva-score', user?.id],
-    queryFn: () => calculateVivaScore(todayCheckin, last7Days, activities, sleepRecords, healthMetrics),
+    queryFn: () => calculateVivaScore(todayCheckin, last7Days, activities || [], sleepRecords || [], healthMetrics || []),
     enabled: !!user,
     refetchInterval: 5 * 60 * 1000, // Atualizar a cada 5 minutos
   });

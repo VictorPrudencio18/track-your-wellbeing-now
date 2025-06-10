@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { motion } from 'framer-motion';
 import { useCreateActivity } from '@/hooks/useSupabaseActivities';
-import { useGPS } from '@/hooks/useGPS';
+import { useGPS, GPSPosition } from '@/hooks/useGPS';
 import { RunningMap } from '../premium-components/RunningMap';
 
 interface ModernWalkingActivityProps {
@@ -134,6 +134,18 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
 
   const handleStop = async () => {
     gps.stopTracking();
+    
+    // Convert GPSPosition array to JSON-compatible format
+    const routeData = gps.getPositionHistory().map((pos: GPSPosition) => ({
+      latitude: pos.latitude,
+      longitude: pos.longitude,
+      altitude: pos.altitude,
+      accuracy: pos.accuracy,
+      speed: pos.speed,
+      heading: pos.heading,
+      timestamp: pos.timestamp
+    }));
+
     const sessionData = {
       type: 'walking' as const,
       name: `Caminhada ${selectedGoal.name}`,
@@ -152,7 +164,7 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
         heart_rate_zone: heartRateZone,
         goal_achieved: steps >= selectedGoal.steps,
         terrain_modifier: selectedTerrain.modifier,
-        route: gps.getPositionHistory()
+        route: routeData
       }
     };
     

@@ -20,7 +20,7 @@ export function useBehavioralPatterns() {
 
   return useQuery({
     queryKey: ['behavioral-patterns', user?.id],
-    queryFn: () => analyzeBehavioralPatterns(last30Days, activities),
+    queryFn: () => analyzeBehavioralPatterns(last30Days, activities || []),
     enabled: !!user && last30Days && last30Days.length >= 14,
     staleTime: 4 * 60 * 60 * 1000, // 4 horas
   });
@@ -33,15 +33,15 @@ function analyzeBehavioralPatterns(
   const patterns: BehavioralPattern[] = [];
 
   // Análise de padrão de exercício matinal vs noturno
-  const morningWorkouts = activities?.filter(a => {
+  const morningWorkouts = activities.filter(a => {
     const hour = new Date(a.completed_at).getHours();
     return hour >= 6 && hour <= 10;
-  }) || [];
+  });
   
-  const eveningWorkouts = activities?.filter(a => {
+  const eveningWorkouts = activities.filter(a => {
     const hour = new Date(a.completed_at).getHours();
     return hour >= 18 && hour <= 22;
-  }) || [];
+  });
 
   if (morningWorkouts.length > eveningWorkouts.length && morningWorkouts.length >= 5) {
     patterns.push({

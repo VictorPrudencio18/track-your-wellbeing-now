@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -43,16 +42,14 @@ export function PremiumGPSRunner({ onComplete, onCancel }: PremiumGPSRunnerProps
   const handleComplete = async () => {
     await stopActivity();
     onComplete({
-      type: 'running', // This is fine
+      type: 'running',
       duration: data.duration,
       distance: data.distance,
       calories: data.calories,
       pace: data.avgPace,
-      avg_heart_rate: data.heartRate?.avg || undefined, // Flatten and ensure it exists
-      max_heart_rate: data.maxHeartRate || data.heartRate?.max || undefined, // Flatten (use data.maxHeartRate if it's separate, or data.heartRate.max)
+      avg_heart_rate: typeof data.heartRate === 'number' ? data.heartRate : data.heartRate?.avg || undefined,
+      max_heart_rate: data.maxHeartRate || (typeof data.heartRate === 'object' ? data.heartRate?.max : undefined) || undefined,
       elevation_gain: data.elevationGain,
-      // avgSpeed, maxSpeed, cadence are not directly in `activities` table, can be omitted for now
-      // steps are not provided by useActivityTracker in this component's context
     });
   };
 

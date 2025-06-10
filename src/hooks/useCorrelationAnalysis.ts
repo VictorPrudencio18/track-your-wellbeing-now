@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useDailyCheckins } from '@/hooks/useDailyCheckins';
 import { useActivities } from '@/hooks/useSupabaseActivities';
-import { useSleepRecords } from '@/hooks/useSleep';
+import { useSleepRecords } from '@/hooks/useSleepRecords';
 
 interface CorrelationInsight {
   type: 'positive' | 'negative' | 'neutral';
@@ -36,7 +36,7 @@ export function useCorrelationAnalysis() {
 
   return useQuery({
     queryKey: ['correlation-analysis', user?.id],
-    queryFn: () => analyzeCorrelations(last30Days, activities, sleepRecords),
+    queryFn: () => analyzeCorrelations(last30Days, activities || [], sleepRecords || []),
     enabled: !!user && last30Days && last30Days.length >= 7,
     staleTime: 60 * 60 * 1000, // 1 hora
   });
