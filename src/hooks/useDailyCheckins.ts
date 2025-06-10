@@ -166,12 +166,31 @@ export function useDailyCheckins() {
         result = data;
       } else {
         // Criar novo check-in
+        const defaultCheckinData = {
+          hydration_glasses: 0,
+          sleep_quality: null,
+          sleep_hours: null,
+          exercise_completed: false,
+          exercise_type: null,
+          exercise_planned: false,
+          stress_level: null,
+          work_satisfaction: null,
+          energy_level: null,
+          mood_rating: null, // Will be overridden by updates if provided
+          had_lunch: false,
+          had_dinner: false,
+          ate_healthy: false,
+          wellness_score: 50, // Assuming a neutral default score, can be recalculated later
+          notes: null,
+        };
+
         const { data, error } = await supabase
           .from('daily_health_checkins')
           .insert({
-            user_id: user.id,
-            checkin_date: today,
-            ...updates,
+            ...defaultCheckinData, // Spread defaults first
+            user_id: user.id,      // Specific to this new record
+            checkin_date: today,   // Specific to this new record
+            ...updates,           // Spread updates last to override defaults with provided values
           })
           .select()
           .single();
