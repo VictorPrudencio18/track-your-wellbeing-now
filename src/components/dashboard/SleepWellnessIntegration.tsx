@@ -2,338 +2,297 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 import { 
   Moon, 
+  Heart, 
   Zap, 
-  TrendingUp, 
-  Clock,
   Brain,
-  Heart,
-  AlertCircle,
-  CheckCircle,
-  Lightbulb
+  Clock,
+  TrendingUp,
+  AlertCircle
 } from 'lucide-react';
-import { useSleepWellnessIntegration } from '@/hooks/useSleepWellnessIntegration';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useSleepRecords } from '@/hooks/useSleepRecords';
+import { useDailyCheckins } from '@/hooks/useDailyCheckins';
+import { Link } from 'react-router-dom';
 
 export function SleepWellnessIntegration() {
-  const { data: integrationData, isLoading } = useSleepWellnessIntegration();
+  const { sleepRecords, sleepStats, isLoading } = useSleepRecords();
+  const { todayCheckin, last7Days } = useDailyCheckins();
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="glass-card border-navy-700/30">
-            <CardContent className="p-6">
-              <div className="animate-pulse space-y-4">
-                <div className="h-4 bg-navy-700 rounded w-1/2"></div>
-                <div className="h-20 bg-navy-700 rounded"></div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
-  if (!integrationData) {
-    return (
       <Card className="glass-card border-navy-700/30">
-        <CardContent className="p-6 text-center">
-          <Moon className="w-12 h-12 text-navy-500 mx-auto mb-4" />
-          <p className="text-navy-400">
-            Continue registrando dados de sono e energia para análise integrada
-          </p>
+        <CardContent className="p-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-6 bg-navy-700 rounded w-1/2 mb-4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="h-32 bg-navy-700/30 rounded"></div>
+              <div className="h-32 bg-navy-700/30 rounded"></div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
-  const { correlations, sleepDebt, impactAnalysis, optimalInsights } = integrationData;
+  // Se não há dados de sono, mostrar call-to-action
+  if (!sleepRecords || sleepRecords.length === 0) {
+    return (
+      <Card className="glass-card border-navy-700/30">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Moon className="w-5 h-5 text-accent-orange" />
+            Integração Sono-Bem-estar
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <Moon className="w-16 h-16 text-navy-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-white mb-2">
+              Descubra como seu sono afeta seu bem-estar
+            </h3>
+            <p className="text-navy-400 mb-6">
+              Registre seus dados de sono para ver correlações com humor, energia e saúde mental
+            </p>
+            <Button asChild className="bg-accent-orange hover:bg-accent-orange/80">
+              <Link to="/sleep">
+                Começar Registro de Sono
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  const getCorrelationColor = (correlation: number) => {
-    if (correlation > 0.5) return 'text-green-400';
-    if (correlation > 0.2) return 'text-yellow-400';
-    return 'text-red-400';
-  };
+  // Cálculos de correlação
+  const last7DaysWithSleep = last7Days.filter(day => 
+    sleepRecords.some(sleep => sleep.sleep_date === day.checkin_date)
+  );
 
-  const getDebtColor = (debt: number) => {
-    if (debt < 1) return 'text-green-400';
-    if (debt < 3) return 'text-yellow-400';
-    return 'text-red-400';
-  };
+  const sleepMoodCorrelation = calculateCorrelation(last7DaysWithSleep, sleepRecords, 'mood');
+  const sleepEnergyCorrelation = calculateCorrelation(last7DaysWithSleep, sleepRecords, 'energy');
+
+  const integrationMetrics = [
+    {
+      title: 'Qualidade do Sono',
+      value: sleepStats.averageQuality.toFixed(1),
+      target: '8.0',
+      progress: (sleepStats.averageQuality / 10) * 100,
+      icon: Moon,
+      color: 'indigo',
+      trend: getTrend(sleepRecords, 'subjective_quality')
+    },
+    {
+      title: 'Humor Médio',
+      value: last7Days.length ? 
+        (last7Days.reduce((sum, day) => sum + (day.mood_rating || 0), 0) / last7Days.length).toFixed(1) : '0.0',
+      target: '8.0',
+      progress: last7Days.length ? 
+        (last7Days.reduce((sum, day) => sum + (day.mood_rating || 0), 0) / last7Days.length / 10) * 100 : 0,
+      icon: Heart,
+      color: 'red',
+      trend: getTrend(last7Days, 'mood_rating')
+    },
+    {
+      title: 'Energia Média',
+      value: last7Days.length ? 
+        (last7Days.reduce((sum, day) => sum + (day.energy_level || 0), 0) / last7Days.length).toFixed(1) : '0.0',
+      target: '8.0',
+      progress: last7Days.length ? 
+        (last7Days.reduce((sum, day) => sum + (day.energy_level || 0), 0) / last7Days.length / 10) * 100 : 0,
+      icon: Zap,
+      color: 'yellow',
+      trend: getTrend(last7Days, 'energy_level')
+    },
+    {
+      title: 'Duração Média',
+      value: `${Math.floor(sleepStats.averageDuration / 60)}h${(sleepStats.averageDuration % 60).toFixed(0)}m`,
+      target: '8h00m',
+      progress: (sleepStats.averageDuration / 480) * 100,
+      icon: Clock,
+      color: 'blue',
+      trend: getTrend(sleepRecords, 'sleep_duration')
+    }
+  ];
 
   return (
     <div className="space-y-6">
-      {/* Sleep-Energy Correlation Chart */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Card className="glass-card border-navy-700/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <TrendingUp className="w-5 h-5 text-blue-400" />
-              Correlação Sono vs Energia
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64 mb-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={correlations}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis 
-                    dataKey="date" 
-                    stroke="#9CA3AF"
-                    fontSize={12}
-                    tickFormatter={(value) => new Date(value).getDate().toString()}
-                  />
-                  <YAxis stroke="#9CA3AF" fontSize={12} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(30, 41, 59, 0.95)', 
-                      border: '1px solid rgba(245, 158, 11, 0.2)', 
-                      borderRadius: '12px',
-                      color: '#f8fafc'
-                    }}
-                    labelFormatter={(value) => `Data: ${new Date(value).toLocaleDateString('pt-BR')}`}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="sleepQuality" 
-                    stroke="#8B5CF6" 
-                    strokeWidth={2}
-                    name="Qualidade do Sono"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="energyLevel" 
-                    stroke="#10B981" 
-                    strokeWidth={2}
-                    name="Nível de Energia"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-3 bg-navy-800/30 rounded-lg">
-                <div className="text-sm text-gray-400">Correlação Média</div>
-                <div className={`text-lg font-bold ${getCorrelationColor(impactAnalysis.physicalImpact.energyCorrelation)}`}>
-                  {(impactAnalysis.physicalImpact.energyCorrelation * 100).toFixed(0)}%
-                </div>
-              </div>
-              <div className="text-center p-3 bg-navy-800/30 rounded-lg">
-                <div className="text-sm text-gray-400">Impacto no Humor</div>
-                <div className={`text-lg font-bold ${getCorrelationColor(impactAnalysis.moodImpact.correlation)}`}>
-                  {impactAnalysis.moodImpact.trend === 'positive' ? '+' : ''}
-                  {(impactAnalysis.moodImpact.correlation * 10).toFixed(1)}
-                </div>
-              </div>
-              <div className="text-center p-3 bg-navy-800/30 rounded-lg">
-                <div className="text-sm text-gray-400">Produtividade</div>
-                <div className={`text-lg font-bold ${getCorrelationColor(impactAnalysis.productivityImpact.correlation)}`}>
-                  {impactAnalysis.productivityImpact.workSatisfactionChange > 0 ? '+' : ''}
-                  {impactAnalysis.productivityImpact.workSatisfactionChange.toFixed(1)}%
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sleep Debt Calculator */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <Card className="glass-card border-navy-700/30">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Clock className="w-5 h-5 text-orange-400" />
-                Calculadora de Déficit de Sono
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center">
-                <div className="text-sm text-gray-400 mb-2">Déficit Atual</div>
-                <div className={`text-4xl font-bold ${getDebtColor(sleepDebt.currentDebt)}`}>
-                  {sleepDebt.currentDebt.toFixed(1)}h
-                </div>
-                {sleepDebt.currentDebt > 0 && (
-                  <Badge variant="outline" className="mt-2 text-orange-400 border-orange-400/50">
-                    {sleepDebt.recoveryDays} dias para recuperar
-                  </Badge>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-400">Déficit Semanal</span>
-                  <span className={`font-medium ${getDebtColor(sleepDebt.weeklyDebt)}`}>
-                    {sleepDebt.weeklyDebt.toFixed(1)}h
-                  </span>
-                </div>
-                
-                <Progress 
-                  value={Math.max(0, 100 - (sleepDebt.weeklyDebt / 10) * 100)} 
-                  className="h-2"
-                />
-              </div>
-
-              <div className="space-y-2 mt-4">
-                <h4 className="font-medium text-white text-sm">💡 Recomendações:</h4>
-                {sleepDebt.recommendations.map((rec, index) => (
-                  <div key={index} className="text-xs text-gray-400 flex items-start gap-2">
-                    <Lightbulb className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                    {rec}
+      {/* Métricas Principais */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {integrationMetrics.map((metric, index) => (
+          <motion.div
+            key={metric.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+          >
+            <Card className="glass-card border-navy-700/30 hover:border-accent-orange/30 transition-colors">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className={`p-2 bg-${metric.color}-500/10 rounded-lg`}>
+                    <metric.icon className={`w-5 h-5 text-${metric.color}-400`} />
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Optimal Sleep Insights */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <Card className="glass-card border-navy-700/30">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Brain className="w-5 h-5 text-purple-400" />
-                Insights de Sono Otimizado
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-purple-400/10 rounded-lg border border-purple-400/20">
-                  <Moon className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-                  <div className="text-sm text-gray-400">Horário Ideal</div>
-                  <div className="font-medium text-white">
-                    {optimalInsights.optimalBedtime}
+                  <div className="flex items-center gap-1 text-xs">
+                    <TrendingUp className="w-3 h-3 text-green-400" />
+                    <span className="text-green-400">+{metric.trend}%</span>
                   </div>
                 </div>
                 
-                <div className="text-center p-3 bg-yellow-400/10 rounded-lg border border-yellow-400/20">
-                  <Zap className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
-                  <div className="text-sm text-gray-400">Despertar Ideal</div>
-                  <div className="font-medium text-white">
-                    {optimalInsights.optimalWakeTime}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-white">{metric.title}</h4>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xl font-bold text-white">{metric.value}</span>
+                    <span className="text-xs text-navy-400">meta: {metric.target}</span>
                   </div>
+                  <Progress value={metric.progress} className="h-2" />
                 </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-400">Duração Ideal</span>
-                  <span className="font-medium text-white">
-                    {Math.round(optimalInsights.idealDuration / 60)}h {optimalInsights.idealDuration % 60}min
-                  </span>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-400">Score de Consistência</span>
-                  <span className={`font-medium ${
-                    optimalInsights.consistencyScore > 80 ? 'text-green-400' :
-                    optimalInsights.consistencyScore > 60 ? 'text-yellow-400' : 'text-red-400'
-                  }`}>
-                    {optimalInsights.consistencyScore.toFixed(0)}%
-                  </span>
-                </div>
-                
-                <Progress value={optimalInsights.consistencyScore} className="h-2" />
-              </div>
-
-              <div className="space-y-2 mt-4">
-                <h4 className="font-medium text-white text-sm">🎯 Melhorias:</h4>
-                {optimalInsights.improvements.map((improvement, index) => (
-                  <div key={index} className="text-xs text-gray-400 flex items-start gap-2">
-                    <CheckCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                    {improvement}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
       </div>
 
-      {/* Impact Analysis Summary */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-      >
+      {/* Correlações e Insights */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Correlação Sono-Humor */}
         <Card className="glass-card border-navy-700/30">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <Heart className="w-5 h-5 text-red-400" />
-              Análise de Impacto do Sono
+            <CardTitle className="flex items-center gap-2 text-white text-lg">
+              <Brain className="w-5 h-5 text-purple-400" />
+              Sono × Humor
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Mood Impact */}
-              <div className="p-4 bg-gradient-to-br from-blue-500/10 to-indigo-600/10 rounded-lg border border-blue-400/20">
-                <div className="flex items-center gap-2 mb-3">
-                  <Brain className="w-5 h-5 text-blue-400" />
-                  <h4 className="font-medium text-white">Impacto no Humor</h4>
-                </div>
-                <div className={`text-2xl font-bold mb-2 ${getCorrelationColor(impactAnalysis.moodImpact.correlation)}`}>
-                  {impactAnalysis.moodImpact.trend === 'positive' ? '↗️' : impactAnalysis.moodImpact.trend === 'negative' ? '↘️' : '➡️'}
-                  {' '}{impactAnalysis.moodImpact.trend === 'positive' ? 'Positivo' : impactAnalysis.moodImpact.trend === 'negative' ? 'Negativo' : 'Neutro'}
-                </div>
-                <div className="space-y-1">
-                  {impactAnalysis.moodImpact.insights.map((insight, i) => (
-                    <p key={i} className="text-xs text-gray-400">{insight}</p>
-                  ))}
-                </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-navy-400">Correlação detectada:</span>
+                <span className={`font-semibold ${
+                  sleepMoodCorrelation > 0.5 ? 'text-green-400' : 
+                  sleepMoodCorrelation > 0.2 ? 'text-yellow-400' : 'text-red-400'
+                }`}>
+                  {sleepMoodCorrelation > 0.5 ? 'Forte' : 
+                   sleepMoodCorrelation > 0.2 ? 'Moderada' : 'Fraca'}
+                </span>
               </div>
+              
+              <Progress value={Math.abs(sleepMoodCorrelation) * 100} className="h-2" />
+              
+              <p className="text-sm text-gray-300">
+                {sleepMoodCorrelation > 0.5 
+                  ? 'Noites bem dormidas melhoram significativamente seu humor'
+                  : sleepMoodCorrelation > 0.2
+                  ? 'Há uma relação moderada entre seu sono e humor'
+                  : 'Correlação fraca detectada - outros fatores podem estar influenciando mais'
+                }
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
-              {/* Physical Impact */}
-              <div className="p-4 bg-gradient-to-br from-green-500/10 to-emerald-600/10 rounded-lg border border-green-400/20">
-                <div className="flex items-center gap-2 mb-3">
-                  <Zap className="w-5 h-5 text-green-400" />
-                  <h4 className="font-medium text-white">Impacto Físico</h4>
-                </div>
-                <div className={`text-2xl font-bold mb-2 ${getCorrelationColor(impactAnalysis.physicalImpact.energyCorrelation)}`}>
-                  {(impactAnalysis.physicalImpact.energyCorrelation * 100).toFixed(0)}%
-                </div>
-                <div className="space-y-1">
-                  {impactAnalysis.physicalImpact.insights.map((insight, i) => (
-                    <p key={i} className="text-xs text-gray-400">{insight}</p>
-                  ))}
-                </div>
+        {/* Correlação Sono-Energia */}
+        <Card className="glass-card border-navy-700/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white text-lg">
+              <Zap className="w-5 h-5 text-yellow-400" />
+              Sono × Energia
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-navy-400">Correlação detectada:</span>
+                <span className={`font-semibold ${
+                  sleepEnergyCorrelation > 0.5 ? 'text-green-400' : 
+                  sleepEnergyCorrelation > 0.2 ? 'text-yellow-400' : 'text-red-400'
+                }`}>
+                  {sleepEnergyCorrelation > 0.5 ? 'Forte' : 
+                   sleepEnergyCorrelation > 0.2 ? 'Moderada' : 'Fraca'}
+                </span>
               </div>
+              
+              <Progress value={Math.abs(sleepEnergyCorrelation) * 100} className="h-2" />
+              
+              <p className="text-sm text-gray-300">
+                {sleepEnergyCorrelation > 0.5 
+                  ? 'Seu nível de energia está diretamente ligado à qualidade do sono'
+                  : sleepEnergyCorrelation > 0.2
+                  ? 'Sono de qualidade contribui moderadamente para sua energia'
+                  : 'Outros fatores além do sono podem estar afetando sua energia'
+                }
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-              {/* Productivity Impact */}
-              <div className="p-4 bg-gradient-to-br from-purple-500/10 to-violet-600/10 rounded-lg border border-purple-400/20">
-                <div className="flex items-center gap-2 mb-3">
-                  <TrendingUp className="w-5 h-5 text-purple-400" />
-                  <h4 className="font-medium text-white">Produtividade</h4>
-                </div>
-                <div className={`text-2xl font-bold mb-2 ${getCorrelationColor(impactAnalysis.productivityImpact.correlation)}`}>
-                  {impactAnalysis.productivityImpact.workSatisfactionChange > 0 ? '+' : ''}
-                  {impactAnalysis.productivityImpact.workSatisfactionChange.toFixed(1)}%
-                </div>
-                <div className="space-y-1">
-                  {impactAnalysis.productivityImpact.insights.map((insight, i) => (
-                    <p key={i} className="text-xs text-gray-400">{insight}</p>
-                  ))}
-                </div>
+      {/* Recomendações */}
+      {(sleepStats.averageQuality < 6 || sleepStats.averageDuration < 420) && (
+        <Card className="glass-card border-orange-500/20 bg-orange-500/5">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-orange-400 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-white mb-2">Oportunidade de Melhoria</h4>
+                <p className="text-sm text-gray-300 mb-3">
+                  Seus dados mostram que melhorar o sono pode ter um impacto positivo significativo no seu bem-estar geral.
+                </p>
+                <Button asChild size="sm" className="bg-accent-orange hover:bg-accent-orange/80">
+                  <Link to="/sleep">
+                    Ver Página de Sono
+                  </Link>
+                </Button>
               </div>
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      )}
     </div>
   );
+}
+
+// Função auxiliar para calcular correlação
+function calculateCorrelation(
+  checkins: any[],
+  sleepRecords: any[],
+  metric: 'mood' | 'energy'
+): number {
+  if (checkins.length < 3) return 0;
+
+  const pairs = checkins.map(checkin => {
+    const sleep = sleepRecords.find(s => s.sleep_date === checkin.checkin_date);
+    return {
+      sleep: sleep?.subjective_quality || 0,
+      metric: metric === 'mood' ? checkin.mood_rating : checkin.energy_level
+    };
+  }).filter(pair => pair.sleep > 0 && pair.metric > 0);
+
+  if (pairs.length < 3) return 0;
+
+  const n = pairs.length;
+  const sumX = pairs.reduce((sum, p) => sum + p.sleep, 0);
+  const sumY = pairs.reduce((sum, p) => sum + p.metric, 0);
+  const sumXY = pairs.reduce((sum, p) => sum + p.sleep * p.metric, 0);
+  const sumX2 = pairs.reduce((sum, p) => sum + p.sleep * p.sleep, 0);
+  const sumY2 = pairs.reduce((sum, p) => sum + p.metric * p.metric, 0);
+
+  const numerator = n * sumXY - sumX * sumY;
+  const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+
+  return denominator === 0 ? 0 : Math.max(0, Math.min(1, numerator / denominator));
+}
+
+// Função auxiliar para calcular tendência
+function getTrend(records: any[], field: string): number {
+  if (records.length < 4) return 0;
+  
+  const recent = records.slice(0, Math.floor(records.length / 2));
+  const older = records.slice(Math.floor(records.length / 2));
+  
+  const recentAvg = recent.reduce((sum, r) => sum + (r[field] || 0), 0) / recent.length;
+  const olderAvg = older.reduce((sum, r) => sum + (r[field] || 0), 0) / older.length;
+  
+  return olderAvg > 0 ? Math.round(((recentAvg - olderAvg) / olderAvg) * 100) : 0;
 }

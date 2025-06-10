@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useDailyCheckins } from '@/hooks/useDailyCheckins';
@@ -33,7 +32,7 @@ export function useCorrelationAnalysis() {
   const { user } = useAuth();
   const { last30Days } = useDailyCheckins();
   const { data: activities } = useActivities();
-  const { data: sleepRecords } = useSleepRecords();
+  const { sleepRecords } = useSleepRecords();
 
   return useQuery({
     queryKey: ['correlation-analysis', user?.id],

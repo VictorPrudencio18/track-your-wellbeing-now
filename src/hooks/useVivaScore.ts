@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useDailyCheckins } from '@/hooks/useDailyCheckins';
@@ -27,7 +26,7 @@ export function useVivaScore() {
   const { user } = useAuth();
   const { todayCheckin, last7Days } = useDailyCheckins();
   const { data: activities } = useActivities();
-  const { data: sleepRecords } = useSleepRecords();
+  const { sleepRecords } = useSleepRecords();
   const { data: healthMetrics } = useHealthMetrics();
 
   return useQuery({

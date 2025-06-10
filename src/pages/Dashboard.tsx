@@ -62,16 +62,8 @@ export default function Dashboard() {
 
   const calculatedWorkouts = todayActivities.length;
   const calculatedCalories = todayActivities.reduce((sum, act) => sum + (act.calories || 0), 0);
-  // Assuming distance in activities is in KM as per previous subtask for PremiumCyclingActivity onComplete.
-  // If activities table stores in meters, this needs act.distance / 1000
-  // For now, let's assume it's already in KM from the source or will be handled by useActivities hook.
-  // UPDATE: The `activities` table stores distance in meters.
-  // The `useCreateActivity` hook takes distance in meters.
-  // `PremiumCyclingActivity` was modified to call `onComplete` with KM, but that `onComplete`
-  // was for `Index.tsx` which then calls `useCreateActivity` (which expects meters).
-  // So, `activities.distance` from Supabase should be in meters.
   const totalDistanceTodayMeters = todayActivities.reduce((sum, act) => sum + (act.distance || 0), 0);
-  const calculatedSteps = Math.round(totalDistanceTodayMeters * 1.312); // Avg 1312 steps per KM for meters.
+  const calculatedSteps = Math.round(totalDistanceTodayMeters * 1.312);
 
   const hrActivities = todayActivities.filter(act => act.avg_heart_rate && act.avg_heart_rate > 0);
   const calculatedHeartRate = hrActivities.length > 0 ? Math.round(hrActivities.reduce((sum, act) => sum + (act.avg_heart_rate || 0), 0) / hrActivities.length) : 0;
