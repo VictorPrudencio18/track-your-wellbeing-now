@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Smile, Heart, Zap } from 'lucide-react';
+import { Smile, Heart, Zap, Loader2 } from 'lucide-react';
 import { useDailyCheckins } from '@/hooks/useDailyCheckins';
 import { toast } from '@/hooks/use-toast';
 
@@ -27,14 +27,30 @@ const getMoodIcon = (value: number) => {
 
 export function DailyMoodThermometer() {
   const { todayCheckin, upsertCheckin } = useDailyCheckins();
-  const [selectedMood, setSelectedMood] = useState<number | null>(todayCheckin?.mood_rating || null);
+  const [selectedMood, setSelectedMood] = useState<number | null>(
+    todayCheckin?.mood_rating || null
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Se já foi registrado hoje e não há seleção pendente, não mostrar
+  if (todayCheckin?.mood_rating && !selectedMood) {
+    return null;
+  }
+
   const handleSubmit = async () => {
-    if (selectedMood === null) return;
+    if (selectedMood === null || selectedMood < 1 || selectedMood > 10) {
+      toast({
+        title: "Erro de validação",
+        description: "Por favor, selecione um valor entre 1 e 10.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     try {
+      console.log('Submitting mood rating:', selectedMood);
+      
       await upsertCheckin.mutateAsync({
         mood_rating: selectedMood
       });
@@ -43,9 +59,13 @@ export function DailyMoodThermometer() {
         title: "Humor registrado! 😊",
         description: `Seu humor hoje foi registrado como ${moodLabels[selectedMood - 1]}.`,
       });
+      
+      // Reset the selection after successful save
+      setSelectedMood(null);
     } catch (error) {
+      console.error('Error saving mood:', error);
       toast({
-        title: "Erro",
+        title: "Erro ao salvar",
         description: "Não foi possível registrar seu humor. Tente novamente.",
         variant: "destructive",
       });
@@ -53,11 +73,6 @@ export function DailyMoodThermometer() {
       setIsSubmitting(false);
     }
   };
-
-  // Se já foi registrado hoje, não mostrar o termômetro
-  if (todayCheckin?.mood_rating && !selectedMood) {
-    return null;
-  }
 
   const MoodIcon = selectedMood ? getMoodIcon(selectedMood) : Smile;
 
@@ -105,6 +120,7 @@ export function DailyMoodThermometer() {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   aria-label={`Humor nível ${level}: ${moodLabels[level - 1]}`}
+                  disabled={isSubmitting}
                 />
               );
             })}
@@ -151,7 +167,7 @@ export function DailyMoodThermometer() {
               >
                 {isSubmitting ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                     Registrando...
                   </div>
                 ) : (

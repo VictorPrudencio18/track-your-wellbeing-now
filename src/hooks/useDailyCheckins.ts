@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -48,9 +49,14 @@ export function useDailyCheckins() {
   const { data: todayCheckin, isLoading } = useQuery({
     queryKey: ['daily-checkin', user?.id],
     queryFn: async () => {
-      if (!user) return null;
+      if (!user) {
+        console.log('No user found for daily checkin query');
+        return null;
+      }
 
       const today = new Date().toISOString().split('T')[0];
+      console.log('Fetching daily checkin for date:', today, 'user:', user.id);
+      
       const { data, error } = await supabase
         .from('daily_health_checkins')
         .select('*')
@@ -58,7 +64,12 @@ export function useDailyCheckins() {
         .eq('checkin_date', today)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching daily checkin:', error);
+        throw error;
+      }
+      
+      console.log('Today checkin data:', data);
       return data as DailyCheckin | null;
     },
     enabled: !!user,
@@ -70,14 +81,21 @@ export function useDailyCheckins() {
     queryFn: async () => {
       if (!user) return [];
 
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const startDate = sevenDaysAgo.toISOString().split('T')[0];
+
       const { data, error } = await supabase
         .from('daily_health_checkins')
         .select('*')
         .eq('user_id', user.id)
-        .gte('checkin_date', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+        .gte('checkin_date', startDate)
         .order('checkin_date', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching 7 days checkins:', error);
+        throw error;
+      }
       return data as DailyCheckin[];
     },
     enabled: !!user,
@@ -89,20 +107,27 @@ export function useDailyCheckins() {
     queryFn: async () => {
       if (!user) return [];
 
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const startDate = thirtyDaysAgo.toISOString().split('T')[0];
+
       const { data, error } = await supabase
         .from('daily_health_checkins')
         .select('*')
         .eq('user_id', user.id)
-        .gte('checkin_date', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+        .gte('checkin_date', startDate)
         .order('checkin_date', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching 30 days checkins:', error);
+        throw error;
+      }
       return data as DailyCheckin[];
     },
     enabled: !!user,
   });
 
-  // Buscar prompts ativos (incluindo novos categorizados)
+  // Buscar prompts ativos
   const { data: prompts } = useQuery({
     queryKey: ['checkin-prompts'],
     queryFn: async () => {
@@ -112,7 +137,10 @@ export function useDailyCheckins() {
         .eq('is_active', true)
         .order('priority', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching prompts:', error);
+        throw error;
+      }
       return data as CheckinPrompt[];
     },
   });
@@ -130,18 +158,25 @@ export function useDailyCheckins() {
         .eq('user_id', user.id)
         .eq('checkin_date', today);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching categorized responses:', error);
+        throw error;
+      }
       return data;
     },
     enabled: !!user,
   });
 
-  // Criar ou atualizar check-in tradicional
+  // Criar ou atualizar check-in
   const upsertCheckin = useMutation({
     mutationFn: async (updates: Partial<DailyCheckin>) => {
-      if (!user) throw new Error('User not authenticated');
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
 
       const today = new Date().toISOString().split('T')[0];
+      
+      console.log('Upserting checkin with data:', updates);
       
       // Primeiro, verificar se já existe um check-in para hoje
       const { data: existingCheckin } = await supabase
@@ -154,18 +189,26 @@ export function useDailyCheckins() {
       let result;
       
       if (existingCheckin) {
+        console.log('Updating existing checkin:', existingCheckin.id);
         // Atualizar check-in existente
         const { data, error } = await supabase
           .from('daily_health_checkins')
-          .update(updates)
+          .update({
+            ...updates,
+            updated_at: new Date().toISOString()
+          })
           .eq('id', existingCheckin.id)
           .select()
           .single();
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error updating checkin:', error);
+          throw error;
+        }
         result = data;
       } else {
-        // Criar novo check-in
+        console.log('Creating new checkin for today');
+        // Criar novo check-in com valores padrão
         const defaultCheckinData = {
           hydration_glasses: 0,
           sleep_quality: null,
@@ -176,45 +219,50 @@ export function useDailyCheckins() {
           stress_level: null,
           work_satisfaction: null,
           energy_level: null,
-          mood_rating: null, // Will be overridden by updates if provided
+          mood_rating: null,
           had_lunch: false,
           had_dinner: false,
           ate_healthy: false,
-          wellness_score: 50, // Assuming a neutral default score, can be recalculated later
+          wellness_score: 50,
           notes: null,
         };
 
         const { data, error } = await supabase
           .from('daily_health_checkins')
           .insert({
-            ...defaultCheckinData, // Spread defaults first
-            user_id: user.id,      // Specific to this new record
-            checkin_date: today,   // Specific to this new record
-            ...updates,           // Spread updates last to override defaults with provided values
+            ...defaultCheckinData,
+            ...updates,
+            user_id: user.id,
+            checkin_date: today,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           })
           .select()
           .single();
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error creating checkin:', error);
+          throw error;
+        }
         result = data;
       }
 
+      console.log('Checkin operation successful:', result);
       return result;
     },
     onSuccess: () => {
+      console.log('Invalidating checkin queries');
       queryClient.invalidateQueries({ queryKey: ['daily-checkin'] });
-      toast({
-        title: "Check-in atualizado!",
-        description: "Seus dados de saúde foram salvos com sucesso.",
-      });
+      queryClient.invalidateQueries({ queryKey: ['daily-checkins-7days'] });
+      queryClient.invalidateQueries({ queryKey: ['daily-checkins-30days'] });
     },
     onError: (error) => {
+      console.error('Checkin error:', error);
       toast({
         title: "Erro",
         description: "Não foi possível salvar o check-in. Tente novamente.",
         variant: "destructive",
       });
-      console.error('Checkin error:', error);
     }
   });
 

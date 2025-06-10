@@ -152,7 +152,7 @@ export function WellbeingOverview() {
           <div className="p-2 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl">
             <Heart className="w-5 h-5 text-white" />
           </div>
-          <h3 className="text-xl font-bold text-white">Métricas de Desempenho</h3>
+          <h3 className="text-xl font-bold text-white">Métricas de Bem-estar</h3>
         </div>
         <Badge 
           variant="outline" 
@@ -163,7 +163,7 @@ export function WellbeingOverview() {
         </Badge>
       </div>
 
-      {/* Métricas Principais em Grid Melhorado */}
+      {/* Métricas Principais */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {quickMetrics.map((metric, index) => (
           <motion.div
@@ -196,7 +196,7 @@ export function WellbeingOverview() {
                 <span className={`text-2xl font-bold ${metric.color}`}>
                   {metric.key === 'activity' && wellnessScores?.activity.weeklyCount 
                     ? wellnessScores.activity.weeklyCount 
-                    : metric.value
+                    : Math.round(metric.value)
                   }
                 </span>
                 <span className="text-sm text-gray-500">
@@ -226,7 +226,7 @@ export function WellbeingOverview() {
               <div className="absolute inset-0 bg-blue-400/5 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div className="text-center">
                   <ExternalLink className="w-4 h-4 text-blue-400 mx-auto mb-1" />
-                  <span className="text-xs text-blue-400">Conhecer</span>
+                  <span className="text-xs text-blue-400">Configurar</span>
                 </div>
               </div>
             )}
@@ -237,11 +237,11 @@ export function WellbeingOverview() {
         ))}
       </div>
 
-      {/* Destaques de Hoje - Redesenhado */}
+      {/* Destaques de Hoje */}
       <div className="space-y-4">
         <h4 className="text-lg font-semibold text-white flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-accent-orange" />
-          Destaques de Hoje
+          Status Atual
         </h4>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -276,33 +276,42 @@ export function WellbeingOverview() {
             </div>
           </motion.div>
 
-          {/* Stress */}
+          {/* Mood */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
             className={`
               p-4 rounded-xl border backdrop-blur-sm transition-all duration-300
-              ${(todayCheckin?.stress_level || 10) <= 4
-                ? 'bg-green-400/10 border-green-400/30 hover:bg-green-400/15'
-                : (todayCheckin?.stress_level || 10) <= 7
-                ? 'bg-yellow-400/10 border-yellow-400/30 hover:bg-yellow-400/15'
-                : 'bg-red-400/10 border-red-400/30 hover:bg-red-400/15'
+              ${todayCheckin?.mood_rating
+                ? todayCheckin.mood_rating >= 7
+                  ? 'bg-green-400/10 border-green-400/30 hover:bg-green-400/15'
+                  : todayCheckin.mood_rating >= 5
+                  ? 'bg-yellow-400/10 border-yellow-400/30 hover:bg-yellow-400/15'
+                  : 'bg-red-400/10 border-red-400/30 hover:bg-red-400/15'
+                : 'bg-gray-800/50 border-gray-700/50 hover:bg-gray-800/70'
               }
             `}
           >
             <div className="flex items-center gap-3">
               <Heart className={`w-5 h-5 ${
-                (todayCheckin?.stress_level || 10) <= 4 ? 'text-green-400' :
-                (todayCheckin?.stress_level || 10) <= 7 ? 'text-yellow-400' : 'text-red-400'
+                todayCheckin?.mood_rating
+                  ? todayCheckin.mood_rating >= 7 ? 'text-green-400'
+                  : todayCheckin.mood_rating >= 5 ? 'text-yellow-400'
+                  : 'text-red-400'
+                  : 'text-gray-500'
               }`} />
               <div>
                 <div className="text-sm font-medium text-white">
-                  Stress: {todayCheckin?.stress_level || 'N/A'}/10
+                  Humor: {todayCheckin?.mood_rating || 'Não registrado'}/10
                 </div>
                 <div className="text-xs text-gray-400">
-                  {(todayCheckin?.stress_level || 10) <= 4 ? 'Níveis ótimos' :
-                   (todayCheckin?.stress_level || 10) <= 7 ? 'Atenção moderada' : 'Precisa cuidar'}
+                  {todayCheckin?.mood_rating 
+                    ? todayCheckin.mood_rating >= 7 ? 'Humor excelente!'
+                    : todayCheckin.mood_rating >= 5 ? 'Humor regular'
+                    : 'Precisa de atenção'
+                    : 'Registre seu humor'
+                  }
                 </div>
               </div>
             </div>
@@ -333,8 +342,8 @@ export function WellbeingOverview() {
         </div>
       </div>
 
-      {/* Check-in Pendente - Modificado para não mostrar se só falta o humor */}
-      {!todayCheckin && !todayCheckin?.mood_rating && (
+      {/* Check-in Pendente */}
+      {!todayCheckin?.mood_rating && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
