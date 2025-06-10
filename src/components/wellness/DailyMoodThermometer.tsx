@@ -38,11 +38,10 @@ export function DailyMoodThermometer() {
   }
 
   const handleSubmit = async () => {
-    // Validação mais rigorosa
-    if (!selectedMood || selectedMood < 1 || selectedMood > 10 || !Number.isInteger(selectedMood)) {
+    if (!selectedMood) {
       toast({
-        title: "Erro de validação",
-        description: "Por favor, selecione um valor válido entre 1 e 10.",
+        title: "Selecione seu humor",
+        description: "Por favor, selecione um valor de 1 a 10 antes de registrar.",
         variant: "destructive",
       });
       return;
@@ -52,18 +51,15 @@ export function DailyMoodThermometer() {
     try {
       console.log('Submitting mood rating:', selectedMood);
       
-      // Garantir que o valor está dentro dos limites aceitos pelo banco
-      const validMoodRating = Math.max(1, Math.min(10, Math.round(selectedMood)));
-      
       const result = await upsertCheckin.mutateAsync({
-        mood_rating: validMoodRating
+        mood_rating: selectedMood
       });
       
       console.log('Mood saved successfully:', result);
       
       toast({
         title: "Humor registrado! 😊",
-        description: `Seu humor hoje foi registrado como ${moodLabels[validMoodRating - 1]}.`,
+        description: `Seu humor hoje foi registrado como ${moodLabels[selectedMood - 1]}.`,
       });
       
       // Reset the selection after successful save
@@ -71,21 +67,9 @@ export function DailyMoodThermometer() {
     } catch (error) {
       console.error('Error saving mood:', error);
       
-      // Melhor tratamento de erros
-      let errorMessage = "Não foi possível registrar seu humor. Tente novamente.";
-      
-      if (error && typeof error === 'object' && 'message' in error) {
-        const errorStr = (error as any).message;
-        if (errorStr.includes('constraint')) {
-          errorMessage = "Valor inválido para o humor. Selecione um valor entre 1 e 10.";
-        } else if (errorStr.includes('network') || errorStr.includes('fetch')) {
-          errorMessage = "Problema de conexão. Verifique sua internet e tente novamente.";
-        }
-      }
-      
       toast({
         title: "Erro ao salvar",
-        description: errorMessage,
+        description: "Não foi possível registrar seu humor. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -140,7 +124,7 @@ export function DailyMoodThermometer() {
           {/* Termômetro Visual */}
           <div className="flex items-end justify-center gap-2 mb-6 h-20">
             {Array.from({ length: 10 }, (_, i) => {
-              const level = i + 1;
+              const level = i + 1; // 1 a 10
               const isActive = selectedMood ? level <= selectedMood : false;
               const intensity = level / 10;
               const barHeight = 24 + (intensity * 56); // 24px to 80px height
@@ -148,7 +132,10 @@ export function DailyMoodThermometer() {
               return (
                 <motion.button
                   key={level}
-                  onClick={() => setSelectedMood(level)}
+                  onClick={() => {
+                    console.log('Selecionando humor nível:', level);
+                    setSelectedMood(level);
+                  }}
                   className={`w-6 rounded-lg transition-all duration-300 ${
                     isActive 
                       ? `bg-gradient-to-t ${getMoodColor(selectedMood || 5)} shadow-lg` 
@@ -189,7 +176,7 @@ export function DailyMoodThermometer() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-sm text-blue-300 mt-2"
               >
-                Toque em "Registrar" para salvar
+                Nível {selectedMood} de 10 - Toque em "Registrar" para salvar
               </motion.div>
             )}
           </div>

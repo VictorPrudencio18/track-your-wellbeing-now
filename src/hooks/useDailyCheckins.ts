@@ -179,14 +179,6 @@ export function useDailyCheckins() {
       
       console.log('Upserting checkin with data:', updates);
       
-      // Validação específica para mood_rating
-      if (updates.mood_rating !== undefined && updates.mood_rating !== null) {
-        const moodRating = updates.mood_rating;
-        if (!Number.isInteger(moodRating) || moodRating < 1 || moodRating > 10) {
-          throw new Error('Valor de humor deve ser um número inteiro entre 1 e 10');
-        }
-      }
-      
       // Primeiro, verificar se já existe um check-in para hoje
       const { data: existingCheckin, error: fetchError } = await supabase
         .from('daily_health_checkins')
@@ -276,13 +268,6 @@ export function useDailyCheckins() {
     },
     onError: (error) => {
       console.error('Checkin mutation error:', error);
-      
-      // Não mostrar toast aqui, deixar para o componente tratar
-      // toast({
-      //   title: "Erro",
-      //   description: "Não foi possível salvar o check-in. Tente novamente.",
-      //   variant: "destructive",
-      // });
     }
   });
 
