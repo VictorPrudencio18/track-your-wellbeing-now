@@ -43,16 +43,22 @@ export function PremiumGPSRunner({ onComplete, onCancel }: PremiumGPSRunnerProps
     await stopActivity();
     
     // Safely extract heart rate values with proper type checking
-    const avgHeartRate = typeof data.heartRate === 'number' 
-      ? data.heartRate 
-      : typeof data.heartRate === 'object' && data.heartRate?.avg 
-        ? data.heartRate.avg 
-        : undefined;
-        
-    const maxHeartRate = data.maxHeartRate || 
-      (typeof data.heartRate === 'object' && data.heartRate?.max 
-        ? data.heartRate.max 
-        : undefined);
+    let avgHeartRate: number | undefined = undefined;
+    let maxHeartRate: number | undefined = undefined;
+
+    // Handle heart rate based on its type
+    if (typeof data.heartRate === 'number') {
+      avgHeartRate = data.heartRate;
+    } else if (data.heartRate && typeof data.heartRate === 'object') {
+      const hrObject = data.heartRate as any;
+      avgHeartRate = hrObject.avg;
+      maxHeartRate = hrObject.max;
+    }
+
+    // Use maxHeartRate from data if available, otherwise from heartRate object
+    if (!maxHeartRate && typeof data.maxHeartRate === 'number') {
+      maxHeartRate = data.maxHeartRate;
+    }
 
     onComplete({
       type: 'running',
