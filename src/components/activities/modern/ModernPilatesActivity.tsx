@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ModernActivityBase } from './ModernActivityBase';
 import { MetricsGrid } from './MetricsGrid';
+import { useCreateActivity } from '@/hooks/useSupabaseActivities';
 import { 
   Sparkles,
   Target,
@@ -17,7 +18,8 @@ import {
   Play,
   Pause,
   RotateCcw,
-  Volume2
+  Volume2,
+  ArrowLeft
 } from 'lucide-react';
 
 interface PilatesSession {
@@ -68,6 +70,7 @@ export function ModernPilatesActivity() {
   const [heartRate, setHeartRate] = useState(75);
   const [calories, setCalories] = useState(0);
   const [currentExercise, setCurrentExercise] = useState(1);
+  const createActivity = useCreateActivity();
 
   const metrics = [
     {
@@ -149,7 +152,41 @@ export function ModernPilatesActivity() {
     setIsPaused(!isPaused);
   };
 
-  const handleReset = () => {
+  const handleStop = () => {
+    if (selectedSession && duration > 0) {
+      // Salvar atividade no banco
+      const completionRate = (currentExercise / selectedSession.exercises) * 100;
+      const intensityLevel = heartRate > 110 ? 'high' : heartRate > 85 ? 'medium' : 'low';
+
+      createActivity.mutate({
+        type: 'pilates',
+        duration: duration,
+        calories_burned: Math.round(calories),
+        distance: null,
+        performance_zones: {
+          completion_rate: completionRate,
+          intensity_level: intensityLevel,
+          exercises_completed: currentExercise,
+          total_exercises: selectedSession.exercises,
+          focus_areas: selectedSession.focusArea,
+          session_name: selectedSession.name,
+          avg_heart_rate: heartRate
+        },
+        completed_at: new Date().toISOString()
+      });
+    }
+
+    setIsActive(false);
+    setIsPaused(false);
+    setDuration(0);
+    setCalories(0);
+    setCurrentExercise(1);
+    setHeartRate(75);
+    setSelectedSession(null);
+  };
+
+  const handleBack = () => {
+    setSelectedSession(null);
     setIsActive(false);
     setIsPaused(false);
     setDuration(0);
@@ -184,135 +221,124 @@ export function ModernPilatesActivity() {
 
   if (!selectedSession || !isActive) {
     return (
-      <ModernActivityBase
-        title="Pilates"
-        description="Fortaleça seu core e melhore sua postura com exercícios de Pilates"
-        icon={<Sparkles />}
-        gradient="from-purple-500 to-pink-500"
-      >
-        <div className="grid gap-4">
-          {pilateSessions.map((session) => (
-            <motion.div
-              key={session.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              whileHover={{ scale: 1.02 }}
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-8">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBack}
+              className="text-slate-400 hover:text-white"
             >
-              <Card className="glass-card hover:bg-white/10 transition-all cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-xl font-semibold text-white mb-2">{session.name}</h3>
-                      
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        <Badge className={`${getLevelColor(session.level)} text-white`}>
-                          {getLevelLabel(session.level)}
-                        </Badge>
-                        {session.focusArea.map((area) => (
-                          <Badge key={area} variant="outline" className="text-gray-300 border-gray-500">
-                            {area}
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">Pilates</h1>
+                <p className="text-slate-400">Fortaleça seu core e melhore sua postura com exercícios de Pilates</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4">
+            {pilateSessions.map((session) => (
+              <motion.div
+                key={session.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.02 }}
+              >
+                <Card className="glass-card hover:bg-white/10 transition-all cursor-pointer">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className="text-xl font-semibold text-white mb-2">{session.name}</h3>
+                        
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          <Badge className={`${getLevelColor(session.level)} text-white`}>
+                            {getLevelLabel(session.level)}
                           </Badge>
-                        ))}
+                          {session.focusArea.map((area) => (
+                            <Badge key={area} variant="outline" className="text-gray-300 border-gray-500">
+                              {area}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-purple-400">{session.duration}min</div>
+                        <div className="text-sm text-gray-400">~{session.estimatedCalories} cal</div>
                       </div>
                     </div>
-                    
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-purple-400">{session.duration}min</div>
-                      <div className="text-sm text-gray-400">~{session.estimatedCalories} cal</div>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 text-sm text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <Target className="w-4 h-4" />
-                        {session.exercises} exercícios
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        {session.duration} min
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Flame className="w-4 h-4" />
-                        {session.estimatedCalories} cal
-                      </span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 text-sm text-gray-400">
+                        <span className="flex items-center gap-1">
+                          <Target className="w-4 h-4" />
+                          {session.exercises} exercícios
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          {session.duration} min
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Flame className="w-4 h-4" />
+                          {session.estimatedCalories} cal
+                        </span>
+                      </div>
+                      
+                      <Button 
+                        onClick={() => handleStart(session)}
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                      >
+                        <Play className="w-4 h-4 mr-2" />
+                        Iniciar
+                      </Button>
                     </div>
-                    
-                    <Button 
-                      onClick={() => handleStart(session)}
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                    >
-                      <Play className="w-4 h-4 mr-2" />
-                      Iniciar
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
         </div>
-      </ModernActivityBase>
+      </div>
     );
   }
 
   return (
     <ModernActivityBase
       title={`Pilates - ${selectedSession.name}`}
-      description={`${getLevelLabel(selectedSession.level)} • ${selectedSession.duration} minutos`}
       icon={<Sparkles />}
-      gradient="from-purple-500 to-pink-500"
+      isActive={isActive}
+      isPaused={isPaused}
+      duration={duration}
+      onStart={() => {}}
+      onPause={handlePause}
+      onStop={handleStop}
+      onBack={handleBack}
+      primaryMetric={{
+        value: formatTime(duration),
+        unit: '',
+        label: 'Tempo Decorrido'
+      }}
     >
       <div className="space-y-6">
-        {/* Timer Principal */}
+        {/* Progress Bar */}
         <Card className="glass-card">
-          <CardContent className="p-8 text-center">
-            <motion.div
-              key={duration}
-              initial={{ scale: 1.05 }}
-              animate={{ scale: 1 }}
-              className="text-6xl font-bold text-white mb-4"
-            >
-              {formatTime(duration)}
-            </motion.div>
-            
-            <div className="mb-6">
+          <CardContent className="p-6">
+            <div className="mb-4">
               <Progress 
                 value={(duration / (selectedSession.duration * 60)) * 100} 
                 className="h-3 mb-2" 
               />
-              <p className="text-gray-400">
+              <p className="text-gray-400 text-center">
                 Exercício {currentExercise} de {selectedSession.exercises}
               </p>
-            </div>
-
-            <div className="flex items-center justify-center gap-4">
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={handleReset}
-                className="border-gray-500 text-gray-300 hover:bg-gray-700"
-              >
-                <RotateCcw className="w-5 h-5" />
-              </Button>
-
-              <Button
-                size="lg"
-                onClick={handlePause}
-                className={`${isPaused 
-                  ? 'bg-green-600 hover:bg-green-700' 
-                  : 'bg-yellow-600 hover:bg-yellow-700'
-                } text-white px-8`}
-              >
-                {isPaused ? <Play className="w-6 h-6" /> : <Pause className="w-6 h-6" />}
-              </Button>
-
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-gray-500 text-gray-300 hover:bg-gray-700"
-              >
-                <Volume2 className="w-5 h-5" />
-              </Button>
             </div>
           </CardContent>
         </Card>
