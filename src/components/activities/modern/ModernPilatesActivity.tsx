@@ -17,8 +17,7 @@ import {
   Play,
   Pause,
   RotateCcw,
-  Volume2,
-  VolumeX
+  Volume2
 } from 'lucide-react';
 
 interface PilatesSession {
@@ -72,6 +71,7 @@ export function ModernPilatesActivity() {
 
   const metrics = [
     {
+      id: 'heart-rate',
       label: 'Batimentos',
       value: heartRate,
       unit: 'BPM',
@@ -80,6 +80,7 @@ export function ModernPilatesActivity() {
       bgColor: 'bg-red-500/20'
     },
     {
+      id: 'calories',
       label: 'Calorias',
       value: calories,
       unit: 'cal',
@@ -88,6 +89,7 @@ export function ModernPilatesActivity() {
       bgColor: 'bg-orange-500/20'
     },
     {
+      id: 'exercise',
       label: 'Exercício',
       value: currentExercise,
       unit: `/${selectedSession?.exercises || 0}`,
@@ -96,6 +98,7 @@ export function ModernPilatesActivity() {
       bgColor: 'bg-purple-500/20'
     },
     {
+      id: 'time',
       label: 'Tempo',
       value: Math.floor(duration / 60),
       unit: 'min',
