@@ -161,7 +161,7 @@ export function ModernPilatesActivity() {
       createActivity.mutate({
         type: 'pilates',
         duration: duration,
-        calories_burned: Math.round(calories),
+        calories: Math.round(calories),
         distance: null,
         performance_zones: {
           completion_rate: completionRate,
