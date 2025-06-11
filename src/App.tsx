@@ -19,6 +19,7 @@ import SleepPage from "@/pages/SleepPage";
 import NotFound from "@/pages/NotFound";
 import { HealthProvider } from "@/contexts/HealthContext";
 import ReportsPage from "@/pages/ReportsPage";
+import { PilatesActivity } from '@/components/activities/PilatesActivity';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -63,6 +64,7 @@ function App() {
                           <Route path="/sleep" element={<SleepPage />} />
                           <Route path="/viva" element={<VivaChatPage />} />
                           <Route path="/reports" element={<ReportsPage />} />
+                          <Route path="/activities/pilates" element={<PilatesActivity />} />
                           <Route path="*" element={<NotFound />} />
                         </Routes>
                       </AnimatePresence>

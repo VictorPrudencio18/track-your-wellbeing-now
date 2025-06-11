@@ -2509,6 +2509,7 @@ export type Database = {
         | "yoga"
         | "dance"
         | "hiking"
+        | "pilates"
       challenge_status: "active" | "completed" | "expired" | "upcoming"
       goal_type:
         | "weight_loss"
@@ -2649,6 +2650,7 @@ export const Constants = {
         "yoga",
         "dance",
         "hiking",
+        "pilates",
       ],
       challenge_status: ["active", "completed", "expired", "upcoming"],
       goal_type: [

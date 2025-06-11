@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert } from '@/integrations/supabase/types';
@@ -49,11 +48,24 @@ export function useCreateActivity() {
         throw new Error('Usuário não autenticado');
       }
 
+      // Calcular pontos específicos para Pilates
+      let calculatedPoints = 0;
+      if (activity.type === 'pilates') {
+        const basePoints = Math.floor(activity.duration / 60); // 1 ponto por minuto
+        const intensityMultiplier = activity.performance_zones?.intensity_level === 'high' ? 1.3 : 
+                                  activity.performance_zones?.intensity_level === 'low' ? 0.8 : 1.0;
+        const completionBonus = activity.performance_zones?.completion_rate >= 100 ? 1.2 : 
+                              activity.performance_zones?.completion_rate >= 80 ? 1.1 : 1.0;
+        
+        calculatedPoints = Math.round(basePoints * intensityMultiplier * completionBonus * 1.1); // Pilates tem bônus de 10%
+      }
+
       const { data, error } = await supabase
         .from('activities')
         .insert({
           ...activity,
           user_id: user.id,
+          points_earned: calculatedPoints || undefined
         })
         .select()
         .single();

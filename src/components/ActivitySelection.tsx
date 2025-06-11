@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { PremiumCard } from "@/components/ui/premium-card";
 import { AnimatedButton } from "@/components/ui/animated-button";
@@ -16,6 +15,17 @@ const activities = [
   { type: "dance", label: "Dança", icon: "💃", description: "Estilos, movimentos, energia" },
   { type: "walk", label: "Caminhada", icon: "🚶‍♂️", description: "Distância, ritmo casual" },
   { type: "meditation", label: "Meditação", icon: "🧠", description: "Mindfulness, concentração" },
+  {
+    id: 'pilates',
+    name: 'Pilates',
+    description: 'Fortaleça seu core e melhore sua postura',
+    icon: '🧘‍♀️',
+    color: 'from-purple-500 to-pink-500',
+    estimatedCalories: '120-240 cal/sessão',
+    difficulty: 'Todos os níveis',
+    duration: '15-45 min',
+    benefits: ['Fortalecimento do core', 'Melhora da postura', 'Flexibilidade', 'Equilíbrio']
+  }
 ];
 
 export function ActivitySelection({ onSelectActivity }: ActivitySelectionProps) {
