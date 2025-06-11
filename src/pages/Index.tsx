@@ -1,6 +1,7 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ActivitySelection } from "@/components/ActivitySelection";
 import { ActivityTimer } from "@/components/ActivityTimer";
 import { useToast } from "@/hooks/use-toast";
@@ -13,9 +14,18 @@ import { ArrowLeft, Activity, Zap, Target } from "lucide-react";
 const Index = () => {
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
   const createActivity = useCreateActivity();
 
   const handleActivitySelect = (type: string) => {
+    console.log('Activity selected:', type);
+    
+    // Redirecionar para a página específica do Pilates
+    if (type === 'pilates') {
+      navigate('/activities/pilates');
+      return;
+    }
+    
     setSelectedActivity(type);
   };
 
@@ -30,7 +40,6 @@ const Index = () => {
       // SwimmingActivity uses 'totalDistance' field for distance in meters
       distanceInMeters = data.totalDistance;
     }
-
 
     try {
       const activityToSave = {
@@ -105,7 +114,7 @@ const Index = () => {
             >
               <div className="flex items-center gap-3 text-sm text-navy-400">
                 <Activity className="w-5 h-5 text-accent-orange" />
-                <span>8 modalidades disponíveis</span>
+                <span>9 modalidades disponíveis</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-navy-400">
                 <Zap className="w-5 h-5 text-accent-orange" />
