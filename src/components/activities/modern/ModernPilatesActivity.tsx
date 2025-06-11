@@ -187,7 +187,7 @@ export function ModernPilatesActivity() {
       <ModernActivityBase
         title="Pilates"
         description="Fortaleça seu core e melhore sua postura com exercícios de Pilates"
-        icon={Sparkles}
+        icon={<Sparkles />}
         gradient="from-purple-500 to-pink-500"
       >
         <div className="grid gap-4">
@@ -259,7 +259,7 @@ export function ModernPilatesActivity() {
     <ModernActivityBase
       title={`Pilates - ${selectedSession.name}`}
       description={`${getLevelLabel(selectedSession.level)} • ${selectedSession.duration} minutos`}
-      icon={Sparkles}
+      icon={<Sparkles />}
       gradient="from-purple-500 to-pink-500"
     >
       <div className="space-y-6">
