@@ -53,7 +53,7 @@ interface ActivitySegment {
 }
 
 export function useEnhancedActivityTracker(activityType: 'running' | 'cycling' | 'walking') {
-  const gps = useGPS();
+  const gps = useGPS(true); // Alterado para autoStart = true
   const createActivity = useCreateActivity();
   const createHealthMetric = useCreateHealthMetric();
   const setCache = useSetCache();
@@ -260,21 +260,30 @@ export function useEnhancedActivityTracker(activityType: 'running' | 'cycling' |
   }, [state, gps, saveGPSPoint, saveMetric, detectSegment, setCache, activityType]);
 
   const startActivity = useCallback(async () => {
-    // Iniciar GPS primeiro se não estiver ativo
-    if (!gps.isTracking) {
-      console.log('Iniciando GPS para a atividade...');
-      await gps.startTracking();
-      
-      // Aguardar um pouco para o GPS obter posição
+    // GPS agora é iniciado automaticamente com useGPS(true)
+    // Apenas verificar se o GPS está pronto antes de iniciar a atividade
+    if (!gps.position) {
+      console.warn('Tentando iniciar atividade, mas GPS ainda não tem posição.');
+      // Opcional: esperar um pouco mais ou mostrar mensagem ao usuário
       let attempts = 0;
-      while (!gps.position && attempts < 30) {
+      const maxAttempts = 15; // Esperar mais 15 segundos no máximo
+      while (!gps.position && attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 1000));
         attempts++;
+        if (gps.position) break;
       }
-      
+
       if (!gps.position) {
-        throw new Error('Não foi possível obter posição GPS');
+        console.error('GPS não obteve posição após espera adicional. Não é possível iniciar a atividade.');
+        // Poderia lançar um erro ou retornar um status para a UI
+        throw new Error('Não foi possível obter posição GPS para iniciar a atividade.');
       }
+    }
+
+    // Verificar se o GPS tem alta precisão, se não, avisar.
+    if (!gps.isHighAccuracy) {
+        console.warn("Iniciando atividade com baixa precisão do GPS.");
+        // Poderia adicionar uma notificação ao usuário aqui se desejado.
     }
 
     activityIdRef.current = `activity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
