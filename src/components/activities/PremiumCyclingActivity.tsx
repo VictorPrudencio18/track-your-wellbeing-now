@@ -33,19 +33,20 @@ export function PremiumCyclingActivity({ onComplete, onCancel }: PremiumCyclingA
     isGPSReady
   } = useEnhancedActivityTracker('cycling');
 
+  // Enhanced GPS ready check
+  const isSystemReady = isGPSReady && gpsState.isReady;
+
   const handleComplete = async () => {
     await stopActivity();
-    // Data from useEnhancedActivityTracker has distance in meters.
-    // The onComplete for Index.tsx expects distance in KM for some reason (based on task instructions).
     onComplete({
-      type: 'cycling', // data.type should also be 'cycling' from the hook
-      duration: data.duration, // in seconds
-      distance: data.distance ? data.distance / 1000 : undefined, // Convert meters to KM
+      type: 'cycling',
+      duration: data.duration,
+      distance: data.distance ? data.distance / 1000 : undefined,
       calories: data.calories,
-      avg_heart_rate: data.heartRate || undefined, // data.heartRate is current, using as avg
+      avg_heart_rate: data.heartRate || undefined,
       max_heart_rate: data.maxHeartRate || undefined,
       elevation_gain: data.elevationGain || undefined,
-      pace: data.avgPace || undefined, // s/km
+      pace: data.avgPace || undefined,
     });
   };
 
@@ -102,8 +103,10 @@ export function PremiumCyclingActivity({ onComplete, onCancel }: PremiumCyclingA
                   {formatDuration(data.duration)} • {(data.distance / 1000).toFixed(2)} km
                     {isPaused && <span className="text-yellow-400 ml-2">• Pausado</span>}
                   </>
+                ) : isSystemReady ? (
+                  'Sistema pronto para pedalar'
                 ) : (
-                  'Prepare-se para pedalar'
+                  'Conectando GPS + Google Maps...'
                 )}
               </p>
             </div>
@@ -143,7 +146,7 @@ export function PremiumCyclingActivity({ onComplete, onCancel }: PremiumCyclingA
               <CyclingControls
                 isActive={isActive}
                 isPaused={isPaused}
-                isGPSReady={isGPSReady}
+                isGPSReady={isSystemReady}
                 duration={data.duration}
                 onStart={startActivity}
                 onPause={isPaused ? resumeActivity : pauseActivity}

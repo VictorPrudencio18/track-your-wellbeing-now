@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Navigation, AlertCircle, RefreshCw } from 'lucide-react';
@@ -44,7 +43,7 @@ export function ModernWalkingMap({ gpsState, isActive, route, distance, currentS
       setLoading(true);
       setError(null);
       
-      console.log('Iniciando carregamento do Google Maps para caminhada...');
+      console.log('Carregando Google Maps para caminhada...');
       await googleMapsService.loadGoogleMaps(googleMapsApiKey);
       
       console.log('Inicializando mapa de caminhada...');
@@ -153,9 +152,12 @@ export function ModernWalkingMap({ gpsState, isActive, route, distance, currentS
           <div className="w-full h-full bg-navy-800 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin w-8 h-8 border-4 border-accent-orange border-t-transparent rounded-full mx-auto mb-3"></div>
-              <p className="text-white font-medium">Carregando Google Maps...</p>
+              <p className="text-white font-medium">
+                {gpsState.isReady ? 'Carregando Google Maps...' : 'Carregando GPS + Google Maps...'}
+              </p>
               <p className="text-navy-400 text-sm mt-1">
-                {retryCount > 0 ? `Tentativa ${retryCount + 1}/4` : 'Aguarde um momento...'}
+                {retryCount > 0 ? `Tentativa ${retryCount + 1}/4` : 
+                 gpsState.isReady ? 'Aguarde um momento...' : 'Conectando ao GPS...'}
               </p>
             </div>
           </div>
@@ -204,8 +206,10 @@ export function ModernWalkingMap({ gpsState, isActive, route, distance, currentS
             </div>
 
             <div className="glass-card px-3 py-2 rounded-lg">
-              <div className="text-xs text-navy-400">Google Maps</div>
-              <div className="text-xs font-medium text-accent-orange">Premium</div>
+              <div className="text-xs text-navy-400">Status</div>
+              <div className="text-xs font-medium text-accent-orange">
+                {gpsState.isReady ? 'GPS Pronto' : 'Conectando GPS'}
+              </div>
             </div>
           </div>
         )}
@@ -214,11 +218,11 @@ export function ModernWalkingMap({ gpsState, isActive, route, distance, currentS
         <div className="absolute bottom-4 left-4">
           <div className="glass-card px-3 py-2 rounded-lg flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${
-              gpsState.isHighAccuracy ? 'bg-green-500 animate-pulse' : 
+              gpsState.isReady && gpsState.isHighAccuracy ? 'bg-green-500 animate-pulse' : 
               gpsState.position ? 'bg-yellow-500' : 'bg-red-500'
             }`} />
             <span className="text-xs text-white">
-              GPS: {gpsState.position ? `${gpsState.accuracy.toFixed(0)}m` : 'Sem sinal'}
+              GPS: {gpsState.position ? `${gpsState.accuracy.toFixed(0)}m` : 'Conectando...'}
             </span>
           </div>
         </div>

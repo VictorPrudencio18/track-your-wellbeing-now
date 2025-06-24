@@ -24,7 +24,8 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
   const [heartRate, setHeartRate] = useState(0);
   const [steps, setSteps] = useState(0);
 
-  const gps = useGPS();
+  // Auto-start GPS when component mounts
+  const gps = useGPS(true);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -33,7 +34,6 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
       interval = setInterval(() => {
         setDuration(prev => prev + 1);
         
-        // Atualizar métricas com base no GPS se disponível
         if (gps.position) {
           const gpsDistance = gps.calculateTotalDistance();
           const gpsSpeed = gps.calculateCurrentSpeed();
@@ -42,7 +42,6 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
           setCurrentSpeed(gpsSpeed);
           setAvgSpeed(gpsDistance > 0 ? gpsDistance / (duration / 3600) : 0);
         } else {
-          // Simular dados se GPS não estiver disponível
           const simulatedSpeed = 3 + Math.random() * 2;
           setCurrentSpeed(simulatedSpeed);
           setDistance(prev => prev + (simulatedSpeed / 3600));
@@ -61,15 +60,20 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
   }, [isActive, isPaused, duration, distance, gps.position]);
 
   const handleStart = async () => {
-    try {
-      await gps.startTracking();
-      setIsActive(true);
-      setIsPaused(false);
-    } catch (error) {
-      console.error('Erro ao iniciar GPS:', error);
-      setIsActive(true);
-      setIsPaused(false);
+    console.log('Iniciando caminhada...');
+    
+    // Ensure GPS is ready before starting
+    if (!gps.isReady && !gps.isTracking) {
+      console.log('GPS não está pronto, iniciando...');
+      try {
+        await gps.startTracking();
+      } catch (error) {
+        console.error('Erro ao iniciar GPS:', error);
+      }
     }
+    
+    setIsActive(true);
+    setIsPaused(false);
   };
 
   const handlePause = () => {
@@ -173,15 +177,13 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
         <MetricsGrid metrics={metrics} />
 
         {/* Mapa da Caminhada */}
-        {isActive && (
-          <ModernWalkingMap
-            gpsState={gps}
-            isActive={isActive}
-            route={gps.getPositionHistory()}
-            distance={distance}
-            currentSpeed={currentSpeed}
-          />
-        )}
+        <ModernWalkingMap
+          gpsState={gps}
+          isActive={isActive && !isPaused}
+          route={gps.getPositionHistory()}
+          distance={distance}
+          currentSpeed={currentSpeed}
+        />
 
         {/* Informações de GPS */}
         <PremiumCard className="p-6 bg-slate-900/50 border-slate-700">
@@ -190,7 +192,7 @@ export function ModernWalkingActivity({ onComplete, onCancel }: ModernWalkingAct
             <div>
               <div className="text-sm text-slate-400">Status</div>
               <div className="text-lg font-bold text-white">
-                {gps.isTracking ? (gps.position ? 'Conectado' : 'Buscando...') : 'Desconectado'}
+                {gps.isReady ? 'Pronto' : gps.isTracking ? 'Conectando...' : 'Desconectado'}
               </div>
             </div>
             <div>

@@ -22,13 +22,11 @@ export class GoogleMapsService {
   }
 
   async loadGoogleMaps(apiKey: string): Promise<void> {
-    // Se já está carregado, retornar imediatamente
     if (this.isLoaded && (window as any).google && (window as any).google.maps) {
       console.log('Google Maps já carregado');
       return;
     }
 
-    // Se está carregando, aguardar
     if (this.isLoading) {
       return new Promise((resolve) => {
         const checkLoaded = () => {
@@ -42,7 +40,6 @@ export class GoogleMapsService {
       });
     }
 
-    // Verificar se já existe um script carregando
     const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
     if (existingScript) {
       return new Promise((resolve) => {
@@ -62,7 +59,6 @@ export class GoogleMapsService {
 
     return new Promise((resolve, reject) => {
       try {
-        // Criar callback único
         const callbackName = `initGoogleMaps_${Date.now()}`;
         
         (window as any)[callbackName] = () => {
@@ -87,7 +83,6 @@ export class GoogleMapsService {
         
         document.head.appendChild(script);
 
-        // Timeout de segurança
         setTimeout(() => {
           if (!this.isLoaded) {
             this.isLoading = false;
@@ -107,9 +102,36 @@ export class GoogleMapsService {
       throw new Error('Google Maps API não está carregado');
     }
 
+    if (!container) {
+      throw new Error('Container do mapa não encontrado');
+    }
+
+    // Aguardar o container estar pronto no DOM
+    await new Promise(resolve => {
+      if (container.offsetParent !== null) {
+        resolve(undefined);
+      } else {
+        const observer = new MutationObserver(() => {
+          if (container.offsetParent !== null) {
+            observer.disconnect();
+            resolve(undefined);
+          }
+        });
+        observer.observe(container.parentElement || document.body, { 
+          childList: true, 
+          subtree: true 
+        });
+        
+        // Timeout de segurança
+        setTimeout(() => {
+          observer.disconnect();
+          resolve(undefined);
+        }, 2000);
+      }
+    });
+
     const google = (window as any).google;
 
-    // Limpar mapa anterior se existir
     if (this.map) {
       this.clearRoute();
       this.clearMarkers();
@@ -117,7 +139,7 @@ export class GoogleMapsService {
 
     const defaultOptions = {
       zoom: 16,
-      center: { lat: -23.550520, lng: -46.633308 }, // São Paulo default
+      center: { lat: -23.550520, lng: -46.633308 },
       mapTypeId: google.maps.MapTypeId.ROADMAP,
       gestureHandling: 'greedy',
       zoomControl: true,
@@ -144,6 +166,11 @@ export class GoogleMapsService {
         ...options
       });
 
+      // Aguardar o mapa estar completamente carregado
+      await new Promise((resolve) => {
+        google.maps.event.addListenerOnce(this.map, 'idle', resolve);
+      });
+
       console.log('Mapa inicializado com sucesso');
       return this.map;
     } catch (error) {
@@ -167,10 +194,8 @@ export class GoogleMapsService {
     const google = (window as any).google;
 
     try {
-      // Limpar marcador anterior
       this.clearMarkers();
 
-      // Criar marcador da posição atual
       const marker = new google.maps.Marker({
         position,
         map: this.map,
@@ -185,8 +210,6 @@ export class GoogleMapsService {
       });
 
       this.markers.push(marker);
-
-      // Centralizar mapa na nova posição
       this.map.panTo(position);
     } catch (error) {
       console.error('Erro ao adicionar ponto de rota:', error);
@@ -199,12 +222,10 @@ export class GoogleMapsService {
     const google = (window as any).google;
 
     try {
-      // Limpar rota anterior
       if (this.polyline) {
         this.polyline.setMap(null);
       }
 
-      // Criar nova polyline
       this.polyline = new google.maps.Polyline({
         path: points,
         geodesic: true,
@@ -214,12 +235,9 @@ export class GoogleMapsService {
         map: this.map
       });
 
-      // Ajustar bounds para mostrar toda a rota
-      const bounds = new google.maps.LatLngBounds();
-      points.forEach(point => bounds.extend(point));
-      
-      // Só ajustar bounds se tivermos pontos suficientes
       if (points.length > 5) {
+        const bounds = new google.maps.LatLngBounds();
+        points.forEach(point => bounds.extend(point));
         this.map.fitBounds(bounds);
       }
 
@@ -233,14 +251,13 @@ export class GoogleMapsService {
     try {
       if ((window as any).google && (window as any).google.maps && (window as any).google.maps.geometry) {
         const google = (window as any).google;
-        return google.maps.geometry.spherical.computeDistanceBetween(point1, point2) / 1000; // em km
+        return google.maps.geometry.spherical.computeDistanceBetween(point1, point2) / 1000;
       }
     } catch (error) {
       console.warn('Google Maps geometry não disponível, usando cálculo manual');
     }
     
-    // Fallback para cálculo manual
-    const R = 6371; // Raio da Terra em km
+    const R = 6371;
     const dLat = (point2.lat() - point1.lat()) * Math.PI / 180;
     const dLon = (point2.lng() - point1.lng()) * Math.PI / 180;
     const a = 
