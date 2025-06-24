@@ -1,29 +1,28 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Zap, TrendingUp, Mountain, Settings, Navigation, AlertCircle, RefreshCw, MapIcon } from 'lucide-react';
+import { MapPin, Navigation, AlertCircle, RefreshCw } from 'lucide-react';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { GPSState, GPSPosition } from '@/hooks/useGPS';
-import { ActivityData } from '@/hooks/useActivityTracker';
 import { googleMapsService } from '@/services/GoogleMapsService';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-interface RunningMapProps {
+interface ModernWalkingMapProps {
   gpsState: GPSState;
-  data: ActivityData;
   isActive: boolean;
   route: GPSPosition[];
+  distance: number;
+  currentSpeed: number;
 }
 
-export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps) {
+export function ModernWalkingMap({ gpsState, isActive, route, distance, currentSpeed }: ModernWalkingMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapInstance, setMapInstance] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const [mapType, setMapType] = useState<'roadmap' | 'satellite' | 'hybrid'>('roadmap');
 
   // Buscar a chave do Google Maps das secrets do Supabase
   const { data: googleMapsApiKey } = useQuery({
@@ -45,10 +44,10 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
       setLoading(true);
       setError(null);
       
-      console.log('Iniciando carregamento do Google Maps para corrida...');
+      console.log('Iniciando carregamento do Google Maps para caminhada...');
       await googleMapsService.loadGoogleMaps(googleMapsApiKey);
       
-      console.log('Inicializando mapa de corrida...');
+      console.log('Inicializando mapa de caminhada...');
       const map = await googleMapsService.initializeMap(mapContainer.current, {
         zoom: 16,
         center: gpsState.position ? 
@@ -66,7 +65,7 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
       setLoading(false);
       setRetryCount(0);
       
-      console.log('Google Maps inicializado com sucesso para corrida');
+      console.log('Google Maps inicializado com sucesso para caminhada');
     } catch (error: any) {
       console.error('Erro ao inicializar Google Maps:', error);
       setError(`Erro ao carregar mapa: ${error.message || 'Erro desconhecido'}`);
@@ -91,7 +90,7 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
       );
 
       if (googlePoints.length > 0) {
-        console.log(`Atualizando rota de corrida com ${googlePoints.length} pontos`);
+        console.log(`Atualizando rota de caminhada com ${googlePoints.length} pontos`);
         googleMapsService.drawRoute(googlePoints);
         
         if (isActive && googlePoints.length > 0) {
@@ -99,7 +98,7 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
         }
       }
     } catch (error) {
-      console.error('Erro ao atualizar rota de corrida:', error);
+      console.error('Erro ao atualizar rota de caminhada:', error);
     }
   }, [route, isActive, mapLoaded]);
 
@@ -113,19 +112,10 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
         );
         mapInstance.panTo(currentPos);
       } catch (error) {
-        console.error('Erro ao centralizar mapa de corrida:', error);
+        console.error('Erro ao centralizar mapa de caminhada:', error);
       }
     }
   }, [gpsState.position, isActive, mapInstance]);
-
-  const changeMapType = (type: 'roadmap' | 'satellite' | 'hybrid') => {
-    try {
-      googleMapsService.setMapType(type);
-      setMapType(type);
-    } catch (error) {
-      console.error('Erro ao alterar tipo de mapa:', error);
-    }
-  };
 
   const retryLoadMap = () => {
     if (retryCount < 3) {
@@ -134,7 +124,7 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
       setRetryCount(prev => prev + 1);
       initializeGoogleMaps();
     } else {
-      setError('Muitas tentativas falharam. Verifique sua conexão com a internet.');
+      setError('Muitas tentativas falharam. Verifique sua conexão.');
     }
   };
 
@@ -155,35 +145,10 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
       animate={{ opacity: 1, scale: 1 }}
       className="space-y-4"
     >
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold text-white">Mapa da Corrida - Google Maps</h3>
-        
-        {mapLoaded && (
-          <div className="flex gap-2">
-            <button
-              onClick={() => changeMapType('roadmap')}
-              className={`px-3 py-1 text-sm rounded glass-card border-navy-600 ${mapType === 'roadmap' ? 'bg-accent-orange text-navy-900' : 'text-white'}`}
-            >
-              Mapa
-            </button>
-            <button
-              onClick={() => changeMapType('satellite')}
-              className={`px-3 py-1 text-sm rounded glass-card border-navy-600 ${mapType === 'satellite' ? 'bg-accent-orange text-navy-900' : 'text-white'}`}
-            >
-              Satélite
-            </button>
-            <button
-              onClick={() => changeMapType('hybrid')}
-              className={`px-3 py-1 text-sm rounded glass-card border-navy-600 ${mapType === 'hybrid' ? 'bg-accent-orange text-navy-900' : 'text-white'}`}
-            >
-              Híbrido
-            </button>
-          </div>
-        )}
-      </div>
+      <h3 className="text-xl font-bold text-white">Mapa da Caminhada - Google Maps</h3>
 
       {/* Mapa principal */}
-      <div className="relative h-96 rounded-2xl overflow-hidden glass-card">
+      <div className="relative h-80 rounded-2xl overflow-hidden glass-card">
         {loading && (
           <div className="w-full h-full bg-navy-800 flex items-center justify-center">
             <div className="text-center">
@@ -213,10 +178,7 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
                   Tentar novamente
                 </button>
               ) : (
-                <div className="space-y-2">
-                  <p className="text-red-400 text-sm">Limite de tentativas atingido</p>
-                  <p className="text-navy-400 text-xs">Verifique sua conexão com a internet</p>
-                </div>
+                <p className="text-red-400 text-sm">Limite de tentativas atingido</p>
               )}
             </div>
           </div>
@@ -225,7 +187,7 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
         <div 
           ref={mapContainer} 
           className={`w-full h-full ${loading || error ? 'absolute inset-0 opacity-0' : 'block'}`}
-          style={{ minHeight: '384px' }}
+          style={{ minHeight: '320px' }}
         />
         
         {/* Overlay de informações */}
@@ -233,17 +195,17 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
           <div className="absolute top-4 left-4 right-4 flex justify-between">
             <div className="glass-card px-3 py-2 rounded-lg">
               <div className="text-xs text-navy-400">Distância</div>
-              <div className="text-lg font-bold text-white">{data.distance.toFixed(2)} km</div>
+              <div className="text-lg font-bold text-white">{distance.toFixed(2)} km</div>
             </div>
             
             <div className="glass-card px-3 py-2 rounded-lg">
               <div className="text-xs text-navy-400">Velocidade</div>
-              <div className="text-lg font-bold text-white">{(data.currentSpeed * 3.6).toFixed(1)} km/h</div>
+              <div className="text-lg font-bold text-white">{(currentSpeed * 3.6).toFixed(1)} km/h</div>
             </div>
 
             <div className="glass-card px-3 py-2 rounded-lg">
               <div className="text-xs text-navy-400">Google Maps</div>
-              <div className="text-xs font-medium text-accent-orange">Premium GPS</div>
+              <div className="text-xs font-medium text-accent-orange">Premium</div>
             </div>
           </div>
         )}
@@ -261,9 +223,9 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
           </div>
         </div>
 
-        {/* Controles do mapa */}
+        {/* Controle de centralização */}
         {mapLoaded && !error && (
-          <div className="absolute bottom-4 right-4 flex flex-col gap-2">
+          <div className="absolute bottom-4 right-4">
             <button 
               onClick={() => {
                 if (mapInstance && gpsState.position) {
@@ -284,7 +246,7 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
         )}
       </div>
 
-      {/* Métricas da rota */}
+      {/* Informações da rota */}
       <div className="grid grid-cols-2 gap-4">
         <PremiumCard glass className="p-4">
           <div className="flex items-center gap-3">
@@ -301,7 +263,7 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
         <PremiumCard glass className="p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-500/20 rounded-lg border border-green-500/30">
-              <Zap className="w-5 h-5 text-green-400" />
+              <Navigation className="w-5 h-5 text-green-400" />
             </div>
             <div>
               <div className="text-sm text-navy-400">Precisão GPS</div>
@@ -312,27 +274,6 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
           </div>
         </PremiumCard>
       </div>
-
-      {/* Informações sobre Google Maps */}
-      <PremiumCard glass className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-accent-orange/20 rounded-lg border border-accent-orange/30">
-              <TrendingUp className="w-5 h-5 text-accent-orange" />
-            </div>
-            <div>
-              <div className="text-sm font-medium text-white">Google Maps Premium</div>
-              <div className="text-xs text-navy-400">
-                {mapLoaded ? 'Mapa carregado' : 'Carregando mapa...'}
-                {gpsState.position && ` • GPS: ${gpsState.accuracy.toFixed(0)}m`}
-              </div>
-            </div>
-          </div>
-          <div className="text-xs text-accent-orange font-medium">
-            {route.length > 0 ? 'Ativo' : 'Aguardando'}
-          </div>
-        </div>
-      </PremiumCard>
     </motion.div>
   );
 }

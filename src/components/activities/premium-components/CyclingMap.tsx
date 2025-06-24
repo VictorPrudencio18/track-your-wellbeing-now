@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { GPSState, GPSPosition } from '@/hooks/useGPS';
 import { EnhancedActivityData } from '@/hooks/useEnhancedActivityTracker';
 import { googleMapsService } from '@/services/GoogleMapsService';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CyclingMapProps {
   gpsState: GPSState;
@@ -26,25 +28,35 @@ export function CyclingMap({ gpsState, data, isActive, route, fullscreen = false
   const [retryCount, setRetryCount] = useState(0);
   const routePointsRef = useRef<any[]>([]);
 
-  // Usar a nova chave API fornecida
-  const GOOGLE_MAPS_API_KEY = 'AIzaSyC4n6Y17OX0PIFYgeL64ibC4ISqQkOxUok';
+  // Buscar a chave do Google Maps das secrets do Supabase
+  const { data: googleMapsApiKey } = useQuery({
+    queryKey: ['secret', 'GOOGLE_MAPS_API_KEY'],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('get-secret', {
+        body: { name: 'GOOGLE_MAPS_API_KEY' }
+      });
+      if (error) throw error;
+      return data.value;
+    },
+    retry: false
+  });
 
   const initializeGoogleMaps = async () => {
-    if (!mapContainer.current) return;
+    if (!mapContainer.current || !googleMapsApiKey) return;
 
     try {
       setLoading(true);
       setError(null);
       
-      console.log('Iniciando carregamento do Google Maps...');
-      await googleMapsService.loadGoogleMaps(GOOGLE_MAPS_API_KEY);
+      console.log('Iniciando carregamento do Google Maps para ciclismo...');
+      await googleMapsService.loadGoogleMaps(googleMapsApiKey);
       
-      console.log('Inicializando mapa...');
+      console.log('Inicializando mapa de ciclismo...');
       const map = await googleMapsService.initializeMap(mapContainer.current, {
         zoom: 16,
         center: gpsState.position ? 
           { lat: gpsState.position.latitude, lng: gpsState.position.longitude } :
-          { lat: -23.550520, lng: -46.633308 }, // São Paulo default
+          { lat: -23.550520, lng: -46.633308 },
         mapTypeId: (window as any).google?.maps?.MapTypeId?.ROADMAP || 'roadmap',
         gestureHandling: 'greedy',
         zoomControl: true,
@@ -65,10 +77,12 @@ export function CyclingMap({ gpsState, data, isActive, route, fullscreen = false
     }
   };
 
-  // Inicializar mapa automaticamente
+  // Inicializar mapa quando a API key estiver disponível
   useEffect(() => {
-    initializeGoogleMaps();
-  }, []);
+    if (googleMapsApiKey) {
+      initializeGoogleMaps();
+    }
+  }, [googleMapsApiKey]);
 
   // Atualizar rota em tempo real
   useEffect(() => {
@@ -82,16 +96,14 @@ export function CyclingMap({ gpsState, data, isActive, route, fullscreen = false
       routePointsRef.current = googlePoints;
 
       if (googlePoints.length > 0) {
-        // Desenhar rota atualizada
         googleMapsService.drawRoute(googlePoints);
         
-        // Adicionar ponto atual se ativo
         if (isActive && googlePoints.length > 0) {
           googleMapsService.addRoutePoint(googlePoints[googlePoints.length - 1]);
         }
       }
     } catch (error) {
-      console.error('Erro ao atualizar rota:', error);
+      console.error('Erro ao atualizar rota de ciclismo:', error);
     }
   }, [route, isActive, mapLoaded]);
 
@@ -105,7 +117,7 @@ export function CyclingMap({ gpsState, data, isActive, route, fullscreen = false
         );
         mapInstance.panTo(currentPos);
       } catch (error) {
-        console.error('Erro ao centralizar mapa:', error);
+        console.error('Erro ao centralizar mapa de ciclismo:', error);
       }
     }
   }, [gpsState.position, isActive, mapInstance]);
@@ -145,6 +157,17 @@ export function CyclingMap({ gpsState, data, isActive, route, fullscreen = false
     }
   };
 
+  if (!googleMapsApiKey) {
+    return (
+      <PremiumCard glass className="p-4">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-accent-orange border-t-transparent rounded-full mx-auto mb-3"></div>
+          <p className="text-white">Carregando configuração do Google Maps...</p>
+        </div>
+      </PremiumCard>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -152,7 +175,7 @@ export function CyclingMap({ gpsState, data, isActive, route, fullscreen = false
       className="space-y-4"
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold text-white">Mapa da Rota</h3>
+        <h3 className="text-xl font-bold text-white">Mapa do Ciclismo - Google Maps</h3>
         
         {mapLoaded && (
           <div className="flex gap-2">
