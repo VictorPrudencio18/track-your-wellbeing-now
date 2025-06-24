@@ -147,12 +147,15 @@ export function PremiumGPSRunner({ onComplete, onCancel }: PremiumGPSRunnerProps
           <div>
             <h1 className="text-xl font-bold text-white">GPS Runner Premium</h1>
             <div className={`flex items-center gap-2 text-sm ${
-              isGPSReady ? 'text-green-400' : 'text-orange-400'
+              !gpsState.position ? 'text-red-400' :
+              !gpsState.isHighAccuracy ? 'text-yellow-400' : 'text-green-400'
             }`}>
               <div className={`w-2 h-2 rounded-full animate-pulse ${
-                isGPSReady ? 'bg-green-400' : 'bg-orange-400'
+                !gpsState.position ? 'bg-red-400' :
+                !gpsState.isHighAccuracy ? 'bg-yellow-400' : 'bg-green-400'
               }`}></div>
-              {isGPSReady ? 'GPS Preciso' : 'Aguardando GPS...'}
+              {!gpsState.position ? 'Aguardando sinal GPS...' :
+               !gpsState.isHighAccuracy ? 'Otimizando precisão...' : 'GPS Preciso'}
               {gpsState.accuracy > 0 && (
                 <span className="text-xs text-navy-400">
                   ({gpsState.accuracy.toFixed(0)}m)
@@ -282,7 +285,8 @@ export function PremiumGPSRunner({ onComplete, onCancel }: PremiumGPSRunnerProps
             size="lg"
           >
             <Play className="w-6 h-6 mr-3" />
-            {isGPSReady ? 'Iniciar Corrida' : 'Aguardando GPS...'}
+            {!gpsState.position ? 'Aguardando sinal GPS...' :
+             !gpsState.isHighAccuracy ? 'Otimizando precisão...' : 'Iniciar Corrida'}
           </AnimatedButton>
         ) : (
           <>
