@@ -103,13 +103,16 @@ export function AdvancedRunningActivity({ onComplete, onCancel }: AdvancedRunnin
         
         <div className="flex items-center justify-center gap-3">
           <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${
-            isGPSReady ? 'bg-green-500/20 text-green-400' : 'bg-orange-500/20 text-orange-400'
+            !gpsState.position ? 'bg-red-500/20 text-red-400' :
+            !gpsState.isHighAccuracy ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'
           }`}>
-            <div className={`w-2 h-2 rounded-full ${
-              isGPSReady ? 'bg-green-400 animate-pulse' : 'bg-orange-400 animate-pulse'
+            <div className={`w-2 h-2 rounded-full animate-pulse ${
+              !gpsState.position ? 'bg-red-400' :
+              !gpsState.isHighAccuracy ? 'bg-yellow-400' : 'bg-green-400'
             }`}></div>
             <span className="text-sm font-medium">
-              {isGPSReady ? 'GPS Preciso' : 'Aguardando GPS...'}
+              {!gpsState.position ? 'Aguardando sinal GPS...' :
+               !gpsState.isHighAccuracy ? 'Otimizando precisão...' : 'GPS Preciso'}
             </span>
           </div>
           
@@ -255,7 +258,8 @@ export function AdvancedRunningActivity({ onComplete, onCancel }: AdvancedRunnin
             size="lg"
           >
             <Play className="w-6 h-6 mr-3" />
-            {isGPSReady ? 'Iniciar Corrida' : 'Aguardando GPS...'}
+            {!gpsState.position ? 'Aguardando sinal GPS...' :
+             !gpsState.isHighAccuracy ? 'Otimizando precisão...' : 'Iniciar Corrida'}
           </AnimatedButton>
         ) : (
           <AnimatedButton 
