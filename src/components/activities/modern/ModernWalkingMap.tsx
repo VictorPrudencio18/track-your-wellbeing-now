@@ -1,6 +1,7 @@
+
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Navigation, AlertCircle, RefreshCw } from 'lucide-react';
+import { MapPin, Navigation, AlertCircle, RefreshCw, Zap } from 'lucide-react';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { GPSState, GPSPosition } from '@/hooks/useGPS';
 import { googleMapsService } from '@/services/GoogleMapsService';
@@ -47,11 +48,13 @@ export function ModernWalkingMap({ gpsState, isActive, route, distance, currentS
       await googleMapsService.loadGoogleMaps(googleMapsApiKey);
       
       console.log('Inicializando mapa de caminhada...');
+      const initialCenter = gpsState.position ? 
+        { lat: gpsState.position.latitude, lng: gpsState.position.longitude } :
+        { lat: -23.550520, lng: -46.633308 };
+
       const map = await googleMapsService.initializeMap(mapContainer.current, {
         zoom: 16,
-        center: gpsState.position ? 
-          { lat: gpsState.position.latitude, lng: gpsState.position.longitude } :
-          { lat: -23.550520, lng: -46.633308 },
+        center: initialCenter,
         mapTypeId: (window as any).google?.maps?.MapTypeId?.ROADMAP,
         gestureHandling: 'greedy',
         zoomControl: true,
@@ -79,42 +82,45 @@ export function ModernWalkingMap({ gpsState, isActive, route, distance, currentS
     }
   }, [googleMapsApiKey]);
 
+  // Sincronizar posição GPS com o mapa em tempo real
+  useEffect(() => {
+    if (!mapLoaded || !mapInstance || !gpsState.position) return;
+
+    try {
+      const currentPos = new (window as any).google.maps.LatLng(
+        gpsState.position.latitude,
+        gpsState.position.longitude
+      );
+
+      // Centralizar mapa na posição atual se estiver ativo
+      if (isActive) {
+        mapInstance.panTo(currentPos);
+      }
+
+      // Adicionar marcador da posição atual
+      googleMapsService.addRoutePoint(currentPos);
+      
+      console.log(`GPS sincronizado com mapa: lat=${gpsState.position.latitude.toFixed(6)}, lng=${gpsState.position.longitude.toFixed(6)}`);
+    } catch (error) {
+      console.error('Erro ao sincronizar GPS com mapa:', error);
+    }
+  }, [gpsState.position, mapLoaded, mapInstance, isActive]);
+
   // Atualizar rota em tempo real
   useEffect(() => {
-    if (!mapLoaded || !route.length || !(window as any).google) return;
+    if (!mapLoaded || !route.length || !(window as any).google || route.length < 2) return;
 
     try {
       const googlePoints = route.map(pos => 
         new (window as any).google.maps.LatLng(pos.latitude, pos.longitude)
       );
 
-      if (googlePoints.length > 0) {
-        console.log(`Atualizando rota de caminhada com ${googlePoints.length} pontos`);
-        googleMapsService.drawRoute(googlePoints);
-        
-        if (isActive && googlePoints.length > 0) {
-          googleMapsService.addRoutePoint(googlePoints[googlePoints.length - 1]);
-        }
-      }
+      console.log(`Atualizando rota de caminhada com ${googlePoints.length} pontos`);
+      googleMapsService.drawRoute(googlePoints);
     } catch (error) {
       console.error('Erro ao atualizar rota de caminhada:', error);
     }
-  }, [route, isActive, mapLoaded]);
-
-  // Centralizar mapa na posição atual
-  useEffect(() => {
-    if (mapInstance && gpsState.position && isActive) {
-      try {
-        const currentPos = new (window as any).google.maps.LatLng(
-          gpsState.position.latitude,
-          gpsState.position.longitude
-        );
-        mapInstance.panTo(currentPos);
-      } catch (error) {
-        console.error('Erro ao centralizar mapa de caminhada:', error);
-      }
-    }
-  }, [gpsState.position, isActive, mapInstance]);
+  }, [route, mapLoaded]);
 
   const retryLoadMap = () => {
     if (retryCount < 3) {
@@ -138,26 +144,43 @@ export function ModernWalkingMap({ gpsState, isActive, route, distance, currentS
     );
   }
 
+  // Estado combinado de GPS + Mapa
+  const isGPSReady = gpsState.position !== null;
+  const isSystemReady = mapLoaded && isGPSReady;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       className="space-y-4"
     >
-      <h3 className="text-xl font-bold text-white">Mapa da Caminhada - Google Maps</h3>
+      <div>
+        <h3 className="text-xl font-bold text-white">Mapa da Caminhada - Google Maps</h3>
+        <div className={`text-sm flex items-center gap-2 mt-1 ${
+          isSystemReady ? 'text-green-400' : 'text-yellow-400'
+        }`}>
+          <div className={`w-2 h-2 rounded-full ${
+            isSystemReady ? 'bg-green-400 animate-pulse' : 'bg-yellow-400 animate-pulse'
+          }`}></div>
+          {isSystemReady ? 'Sistema GPS + Mapa Pronto' : 
+           loading ? 'Carregando Mapa...' : 
+           !isGPSReady ? 'Aguardando GPS...' : 'Inicializando...'}
+        </div>
+      </div>
 
       {/* Mapa principal */}
       <div className="relative h-80 rounded-2xl overflow-hidden glass-card">
-        {loading && (
+        {(loading || !isGPSReady) && (
           <div className="w-full h-full bg-navy-800 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin w-8 h-8 border-4 border-accent-orange border-t-transparent rounded-full mx-auto mb-3"></div>
               <p className="text-white font-medium">
-                {gpsState.isReady ? 'Carregando Google Maps...' : 'Carregando GPS + Google Maps...'}
+                {loading && !isGPSReady ? 'Carregando GPS + Google Maps...' :
+                 loading ? 'Carregando Google Maps...' : 'Aguardando sinal GPS...'}
               </p>
               <p className="text-navy-400 text-sm mt-1">
                 {retryCount > 0 ? `Tentativa ${retryCount + 1}/4` : 
-                 gpsState.isReady ? 'Aguarde um momento...' : 'Conectando ao GPS...'}
+                 gpsState.isTracking ? 'GPS em busca de sinal...' : 'Iniciando GPS...'}
               </p>
             </div>
           </div>
@@ -188,7 +211,7 @@ export function ModernWalkingMap({ gpsState, isActive, route, distance, currentS
 
         <div 
           ref={mapContainer} 
-          className={`w-full h-full ${loading || error ? 'absolute inset-0 opacity-0' : 'block'}`}
+          className={`w-full h-full ${(loading && !mapLoaded) || error ? 'absolute inset-0 opacity-0' : 'block'}`}
           style={{ minHeight: '320px' }}
         />
         
@@ -206,9 +229,9 @@ export function ModernWalkingMap({ gpsState, isActive, route, distance, currentS
             </div>
 
             <div className="glass-card px-3 py-2 rounded-lg">
-              <div className="text-xs text-navy-400">Status</div>
-              <div className="text-xs font-medium text-accent-orange">
-                {gpsState.isReady ? 'GPS Pronto' : 'Conectando GPS'}
+              <div className="text-xs text-navy-400">Status GPS</div>
+              <div className={`text-xs font-medium ${isGPSReady ? 'text-green-400' : 'text-red-400'}`}>
+                {isGPSReady ? 'GPS Ativo' : 'Sem Sinal'}
               </div>
             </div>
           </div>
@@ -222,7 +245,7 @@ export function ModernWalkingMap({ gpsState, isActive, route, distance, currentS
               gpsState.position ? 'bg-yellow-500' : 'bg-red-500'
             }`} />
             <span className="text-xs text-white">
-              GPS: {gpsState.position ? `${gpsState.accuracy.toFixed(0)}m` : 'Conectando...'}
+              GPS: {gpsState.position ? `${gpsState.accuracy.toFixed(0)}m` : 'Sem sinal'}
             </span>
           </div>
         </div>
@@ -241,7 +264,8 @@ export function ModernWalkingMap({ gpsState, isActive, route, distance, currentS
                   mapInstance.setZoom(16);
                 }
               }}
-              className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+              disabled={!gpsState.position}
+              className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="Centralizar no GPS"
             >
               <Navigation className="w-5 h-5" />
@@ -267,7 +291,7 @@ export function ModernWalkingMap({ gpsState, isActive, route, distance, currentS
         <PremiumCard glass className="p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-500/20 rounded-lg border border-green-500/30">
-              <Navigation className="w-5 h-5 text-green-400" />
+              <Zap className="w-5 h-5 text-green-400" />
             </div>
             <div>
               <div className="text-sm text-navy-400">Precisão GPS</div>

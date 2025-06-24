@@ -38,6 +38,7 @@ export function useGPS(autoStart: boolean = false) {
 
   const watchIdRef = useRef<number | null>(null);
   const positionHistoryRef = useRef<GPSPosition[]>([]);
+  const lastUpdateRef = useRef<number>(0);
 
   const isValidPosition = useCallback((position: GeolocationPosition): boolean => {
     const { coords } = position;
@@ -61,6 +62,58 @@ export function useGPS(autoStart: boolean = false) {
     return true;
   }, []);
 
+  const updatePosition = useCallback((position: GeolocationPosition) => {
+    if (!isValidPosition(position)) {
+      console.warn('Posição GPS inválida recebida - ignorando');
+      return;
+    }
+
+    const now = Date.now();
+    
+    // Evitar atualizações muito frequentes (mínimo 1 segundo)
+    if (now - lastUpdateRef.current < 1000) {
+      return;
+    }
+
+    const newGpsPosition: GPSPosition = {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      altitude: position.coords.altitude || undefined,
+      accuracy: position.coords.accuracy,
+      speed: position.coords.speed || undefined,
+      heading: position.coords.heading || undefined,
+      timestamp: now
+    };
+
+    // Filtrar posições muito próximas para evitar ruído
+    const lastPosition = positionHistoryRef.current[positionHistoryRef.current.length - 1];
+    if (lastPosition && (newGpsPosition.accuracy || 100) < 30) {
+      const distance = calculateDistance(lastPosition, newGpsPosition);
+      if (distance < 0.002) { // menos de 2 metros
+        return;
+      }
+    }
+
+    positionHistoryRef.current.push(newGpsPosition);
+    lastUpdateRef.current = now;
+    
+    // Manter histórico limitado
+    if (positionHistoryRef.current.length > 500) {
+      positionHistoryRef.current = positionHistoryRef.current.slice(-500);
+    }
+
+    setState(prev => ({
+      ...prev,
+      position: newGpsPosition,
+      accuracy: newGpsPosition.accuracy || 0,
+      isHighAccuracy: (newGpsPosition.accuracy || 100) < 50,
+      isReady: true,
+      error: null
+    }));
+
+    console.log(`GPS atualizado: lat=${newGpsPosition.latitude.toFixed(6)}, lng=${newGpsPosition.longitude.toFixed(6)}, precisão=${newGpsPosition.accuracy?.toFixed(1)}m, pontos=${positionHistoryRef.current.length}`);
+  }, [isValidPosition]);
+
   const startTracking = useCallback(async () => {
     if (!navigator.geolocation) {
       setState(prev => ({ ...prev, error: 'GPS não está disponível neste dispositivo', isReady: false }));
@@ -76,10 +129,11 @@ export function useGPS(autoStart: boolean = false) {
     setState(prev => ({ ...prev, error: null, isTracking: true, isReady: false }));
 
     try {
+      // Obter posição inicial
       const initialPosition = await new Promise<GeolocationPosition>((resolve, reject) => {
         const timeoutId = setTimeout(() => {
           reject(new Error('Timeout ao obter posição inicial - verifique se o GPS está ativado'));
-        }, 10000);
+        }, 15000);
 
         navigator.geolocation.getCurrentPosition(
           (position) => {
@@ -112,74 +166,19 @@ export function useGPS(autoStart: boolean = false) {
           }, 
           {
             enableHighAccuracy: true,
-            timeout: 8000,
+            timeout: 12000,
             maximumAge: 30000
           }
         );
       });
 
-      const gpsPosition: GPSPosition = {
-        latitude: initialPosition.coords.latitude,
-        longitude: initialPosition.coords.longitude,
-        altitude: initialPosition.coords.altitude || undefined,
-        accuracy: initialPosition.coords.accuracy,
-        speed: initialPosition.coords.speed || undefined,
-        heading: initialPosition.coords.heading || undefined,
-        timestamp: Date.now()
-      };
-
-      setState(prev => ({
-        ...prev,
-        position: gpsPosition,
-        accuracy: gpsPosition.accuracy || 0,
-        isHighAccuracy: (gpsPosition.accuracy || 100) < 50,
-        isReady: true
-      }));
-
-      positionHistoryRef.current = [gpsPosition];
-      console.log(`GPS inicializado e pronto: lat=${gpsPosition.latitude.toFixed(6)}, lng=${gpsPosition.longitude.toFixed(6)}, precisão=${gpsPosition.accuracy?.toFixed(1)}m`);
+      // Processar posição inicial
+      updatePosition(initialPosition);
+      console.log('GPS inicializado e pronto');
 
       // Iniciar rastreamento contínuo
       watchIdRef.current = navigator.geolocation.watchPosition(
-        (position) => {
-          if (!isValidPosition(position)) {
-            console.warn('Posição GPS inválida recebida - ignorando');
-            return;
-          }
-
-          const newGpsPosition: GPSPosition = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            altitude: position.coords.altitude || undefined,
-            accuracy: position.coords.accuracy,
-            speed: position.coords.speed || undefined,
-            heading: position.coords.heading || undefined,
-            timestamp: Date.now()
-          };
-
-          const lastPosition = positionHistoryRef.current[positionHistoryRef.current.length - 1];
-          if (lastPosition && (newGpsPosition.accuracy || 100) < 30) {
-            const distance = calculateDistance(lastPosition, newGpsPosition);
-            if (distance < 0.002) {
-              return;
-            }
-          }
-
-          positionHistoryRef.current.push(newGpsPosition);
-          
-          if (positionHistoryRef.current.length > 500) {
-            positionHistoryRef.current = positionHistoryRef.current.slice(-500);
-          }
-
-          setState(prev => ({
-            ...prev,
-            position: newGpsPosition,
-            accuracy: newGpsPosition.accuracy || 0,
-            isHighAccuracy: (newGpsPosition.accuracy || 100) < 50
-          }));
-
-          console.log(`GPS atualizado: precisão=${newGpsPosition.accuracy?.toFixed(1)}m, pontos=${positionHistoryRef.current.length}`);
-        },
+        updatePosition,
         (error) => {
           console.error('GPS Error durante tracking:', error);
           
@@ -215,7 +214,7 @@ export function useGPS(autoStart: boolean = false) {
         isReady: false
       }));
     }
-  }, [isValidPosition, state.isTracking]);
+  }, [isValidPosition, state.isTracking, updatePosition]);
 
   const stopTracking = useCallback(() => {
     if (watchIdRef.current !== null) {
@@ -236,7 +235,7 @@ export function useGPS(autoStart: boolean = false) {
   }, []);
 
   const calculateDistance = useCallback((pos1: GPSPosition, pos2: GPSPosition): number => {
-    const R = 6371;
+    const R = 6371; // Raio da Terra em km
     const dLat = (pos2.latitude - pos1.latitude) * Math.PI / 180;
     const dLon = (pos2.longitude - pos1.longitude) * Math.PI / 180;
     const a = 
@@ -276,7 +275,7 @@ export function useGPS(autoStart: boolean = false) {
     return Math.max(0, speedMs);
   }, [calculateDistance]);
 
-  // Auto-start GPS if requested
+  // Auto-start GPS se solicitado
   useEffect(() => {
     if (autoStart && !state.isTracking && !state.isReady) {
       console.log('Auto-iniciando GPS...');

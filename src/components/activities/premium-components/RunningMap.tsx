@@ -49,11 +49,13 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
       await googleMapsService.loadGoogleMaps(googleMapsApiKey);
       
       console.log('Inicializando mapa de corrida...');
+      const initialCenter = gpsState.position ? 
+        { lat: gpsState.position.latitude, lng: gpsState.position.longitude } :
+        { lat: -23.550520, lng: -46.633308 };
+
       const map = await googleMapsService.initializeMap(mapContainer.current, {
         zoom: 16,
-        center: gpsState.position ? 
-          { lat: gpsState.position.latitude, lng: gpsState.position.longitude } :
-          { lat: -23.550520, lng: -46.633308 },
+        center: initialCenter,
         mapTypeId: (window as any).google?.maps?.MapTypeId?.ROADMAP,
         gestureHandling: 'greedy',
         zoomControl: true,
@@ -81,42 +83,45 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
     }
   }, [googleMapsApiKey]);
 
+  // Sincronizar posição GPS com o mapa em tempo real
+  useEffect(() => {
+    if (!mapLoaded || !mapInstance || !gpsState.position) return;
+
+    try {
+      const currentPos = new (window as any).google.maps.LatLng(
+        gpsState.position.latitude,
+        gpsState.position.longitude
+      );
+
+      // Centralizar mapa na posição atual se estiver ativo
+      if (isActive) {
+        mapInstance.panTo(currentPos);
+      }
+
+      // Adicionar marcador da posição atual
+      googleMapsService.addRoutePoint(currentPos);
+      
+      console.log(`GPS sincronizado com mapa: lat=${gpsState.position.latitude.toFixed(6)}, lng=${gpsState.position.longitude.toFixed(6)}`);
+    } catch (error) {
+      console.error('Erro ao sincronizar GPS com mapa:', error);
+    }
+  }, [gpsState.position, mapLoaded, mapInstance, isActive]);
+
   // Atualizar rota em tempo real
   useEffect(() => {
-    if (!mapLoaded || !route.length || !(window as any).google) return;
+    if (!mapLoaded || !route.length || !(window as any).google || route.length < 2) return;
 
     try {
       const googlePoints = route.map(pos => 
         new (window as any).google.maps.LatLng(pos.latitude, pos.longitude)
       );
 
-      if (googlePoints.length > 0) {
-        console.log(`Atualizando rota de corrida com ${googlePoints.length} pontos`);
-        googleMapsService.drawRoute(googlePoints);
-        
-        if (isActive && googlePoints.length > 0) {
-          googleMapsService.addRoutePoint(googlePoints[googlePoints.length - 1]);
-        }
-      }
+      console.log(`Atualizando rota de corrida com ${googlePoints.length} pontos`);
+      googleMapsService.drawRoute(googlePoints);
     } catch (error) {
       console.error('Erro ao atualizar rota de corrida:', error);
     }
-  }, [route, isActive, mapLoaded]);
-
-  // Centralizar mapa na posição atual
-  useEffect(() => {
-    if (mapInstance && gpsState.position && isActive) {
-      try {
-        const currentPos = new (window as any).google.maps.LatLng(
-          gpsState.position.latitude,
-          gpsState.position.longitude
-        );
-        mapInstance.panTo(currentPos);
-      } catch (error) {
-        console.error('Erro ao centralizar mapa de corrida:', error);
-      }
-    }
-  }, [gpsState.position, isActive, mapInstance]);
+  }, [route, mapLoaded]);
 
   const changeMapType = (type: 'roadmap' | 'satellite' | 'hybrid') => {
     try {
@@ -149,6 +154,10 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
     );
   }
 
+  // Estado combinado de GPS + Mapa para melhor UX
+  const isGPSReady = gpsState.position !== null;
+  const isSystemReady = mapLoaded && isGPSReady;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -156,7 +165,19 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
       className="space-y-4"
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold text-white">Mapa da Corrida - Google Maps</h3>
+        <div>
+          <h3 className="text-xl font-bold text-white">Mapa da Corrida - Google Maps</h3>
+          <div className={`text-sm flex items-center gap-2 ${
+            isSystemReady ? 'text-green-400' : 'text-yellow-400'
+          }`}>
+            <div className={`w-2 h-2 rounded-full ${
+              isSystemReady ? 'bg-green-400 animate-pulse' : 'bg-yellow-400 animate-pulse'
+            }`}></div>
+            {isSystemReady ? 'Sistema GPS + Mapa Pronto' : 
+             loading ? 'Carregando Mapa...' : 
+             !isGPSReady ? 'Aguardando GPS...' : 'Inicializando...'}
+          </div>
+        </div>
         
         {mapLoaded && (
           <div className="flex gap-2">
@@ -184,13 +205,17 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
 
       {/* Mapa principal */}
       <div className="relative h-96 rounded-2xl overflow-hidden glass-card">
-        {loading && (
+        {(loading || !isGPSReady) && (
           <div className="w-full h-full bg-navy-800 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin w-8 h-8 border-4 border-accent-orange border-t-transparent rounded-full mx-auto mb-3"></div>
-              <p className="text-white font-medium">Carregando Google Maps...</p>
+              <p className="text-white font-medium">
+                {loading && !isGPSReady ? 'Carregando GPS + Google Maps...' :
+                 loading ? 'Carregando Google Maps...' : 'Aguardando sinal GPS...'}
+              </p>
               <p className="text-navy-400 text-sm mt-1">
-                {retryCount > 0 ? `Tentativa ${retryCount + 1}/4` : 'Aguarde um momento...'}
+                {retryCount > 0 ? `Tentativa ${retryCount + 1}/4` : 
+                 gpsState.isTracking ? 'GPS em busca de sinal...' : 'Iniciando GPS...'}
               </p>
             </div>
           </div>
@@ -224,7 +249,7 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
 
         <div 
           ref={mapContainer} 
-          className={`w-full h-full ${loading || error ? 'absolute inset-0 opacity-0' : 'block'}`}
+          className={`w-full h-full ${(loading && !mapLoaded) || error ? 'absolute inset-0 opacity-0' : 'block'}`}
           style={{ minHeight: '384px' }}
         />
         
@@ -242,8 +267,10 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
             </div>
 
             <div className="glass-card px-3 py-2 rounded-lg">
-              <div className="text-xs text-navy-400">Google Maps</div>
-              <div className="text-xs font-medium text-accent-orange">Premium GPS</div>
+              <div className="text-xs text-navy-400">Status GPS</div>
+              <div className={`text-xs font-medium ${isGPSReady ? 'text-green-400' : 'text-red-400'}`}>
+                {isGPSReady ? 'GPS Ativo' : 'Sem Sinal'}
+              </div>
             </div>
           </div>
         )}
@@ -252,7 +279,7 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
         <div className="absolute bottom-4 left-4">
           <div className="glass-card px-3 py-2 rounded-lg flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${
-              gpsState.isHighAccuracy ? 'bg-green-500 animate-pulse' : 
+              gpsState.isReady && gpsState.isHighAccuracy ? 'bg-green-500 animate-pulse' : 
               gpsState.position ? 'bg-yellow-500' : 'bg-red-500'
             }`} />
             <span className="text-xs text-white">
@@ -275,7 +302,8 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
                   mapInstance.setZoom(16);
                 }
               }}
-              className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+              disabled={!gpsState.position}
+              className="w-10 h-10 glass-card rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="Centralizar no GPS"
             >
               <Navigation className="w-5 h-5" />
@@ -313,23 +341,28 @@ export function RunningMap({ gpsState, data, isActive, route }: RunningMapProps)
         </PremiumCard>
       </div>
 
-      {/* Informações sobre Google Maps */}
+      {/* Status do Sistema */}
       <PremiumCard glass className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-accent-orange/20 rounded-lg border border-accent-orange/30">
-              <TrendingUp className="w-5 h-5 text-accent-orange" />
+            <div className={`p-2 rounded-lg border ${
+              isSystemReady ? 'bg-green-500/20 border-green-500/30' : 'bg-yellow-500/20 border-yellow-500/30'
+            }`}>
+              <TrendingUp className={`w-5 h-5 ${isSystemReady ? 'text-green-400' : 'text-yellow-400'}`} />
             </div>
             <div>
-              <div className="text-sm font-medium text-white">Google Maps Premium</div>
+              <div className="text-sm font-medium text-white">Sistema GPS + Mapa</div>
               <div className="text-xs text-navy-400">
-                {mapLoaded ? 'Mapa carregado' : 'Carregando mapa...'}
-                {gpsState.position && ` • GPS: ${gpsState.accuracy.toFixed(0)}m`}
+                GPS: {gpsState.isTracking ? 'Ativo' : 'Inativo'} • 
+                Mapa: {mapLoaded ? 'Carregado' : 'Carregando'} • 
+                Pontos: {route.length}
               </div>
             </div>
           </div>
-          <div className="text-xs text-accent-orange font-medium">
-            {route.length > 0 ? 'Ativo' : 'Aguardando'}
+          <div className={`text-xs font-medium ${
+            isSystemReady ? 'text-green-400' : 'text-yellow-400'
+          }`}>
+            {isSystemReady ? 'Pronto' : 'Inicializando'}
           </div>
         </div>
       </PremiumCard>
