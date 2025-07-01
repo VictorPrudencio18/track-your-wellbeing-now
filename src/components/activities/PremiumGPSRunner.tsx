@@ -2,19 +2,14 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Play, Pause, Square, Settings, Layout, Map as MapIcon, 
-  BarChart3, Target, Zap, Activity, Eye, EyeOff
+  BarChart3, Target, Activity, Eye, EyeOff
 } from "lucide-react";
 import { AnimatedButton } from "@/components/ui/animated-button";
-import { PremiumCard } from "@/components/ui/premium-card";
-import { useActivityTracker } from "@/hooks/useActivityTracker";
-import { RunningMap } from "./premium-components/RunningMap";
-import { MetricsDashboard } from "./premium-components/MetricsDashboard";
-import { LiveCharts } from "./premium-components/LiveCharts";
-import { StatsOverlay } from "./premium-components/StatsOverlay";
-import { LayoutSelector } from "./premium-components/LayoutSelector";
+import { useRunningTracker } from "@/hooks/useRunningTracker";
+import { EnhancedRunningMap } from "./EnhancedRunningMap";
+import { RunningDashboard } from "./RunningDashboard";
 
-type ViewMode = 'dashboard' | 'map' | 'charts' | 'fullscreen';
-type LayoutType = 'compact' | 'detailed' | 'minimal' | 'pro';
+type ViewMode = 'dashboard' | 'map' | 'fullscreen';
 
 interface PremiumGPSRunnerProps {
   onComplete: (data: any) => void;
@@ -23,8 +18,6 @@ interface PremiumGPSRunnerProps {
 
 export function PremiumGPSRunner({ onComplete, onCancel }: PremiumGPSRunnerProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard');
-  const [layout, setLayout] = useState<LayoutType>('detailed');
-  const [showSettings, setShowSettings] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const {
@@ -37,46 +30,37 @@ export function PremiumGPSRunner({ onComplete, onCancel }: PremiumGPSRunnerProps
     resumeActivity,
     stopActivity,
     isGPSReady
-  } = useActivityTracker('running');
+  } = useRunningTracker();
 
   const handleComplete = async () => {
-    await stopActivity();
-    
-    // Safely extract heart rate values with proper type checking
-    let avgHeartRate: number | undefined = undefined;
-    let maxHeartRate: number | undefined = undefined;
-
-    // Handle heart rate based on its type
-    if (typeof data.heartRate === 'number') {
-      avgHeartRate = data.heartRate;
-    } else if (data.heartRate && typeof data.heartRate === 'object') {
-      const hrObject = data.heartRate as any;
-      avgHeartRate = hrObject.avg;
-      maxHeartRate = hrObject.max;
+    try {
+      const finalData = await stopActivity();
+      onComplete({
+        type: 'running',
+        duration: finalData.duration,
+        distance: finalData.distance,
+        calories: finalData.calories,
+        pace: finalData.avgPace,
+        avg_heart_rate: finalData.heartRate,
+        max_heart_rate: finalData.maxHeartRate,
+        elevation_gain: finalData.elevationGain,
+      });
+    } catch (error) {
+      console.error('Erro ao finalizar corrida:', error);
+      onCancel();
     }
-
-    // Use maxHeartRate from data if available, otherwise from heartRate object
-    if (!maxHeartRate && typeof data.maxHeartRate === 'number') {
-      maxHeartRate = data.maxHeartRate;
-    }
-
-    onComplete({
-      type: 'running',
-      duration: data.duration,
-      distance: data.distance,
-      calories: data.calories,
-      pace: data.avgPace,
-      avg_heart_rate: avgHeartRate,
-      max_heart_rate: maxHeartRate,
-      elevation_gain: data.elevationGain,
-    });
   };
 
   const handleStart = async () => {
-    if (isPaused) {
-      resumeActivity();
-    } else {
-      await startActivity();
+    try {
+      if (isPaused) {
+        resumeActivity();
+      } else {
+        await startActivity();
+      }
+    } catch (error) {
+      console.error('Erro ao iniciar corrida:', error);
+      alert('Não foi possível iniciar a corrida. Verifique se o GPS está ativado.');
     }
   };
 
@@ -119,7 +103,6 @@ export function PremiumGPSRunner({ onComplete, onCancel }: PremiumGPSRunnerProps
   const viewModeButtons = [
     { mode: 'dashboard' as ViewMode, icon: Layout, label: 'Dashboard' },
     { mode: 'map' as ViewMode, icon: MapIcon, label: 'Mapa' },
-    { mode: 'charts' as ViewMode, icon: BarChart3, label: 'Gráficos' },
     { mode: 'fullscreen' as ViewMode, icon: Target, label: 'Foco' }
   ];
 
@@ -174,14 +157,6 @@ export function PremiumGPSRunner({ onComplete, onCancel }: PremiumGPSRunnerProps
           >
             {isFullscreen ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </AnimatedButton>
-          <AnimatedButton
-            onClick={() => setShowSettings(!showSettings)}
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-accent-orange/20"
-          >
-            <Settings className="w-5 h-5" />
-          </AnimatedButton>
         </div>
       </motion.div>
 
@@ -210,17 +185,6 @@ export function PremiumGPSRunner({ onComplete, onCancel }: PremiumGPSRunnerProps
         </motion.div>
       )}
 
-      {/* Configurações */}
-      <AnimatePresence>
-        {showSettings && !isFullscreen && (
-          <LayoutSelector
-            currentLayout={layout}
-            onLayoutChange={setLayout}
-            onClose={() => setShowSettings(false)}
-          />
-        )}
-      </AnimatePresence>
-
       {/* Conteúdo principal */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -232,40 +196,31 @@ export function PremiumGPSRunner({ onComplete, onCancel }: PremiumGPSRunnerProps
           className="relative"
         >
           {viewMode === 'dashboard' && (
-            <MetricsDashboard
+            <RunningDashboard
               data={data}
               gpsState={gpsState}
-              layout={layout}
               isActive={isActive}
               isPaused={isPaused}
             />
           )}
 
           {viewMode === 'map' && (
-            <RunningMap
+            <EnhancedRunningMap
               gpsState={gpsState}
               data={data}
-              isActive={isActive}
-              route={gpsState.getPositionHistory()}
-            />
-          )}
-
-          {viewMode === 'charts' && (
-            <LiveCharts
-              data={data}
-              gpsState={gpsState}
               isActive={isActive}
             />
           )}
 
           {viewMode === 'fullscreen' && (
-            <StatsOverlay
-              data={data}
-              gpsState={gpsState}
-              isActive={isActive}
-              isPaused={isPaused}
-              isFullscreen={isFullscreen}
-            />
+            <div className="min-h-screen flex items-center justify-center">
+              <RunningDashboard
+                data={data}
+                gpsState={gpsState}
+                isActive={isActive}
+                isPaused={isPaused}
+              />
+            </div>
           )}
         </motion.div>
       </AnimatePresence>
