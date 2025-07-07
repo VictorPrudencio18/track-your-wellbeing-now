@@ -6,11 +6,13 @@ import { WeeklyGoalsCard } from "@/components/dashboard/WeeklyGoalsCard";
 import { UserProfileCard } from "@/components/dashboard/UserProfileCard";
 import { SleepWellnessIntegration } from "@/components/dashboard/SleepWellnessIntegration";
 import { WellnessThermometers } from "@/components/dashboard/WellnessThermometers";
+import { DailyHistoryCarousel } from "@/components/health/DailyHistoryCarousel";
 
 import { useAuth } from "@/hooks/useAuth";
 
 import { 
-  Sparkles
+  Sparkles,
+  Calendar
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -39,6 +41,23 @@ export default function Dashboard() {
 
         {/* Check-ins Rápidos */}
         <WellnessThermometers />
+
+        {/* Histórico de Atividades - Calendário */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <div className="flex items-center gap-2 mb-6">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
+              <Calendar className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="text-xl font-bold text-white">
+              Histórico de Atividades
+            </h3>
+          </div>
+          <DailyHistoryCarousel />
+        </motion.div>
 
         {/* Grid Principal */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
