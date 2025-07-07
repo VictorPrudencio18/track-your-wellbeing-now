@@ -175,7 +175,7 @@ export function CyclingMap({ gpsState, data, isActive, route, fullscreen = false
       className="space-y-4"
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold text-white">Mapa do Ciclismo - Google Maps</h3>
+        <h3 className="text-xl font-bold text-white">Mapa</h3>
         
         {mapLoaded && (
           <div className="flex gap-2">
@@ -299,46 +299,6 @@ export function CyclingMap({ gpsState, data, isActive, route, fullscreen = false
         )}
       </div>
 
-      {/* Estatísticas da rota */}
-      <div className="grid grid-cols-3 gap-4">
-        <PremiumCard glass className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/20 rounded-lg border border-blue-500/30">
-              <MapPin className="w-5 h-5 text-blue-400" />
-            </div>
-            <div>
-              <div className="text-sm text-navy-400">Pontos GPS</div>
-              <div className="text-xl font-bold text-white">{route.length}</div>
-            </div>
-          </div>
-        </PremiumCard>
-
-        <PremiumCard glass className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-500/20 rounded-lg border border-green-500/30">
-              <Zap className="w-5 h-5 text-green-400" />
-            </div>
-            <div>
-              <div className="text-sm text-navy-400">Precisão</div>
-              <div className="text-xl font-bold text-white">{gpsState.accuracy.toFixed(0)}m</div>
-            </div>
-          </div>
-        </PremiumCard>
-
-        <PremiumCard glass className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-500/20 rounded-lg border border-purple-500/30">
-              <TrendingUp className="w-5 h-5 text-purple-400" />
-            </div>
-            <div>
-              <div className="text-sm text-navy-400">Qualidade</div>
-              <div className="text-xl font-bold text-white">
-                {gpsState.isHighAccuracy ? 'Alta' : 'Média'}
-              </div>
-            </div>
-          </div>
-        </PremiumCard>
-      </div>
     </motion.div>
   );
 }
