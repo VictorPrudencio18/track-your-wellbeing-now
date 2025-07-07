@@ -10,10 +10,6 @@ interface ActivitySelectionProps {
 const activities = [
   { type: "run", label: "Corrida", icon: "🏃‍♂️", description: "GPS, pace, calorias" },
   { type: "cycle", label: "Ciclismo", icon: "🚴‍♂️", description: "Velocidade, elevação, mapa" },
-  { type: "swim", label: "Natação", icon: "🏊‍♂️", description: "Voltas, braçadas, tempo" },
-  { type: "gym", label: "Musculação", icon: "💪", description: "Séries, peso, descanso" },
-  { type: "yoga", label: "Yoga", icon: "🧘‍♀️", description: "Poses, respiração, relaxamento" },
-  { type: "dance", label: "Dança", icon: "💃", description: "Estilos, movimentos, energia" },
   { type: "walk", label: "Caminhada", icon: "🚶‍♂️", description: "Distância, ritmo casual" },
   { type: "meditation", label: "Meditação", icon: "🧠", description: "Mindfulness, concentração" },
   { type: "pilates", label: "Pilates", icon: "🧘‍♀️", description: "Fortaleça seu core e melhore sua postura" }
