@@ -102,8 +102,7 @@ export function PremiumGPSRunner({ onComplete, onCancel }: PremiumGPSRunnerProps
 
   const viewModeButtons = [
     { mode: 'dashboard' as ViewMode, icon: Layout, label: 'Dashboard' },
-    { mode: 'map' as ViewMode, icon: MapIcon, label: 'Mapa' },
-    { mode: 'fullscreen' as ViewMode, icon: Target, label: 'Foco' }
+    { mode: 'map' as ViewMode, icon: MapIcon, label: 'Mapa' }
   ];
 
   return (
@@ -212,16 +211,6 @@ export function PremiumGPSRunner({ onComplete, onCancel }: PremiumGPSRunnerProps
             />
           )}
 
-          {viewMode === 'fullscreen' && (
-            <div className="min-h-screen flex items-center justify-center">
-              <RunningDashboard
-                data={data}
-                gpsState={gpsState}
-                isActive={isActive}
-                isPaused={isPaused}
-              />
-            </div>
-          )}
         </motion.div>
       </AnimatePresence>
 

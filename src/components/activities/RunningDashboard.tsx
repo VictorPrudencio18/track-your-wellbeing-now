@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Timer, MapPin, Zap, Heart, Activity, Target } from 'lucide-react';
+import { Timer, MapPin, Zap, Mountain, Activity, Target } from 'lucide-react';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { RunningData } from '@/hooks/useRunningTracker';
 import { GPSState } from '@/hooks/useGPS';
@@ -60,11 +60,11 @@ export function RunningDashboard({ data, gpsState, isActive, isPaused }: Running
       animate: data.pace > 0
     },
     {
-      icon: Heart,
-      label: 'Batimentos',
-      value: `${data.heartRate} bpm`,
+      icon: Mountain,
+      label: 'Elevação',
+      value: `${data.elevationGain.toFixed(0)}m`,
       color: 'red',
-      animate: isActive
+      animate: data.elevationGain > 0
     },
     {
       icon: Activity,
@@ -150,45 +150,8 @@ export function RunningDashboard({ data, gpsState, isActive, isPaused }: Running
         ))}
       </div>
 
-      {/* Estatísticas adicionais */}
+      {/* Status GPS */}
       <div className="grid grid-cols-1 gap-4">
-        <PremiumCard glass className="p-4">
-          <div className="space-y-3">
-            <h3 className="text-lg font-bold text-white">Estatísticas Avançadas</h3>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-sm text-navy-400">Velocidade Máxima</div>
-                <div className="text-lg font-bold text-white">
-                  {(data.maxSpeed * 3.6).toFixed(1)} km/h
-                </div>
-              </div>
-              
-              <div>
-                <div className="text-sm text-navy-400">Pace Médio</div>
-                <div className="text-lg font-bold text-white">
-                  {formatPace(data.avgPace)}/km
-                </div>
-              </div>
-              
-              <div>
-                <div className="text-sm text-navy-400">Elevação</div>
-                <div className="text-lg font-bold text-white">
-                  {data.elevationGain.toFixed(0)}m
-                </div>
-              </div>
-              
-              <div>
-                <div className="text-sm text-navy-400">Cadência</div>
-                <div className="text-lg font-bold text-white">
-                  {data.cadence} spm
-                </div>
-              </div>
-            </div>
-          </div>
-        </PremiumCard>
-
-        {/* Status GPS */}
         <PremiumCard glass className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
