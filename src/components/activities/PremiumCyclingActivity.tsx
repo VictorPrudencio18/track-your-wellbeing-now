@@ -38,11 +38,7 @@ export function PremiumCyclingActivity({ onComplete, onCancel }: PremiumCyclingA
       type: 'cycling',
       duration: data.duration,
       distance: data.distance ? data.distance / 1000 : undefined,
-      calories: data.calories,
-      avg_heart_rate: data.heartRate || undefined,
-      max_heart_rate: data.maxHeartRate || undefined,
       elevation_gain: data.elevationGain || undefined,
-      pace: data.avgPace || undefined,
     });
   };
 
@@ -140,14 +136,14 @@ export function PremiumCyclingActivity({ onComplete, onCancel }: PremiumCyclingA
                 </div>
               </div>
 
-              {/* Live Stats Bar */}
+              {/* Live Stats Bar - apenas métricas básicas */}
               {isActive && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                 >
                   <PremiumCard glass className="p-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div className="grid grid-cols-3 gap-4 text-center">
                       <div>
                         <div className="text-2xl font-bold text-blue-400">
                           {(data.currentSpeed * 3.6).toFixed(1)}
@@ -165,12 +161,6 @@ export function PremiumCyclingActivity({ onComplete, onCancel }: PremiumCyclingA
                           {Math.round(data.elevationGain)}
                         </div>
                         <div className="text-xs text-navy-400">m</div>
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold text-red-400">
-                          {data.calories}
-                        </div>
-                        <div className="text-xs text-navy-400">kcal</div>
                       </div>
                     </div>
                   </PremiumCard>

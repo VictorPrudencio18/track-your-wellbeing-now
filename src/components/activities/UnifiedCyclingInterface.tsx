@@ -73,12 +73,11 @@ export function UnifiedCyclingInterface({ onComplete, onCancel }: UnifiedCycling
       distance,
       avgSpeed,
       elevation,
-      calories,
       date: new Date()
     });
   };
 
-  // Métricas principais
+  // Métricas principais (apenas velocidade, distância e elevação)
   const mainMetrics = [
     {
       icon: Zap,
@@ -100,13 +99,6 @@ export function UnifiedCyclingInterface({ onComplete, onCancel }: UnifiedCycling
       value: `${Math.round(elevation)}m`,
       color: 'yellow',
       animate: elevation > 0
-    },
-    {
-      icon: Timer,
-      label: 'Calorias',
-      value: `${calories} kcal`,
-      color: 'red',
-      animate: calories > 0
     }
   ];
 
@@ -255,14 +247,6 @@ export function UnifiedCyclingInterface({ onComplete, onCancel }: UnifiedCycling
                   <span className="text-white">{((distance / 20) * 100).toFixed(0)}%</span>
                 </div>
                 <Progress value={(distance / 20) * 100} className="h-2" />
-              </div>
-              
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-navy-400">Calorias (Meta: 500kcal)</span>
-                  <span className="text-white">{((calories / 500) * 100).toFixed(0)}%</span>
-                </div>
-                <Progress value={(calories / 500) * 100} className="h-2" />
               </div>
               
               <div>
