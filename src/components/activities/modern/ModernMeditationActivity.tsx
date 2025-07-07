@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Brain, Heart, Timer, Waves, Pause, Play, Volume2, VolumeX, Zap } from 'lucide-react';
+import { Brain, Heart, Timer, Waves, Pause, Play, Volume2, VolumeX, Zap, FileText, Clock } from 'lucide-react';
 import { ModernActivityBase } from './ModernActivityBase';
-import { MetricsGrid } from './MetricsGrid';
 import { Button } from '@/components/ui/button';
 import { PremiumCard } from '@/components/ui/premium-card';
+import { Textarea } from '@/components/ui/textarea';
 import { motion } from 'framer-motion';
 import { useCreateActivity } from '@/hooks/useSupabaseActivities';
 
@@ -57,14 +57,9 @@ export function ModernMeditationActivity({ onComplete, onCancel }: ModernMeditat
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [duration, setDuration] = useState(0);
-  const [heartRate, setHeartRate] = useState(70);
-  const [avgHeartRate, setAvgHeartRate] = useState(70);
-  const [calories, setCalories] = useState(0);
-  const [mindfulness, setMindfulness] = useState(50);
-  const [relaxation, setRelaxation] = useState(50);
-  const [focus, setFocus] = useState(50);
-  const [stressReduction, setStressReduction] = useState(50);
-  const [sessionQuality, setSessionQuality] = useState('Boa');
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [feeling, setFeeling] = useState('');
   const [volume, setVolume] = useState(0.5);
   const [selectedType, setSelectedType] = useState(meditationTypes[0]);
   const [selectedSound, setSelectedSound] = useState(ambientSounds[0]);
@@ -81,15 +76,6 @@ export function ModernMeditationActivity({ onComplete, onCancel }: ModernMeditat
     if (isActive && !isPaused) {
       interval = setInterval(() => {
         setDuration(prev => prev + 1);
-        
-        // Simulação de métricas
-        setHeartRate(prev => Math.min(100, prev + (Math.random() - 0.5) * 2));
-        setAvgHeartRate(prev => (prev + heartRate) / 2);
-        setCalories(prev => prev + (selectedType.intensity * 0.1));
-        setMindfulness(prev => Math.min(100, mindfulness + (Math.random() - 0.5) * 1));
-        setRelaxation(prev => Math.min(100, relaxation + (Math.random() - 0.5) * 1));
-        setFocus(prev => Math.min(100, focus + (Math.random() - 0.5) * 1));
-        setStressReduction(prev => Math.max(0, stressReduction - (Math.random() * 0.5)));
       }, 1000);
 
       // Lógica de fases
@@ -100,9 +86,6 @@ export function ModernMeditationActivity({ onComplete, onCancel }: ModernMeditat
           setPhases(updatedPhases);
           setCurrentPhaseIndex(currentPhaseIndex + 1);
           setCurrentPhase(updatedPhases[currentPhaseIndex + 1].name);
-        } else {
-          // Última fase concluída
-          setSessionQuality('Excelente');
         }
       }, phases[currentPhaseIndex].duration * 60 * 1000);
     }
@@ -111,7 +94,7 @@ export function ModernMeditationActivity({ onComplete, onCancel }: ModernMeditat
       if (interval) clearInterval(interval);
       if (phaseTimer) clearTimeout(phaseTimer);
     };
-  }, [isActive, isPaused, heartRate, mindfulness, relaxation, focus, stressReduction, selectedType, phases, currentPhaseIndex]);
+  }, [isActive, isPaused, selectedType, phases, currentPhaseIndex]);
 
   useEffect(() => {
     if (selectedSound.sound && audioRef.current) {
@@ -147,27 +130,30 @@ export function ModernMeditationActivity({ onComplete, onCancel }: ModernMeditat
     }
   };
 
-  const handleStop = async () => {
+  const handleStop = () => {
+    setIsActive(false);
+    setIsPaused(false);
+    setIsCompleted(true);
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+  };
+
+  const handleCompleteMeditation = async () => {
     const sessionData = {
       type: 'yoga' as const, // Changed from 'meditation' to 'yoga' as meditation is not a valid type in DB
       name: `Meditação ${selectedType.name}`,
       duration,
-      calories: Math.round(calories),
-      avg_heart_rate: Math.round(avgHeartRate),
-      max_heart_rate: Math.round(heartRate),
-      notes: `Tipo: ${selectedType.name} | Som: ${selectedSound.name} | Respiração: ${breathingPattern.name} | Fase Final: ${currentPhase}`,
+      notes: `${notes ? notes + ' | ' : ''}${feeling ? 'Como se sentiu: ' + feeling + ' | ' : ''}Tipo: ${selectedType.name} | Som: ${selectedSound.name} | Respiração: ${breathingPattern.name} | Fase Final: ${currentPhase}`,
       gps_data: {
         meditation_type: selectedType.name,
         ambient_sound: selectedSound.name,
         breathing_pattern: breathingPattern.name,
         phases_completed: phases.filter(p => p.completed).length,
-        mindfulness_score: Math.round(mindfulness),
-        relaxation_score: Math.round(relaxation),
-        focus_score: Math.round(focus),
-        stress_reduction: Math.round(stressReduction),
-        session_quality: sessionQuality,
-        breathing_cycles: Math.round(duration / (breathingPattern.inhale + breathingPattern.hold + breathingPattern.exhale + breathingPattern.pause)),
-        final_phase: currentPhase
+        final_phase: currentPhase,
+        user_notes: notes,
+        feeling_after: feeling,
+        breathing_cycles: Math.round(duration / (breathingPattern.inhale + breathingPattern.hold + breathingPattern.exhale + breathingPattern.pause))
       }
     };
     
@@ -187,73 +173,79 @@ export function ModernMeditationActivity({ onComplete, onCancel }: ModernMeditat
     }
   };
 
-  const metrics = [
-    {
-      id: 'heartrate',
-      icon: Heart,
-      label: 'Frequência Cardíaca',
-      value: Math.round(heartRate),
-      unit: 'bpm',
-      color: 'from-red-500 to-pink-600',
-      trend: (heartRate > 70 ? 'up' : 'down') as 'up' | 'down' | 'neutral',
-      trendValue: `${Math.round(heartRate - 70)} bpm`
-    },
-    {
-      id: 'mindfulness',
-      icon: Brain,
-      label: 'Mindfulness',
-      value: Math.round(mindfulness),
-      unit: '%',
-      color: 'from-blue-500 to-cyan-600',
-      trend: (mindfulness > 50 ? 'up' : 'down') as 'up' | 'down' | 'neutral',
-      trendValue: `${Math.round(mindfulness - 50)}%`
-    },
-    {
-      id: 'relaxation',
-      icon: Waves,
-      label: 'Relaxamento',
-      value: Math.round(relaxation),
-      unit: '%',
-      color: 'from-green-500 to-emerald-600',
-      trend: 'up' as 'up' | 'down' | 'neutral',
-      trendValue: `${Math.round(relaxation - 50)}%`
-    },
-    {
-      id: 'calories',
-      icon: Zap,
-      label: 'Calorias',
-      value: Math.round(calories),
-      unit: 'kcal',
-      color: 'from-orange-500 to-yellow-600',
-      trend: 'up' as 'up' | 'down' | 'neutral',
-      trendValue: `${(calories/duration*60).toFixed(0)}/min`
-    }
-  ];
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
 
   return (
-    <ModernActivityBase
-      title="Meditação"
-      icon={<Brain className="w-6 h-6 text-white" />}
-      isActive={isActive}
-      isPaused={isPaused}
-      duration={duration}
-      onStart={handleStart}
-      onPause={handlePause}
-      onStop={handleStop}
-      onBack={onCancel}
-      primaryMetric={{
-        value: Math.round(mindfulness).toLocaleString(),
-        unit: '%',
-        label: 'Nível de Mindfulness'
-      }}
-    >
-      <div className="space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 p-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <Button 
+            variant="ghost" 
+            onClick={onCancel}
+            className="text-white hover:bg-white/10"
+          >
+            ← Voltar
+          </Button>
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <Brain className="w-6 h-6" />
+            Meditação
+          </h1>
+          <div></div>
+        </div>
+
+        {/* Timer Display */}
+        {(isActive || isCompleted) && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center mb-8"
+          >
+            <PremiumCard className="p-8 bg-slate-900/50 border-slate-700">
+              <div className="flex items-center justify-center gap-4 mb-4">
+                <Clock className="w-8 h-8 text-blue-400" />
+                <div className="text-6xl font-mono font-bold text-white">
+                  {formatTime(duration)}
+                </div>
+              </div>
+              <div className="text-slate-400">Tempo de Meditação</div>
+            </PremiumCard>
+          </motion.div>
+        )}
+
+        {/* Control Buttons */}
+        {(isActive || isPaused) && !isCompleted && (
+          <div className="flex justify-center gap-4 mb-8">
+            <Button
+              onClick={handlePause}
+              variant="outline"
+              size="lg"
+              className="px-8 py-3 text-lg"
+            >
+              {isPaused ? <Play className="w-5 h-5 mr-2" /> : <Pause className="w-5 h-5 mr-2" />}
+              {isPaused ? 'Continuar' : 'Pausar'}
+            </Button>
+            <Button
+              onClick={handleStop}
+              variant="destructive"
+              size="lg"
+              className="px-8 py-3 text-lg"
+            >
+              Finalizar Meditação
+            </Button>
+          </div>
+        )}
+
         {/* Seleção de Tipo de Meditação */}
-        {!isActive && (
+        {!isActive && !isCompleted && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
+            className="space-y-6"
           >
             <h3 className="text-lg font-semibold text-white mb-4">Escolha o Tipo de Meditação</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -325,17 +317,26 @@ export function ModernMeditationActivity({ onComplete, onCancel }: ModernMeditat
                 </motion.button>
               ))}
             </div>
+
+            <div className="flex justify-center mt-8">
+              <Button
+                onClick={handleStart}
+                size="lg"
+                className="px-12 py-4 text-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                <Play className="w-6 h-6 mr-2" />
+                Iniciar Meditação
+              </Button>
+            </div>
           </motion.div>
         )}
 
-        {isActive && (
+        {/* Durante a meditação */}
+        {isActive && !isCompleted && (
           <>
-            {/* Métricas Principais */}
-            <MetricsGrid metrics={metrics} columns={4} />
-
             {/* Controle de Volume */}
             {selectedSound.sound && (
-              <PremiumCard className="p-6 bg-slate-900/50 border-slate-700">
+              <PremiumCard className="p-6 bg-slate-900/50 border-slate-700 mb-6">
                 <div className="flex items-center justify-between">
                   <h4 className="text-lg font-semibold text-white">Volume</h4>
                   <div className="flex items-center gap-2">
@@ -361,68 +362,101 @@ export function ModernMeditationActivity({ onComplete, onCancel }: ModernMeditat
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="text-lg font-semibold text-white">Fases da Meditação</h4>
+                  <div className="text-sm text-slate-400">Fase Atual: {currentPhase}</div>
                 </div>
                 
                 <div className="space-y-3">
                   {phases.map((phase, index) => (
                     <div key={index} className="flex justify-between text-sm">
                       <span className={`text-slate-400 ${phase.completed ? 'line-through' : ''}`}>{phase.name}</span>
-                      <span className="text-white">{phase.completed ? '✅' : '⏳'}</span>
+                      <span className="text-white">{phase.completed ? '✅' : index === currentPhaseIndex ? '⏳' : '⏸️'}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </PremiumCard>
-
-            {/* Estatísticas Detalhadas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <PremiumCard className="p-6 bg-slate-900/50 border-slate-700">
-                <h4 className="text-lg font-semibold text-white mb-4">Qualidade da Sessão</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Mindfulness</span>
-                    <span className="text-white">{mindfulness.toFixed(0)}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Relaxamento</span>
-                    <span className="text-white">{relaxation.toFixed(0)}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Foco</span>
-                    <span className="text-white">{focus.toFixed(0)}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Redução de Stress</span>
-                    <span className="text-white">{stressReduction.toFixed(0)}%</span>
-                  </div>
-                </div>
-              </PremiumCard>
-
-              <PremiumCard className="p-6 bg-slate-900/50 border-slate-700">
-                <h4 className="text-lg font-semibold text-white mb-4">Detalhes</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Tipo</span>
-                    <span className="text-white">{selectedType.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Som Ambiente</span>
-                    <span className="text-white">{selectedSound.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Respiração</span>
-                    <span className="text-white">{breathingPattern.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Fase Atual</span>
-                    <span className="text-white">{currentPhase}</span>
-                  </div>
-                </div>
-              </PremiumCard>
-            </div>
           </>
         )}
+
+        {/* Formulário pós-meditação */}
+        {isCompleted && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            <h3 className="text-2xl font-semibold text-white text-center mb-6">
+              🧘‍♀️ Meditação Concluída! 
+            </h3>
+            
+            <PremiumCard className="p-6 bg-slate-900/50 border-slate-700">
+              <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <Heart className="w-5 h-5 text-pink-400" />
+                Como você se sentiu após a meditação?
+              </h4>
+              <Textarea
+                placeholder="Descreva como você se sente agora... (ex: mais calmo, relaxado, focado, energizado)"
+                value={feeling}
+                onChange={(e) => setFeeling(e.target.value)}
+                className="mb-4 bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400"
+                rows={3}
+              />
+            </PremiumCard>
+
+            <PremiumCard className="p-6 bg-slate-900/50 border-slate-700">
+              <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-400" />
+                Anotações da Sessão (opcional)
+              </h4>
+              <Textarea
+                placeholder="Adicione suas anotações sobre a sessão... pensamentos, insights, observações"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="mb-4 bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400"
+                rows={4}
+              />
+            </PremiumCard>
+
+            <PremiumCard className="p-6 bg-slate-900/50 border-slate-700">
+              <h4 className="text-lg font-semibold text-white mb-4">Resumo da Sessão</h4>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Tipo:</span>
+                  <span className="text-white">{selectedType.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Duração:</span>
+                  <span className="text-white">{formatTime(duration)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Som Ambiente:</span>
+                  <span className="text-white">{selectedSound.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Respiração:</span>
+                  <span className="text-white">{breathingPattern.name}</span>
+                </div>
+              </div>
+            </PremiumCard>
+
+            <div className="flex justify-center gap-4">
+              <Button
+                variant="outline"
+                onClick={onCancel}
+                className="px-8 py-3 text-lg"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleCompleteMeditation}
+                className="px-8 py-3 text-lg bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+              >
+                Salvar Meditação
+              </Button>
+            </div>
+          </motion.div>
+        )}
       </div>
-    </ModernActivityBase>
+    </div>
   );
 }
