@@ -42,24 +42,9 @@ const data = {
       icon: Activity,
     },
     {
-      title: "Saúde",
-      url: "/health",
-      icon: Heart,
-    },
-    {
-      title: "Saúde Avançada",
-      url: "/advanced-health",
-      icon: Heart,
-    },
-    {
       title: "Sono",
       url: "/sleep",
       icon: Moon,
-    },
-    {
-      title: "IA VIVA",
-      url: "/viva",
-      icon: MessageSquare,
     },
     {
       title: "Relatórios",
