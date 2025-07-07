@@ -7,6 +7,7 @@ import { YogaActivity } from "./activities/YogaActivity";
 import { DanceActivity } from "./activities/DanceActivity";
 import { WalkingActivity } from "./activities/WalkingActivity";
 import { MeditationActivity } from "./activities/MeditationActivity";
+import { HITSActivity } from "./activities/HITSActivity";
 
 interface ActivityTimerProps {
   activityType: string;
@@ -44,6 +45,8 @@ export function ActivityTimer({ activityType, onActivityComplete, onCancel }: Ac
         return <WalkingActivity {...commonProps} />;
       case "meditation":
         return <MeditationActivity {...commonProps} />;
+      case "hits":
+        return <HITSActivity {...commonProps} />;
       default:
         return <RunningActivity {...commonProps} />;
     }

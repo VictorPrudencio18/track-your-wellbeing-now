@@ -12,7 +12,8 @@ const activities = [
   { type: "cycle", label: "Ciclismo", icon: "🚴‍♂️", description: "Velocidade, elevação, mapa" },
   { type: "walk", label: "Caminhada", icon: "🚶‍♂️", description: "Distância, ritmo casual" },
   { type: "meditation", label: "Meditação", icon: "🧠", description: "Mindfulness, concentração" },
-  { type: "pilates", label: "Pilates", icon: "🧘‍♀️", description: "Fortaleça seu core e melhore sua postura" }
+  { type: "pilates", label: "Pilates", icon: "🧘‍♀️", description: "Fortaleça seu core e melhore sua postura" },
+  { type: "hits", label: "HITS", icon: "🔥", description: "Treino intervalado de alta intensidade" }
 ];
 
 export function ActivitySelection({ onSelectActivity }: ActivitySelectionProps) {

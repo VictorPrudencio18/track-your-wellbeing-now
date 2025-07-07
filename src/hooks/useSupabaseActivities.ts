@@ -49,10 +49,11 @@ export function useCreateActivity() {
         throw new Error('Usuário não autenticado');
       }
 
-      // Calcular pontos específicos para Pilates
+      // Calcular pontos específicos para diferentes atividades
       let calculatedPoints = 0;
+      const basePoints = Math.floor(activity.duration / 60); // 1 ponto por minuto
+      
       if (activity.type === 'pilates') {
-        const basePoints = Math.floor(activity.duration / 60); // 1 ponto por minuto
         const performanceZones = activity.performance_zones as any;
         const intensityMultiplier = performanceZones?.intensity_level === 'high' ? 1.3 : 
                                   performanceZones?.intensity_level === 'low' ? 0.8 : 1.0;
@@ -60,6 +61,14 @@ export function useCreateActivity() {
                               performanceZones?.completion_rate >= 80 ? 1.1 : 1.0;
         
         calculatedPoints = Math.round(basePoints * intensityMultiplier * completionBonus * 1.1); // Pilates tem bônus de 10%
+      } else if (activity.type === 'hits') {
+        // HITS treinos são mais intensos e ganham mais pontos
+        const gpsData = activity.gps_data as any;
+        const roundsCompleted = gpsData?.completed_rounds || 1;
+        const totalRounds = gpsData?.total_rounds || 1;
+        const completionRate = roundsCompleted / totalRounds;
+        
+        calculatedPoints = Math.round(basePoints * 1.5 * completionRate * 1.2); // HITS tem bônus de 50% + 20%
       }
 
       const { data, error } = await supabase
