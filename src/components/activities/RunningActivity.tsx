@@ -1,6 +1,6 @@
 
 import { motion } from "framer-motion";
-import { PremiumGPSRunner } from "./PremiumGPSRunner";
+import { UnifiedRunningInterface } from "./UnifiedRunningInterface";
 
 interface RunningActivityProps {
   onComplete: (data: any) => void;
@@ -14,7 +14,7 @@ export function RunningActivity({ onComplete, onCancel }: RunningActivityProps) 
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <PremiumGPSRunner onComplete={onComplete} onCancel={onCancel} />
+      <UnifiedRunningInterface onComplete={onComplete} onCancel={onCancel} />
     </motion.div>
   );
 }
