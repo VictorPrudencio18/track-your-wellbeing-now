@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { ModernCyclingActivity } from './modern/ModernCyclingActivity';
+import { motion } from "framer-motion";
+import { UnifiedCyclingInterface } from "./UnifiedCyclingInterface";
 
 interface CyclingActivityProps {
   onComplete: (data: any) => void;
@@ -8,5 +8,13 @@ interface CyclingActivityProps {
 }
 
 export function CyclingActivity({ onComplete, onCancel }: CyclingActivityProps) {
-  return <ModernCyclingActivity onComplete={onComplete} onCancel={onCancel} />;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <UnifiedCyclingInterface onComplete={onComplete} onCancel={onCancel} />
+    </motion.div>
+  );
 }
