@@ -92,14 +92,6 @@ export function ModernCyclingActivity({ onComplete, onCancel }: ModernCyclingAct
       value: Math.round(elevation),
       unit: 'm',
       color: 'from-yellow-500 to-yellow-600'
-    },
-    {
-      id: 'calories',
-      icon: Zap,
-      label: 'Calorias',
-      value: calories,
-      unit: 'kcal',
-      color: 'from-red-500 to-red-600'
     }
   ];
 
@@ -153,22 +145,13 @@ export function ModernCyclingActivity({ onComplete, onCancel }: ModernCyclingAct
               </div>
               <Progress value={(distance / 20) * 100} className="h-2" />
             </div>
-            
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-slate-400">Calorias (Meta: 500kcal)</span>
-                <span className="text-white">{((calories / 500) * 100).toFixed(0)}%</span>
+              <div>
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-slate-400">Tempo (Meta: 60min)</span>
+                  <span className="text-white">{((duration / 3600) * 100).toFixed(0)}%</span>
+                </div>
+                <Progress value={(duration / 3600) * 100} className="h-2" />
               </div>
-              <Progress value={(calories / 500) * 100} className="h-2" />
-            </div>
-            
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-slate-400">Tempo (Meta: 60min)</span>
-                <span className="text-white">{((duration / 3600) * 100).toFixed(0)}%</span>
-              </div>
-              <Progress value={(duration / 3600) * 100} className="h-2" />
-            </div>
           </div>
         </PremiumCard>
       </div>

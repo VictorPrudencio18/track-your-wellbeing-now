@@ -48,46 +48,6 @@ export function CyclingMetrics({ data, gpsState, isActive, detailed = false }: C
       unit: 'm',
       gradient: 'from-yellow-500 to-yellow-600',
       textColor: 'text-yellow-400'
-    },
-    {
-      icon: Zap,
-      label: 'Calorias',
-      value: data.calories,
-      unit: 'kcal',
-      gradient: 'from-red-500 to-red-600',
-      textColor: 'text-red-400'
-    },
-    {
-      icon: Heart,
-      label: 'Frequência Cardíaca',
-      value: data.heartRate,
-      unit: 'bpm',
-      gradient: 'from-pink-500 to-pink-600',
-      textColor: 'text-pink-400'
-    },
-    {
-      icon: RotateCcw,
-      label: 'Cadência',
-      value: data.cadence || 0,
-      unit: 'rpm',
-      gradient: 'from-purple-500 to-purple-600',
-      textColor: 'text-purple-400'
-    },
-    {
-      icon: TrendingUp,
-      label: 'Velocidade Média',
-      value: formatSpeed(data.avgSpeed),
-      unit: 'km/h',
-      gradient: 'from-indigo-500 to-indigo-600',
-      textColor: 'text-indigo-400'
-    },
-    {
-      icon: Clock,
-      label: 'Ritmo Médio',
-      value: formatPace(data.avgPace),
-      unit: 'min/km',
-      gradient: 'from-teal-500 to-teal-600',
-      textColor: 'text-teal-400'
     }
   ];
 
@@ -145,29 +105,6 @@ export function CyclingMetrics({ data, gpsState, isActive, detailed = false }: C
         })}
       </div>
 
-      {/* Métricas adicionais */}
-      <div className="grid grid-cols-3 gap-3">
-        <PremiumCard glass className="p-3 text-center">
-          <div className="text-sm text-navy-400">Vel. Máxima</div>
-          <div className="text-lg font-bold text-accent-orange">
-            {formatSpeed(data.maxSpeed)} km/h
-          </div>
-        </PremiumCard>
-        
-        <PremiumCard glass className="p-3 text-center">
-          <div className="text-sm text-navy-400">FC Máxima</div>
-          <div className="text-lg font-bold text-accent-orange">
-            {data.maxHeartRate} bpm
-          </div>
-        </PremiumCard>
-        
-        <PremiumCard glass className="p-3 text-center">
-          <div className="text-sm text-navy-400">Potência</div>
-          <div className="text-lg font-bold text-accent-orange">
-            {data.power || 0} W
-          </div>
-        </PremiumCard>
-      </div>
     </div>
   );
 }
