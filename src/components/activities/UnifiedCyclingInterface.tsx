@@ -77,7 +77,7 @@ export function UnifiedCyclingInterface({ onComplete, onCancel }: UnifiedCycling
     });
   };
 
-  // Métricas principais (apenas velocidade, distância e elevação)
+  // Métricas principais (velocidade, distância, elevação e tempo)
   const mainMetrics = [
     {
       icon: Zap,
@@ -99,6 +99,13 @@ export function UnifiedCyclingInterface({ onComplete, onCancel }: UnifiedCycling
       value: `${Math.round(elevation)}m`,
       color: 'yellow',
       animate: elevation > 0
+    },
+    {
+      icon: Timer,
+      label: 'Tempo',
+      value: formatTime(duration),
+      color: 'purple',
+      animate: isActive
     }
   ];
 
@@ -107,6 +114,7 @@ export function UnifiedCyclingInterface({ onComplete, onCancel }: UnifiedCycling
       blue: 'bg-blue-500/20 border-blue-500/30 text-blue-400',
       green: 'bg-green-500/20 border-green-500/30 text-green-400',
       yellow: 'bg-yellow-500/20 border-yellow-500/30 text-yellow-400',
+      purple: 'bg-purple-500/20 border-purple-500/30 text-purple-400',
       red: 'bg-red-500/20 border-red-500/30 text-red-400'
     };
     return colorMap[color as keyof typeof colorMap] || colorMap.blue;
@@ -270,7 +278,7 @@ export function UnifiedCyclingInterface({ onComplete, onCancel }: UnifiedCycling
               className="space-y-4"
             >
               <div>
-                <h3 className="text-xl font-bold text-white mb-2">Mapa da Rota</h3>
+                <h3 className="text-xl font-bold text-white mb-2">Mapa</h3>
                 <div className="text-sm text-green-400 flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full animate-pulse bg-green-400"></div>
                   GPS Ativo - Rastreando percurso
